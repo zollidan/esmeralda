@@ -1,7 +1,6 @@
-from sqlalchemy import String
+from sqlalchemy import Boolean, Column, String
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
+import cuid 
 
 class Base(DeclarativeBase):
     pass
@@ -9,5 +8,11 @@ class Base(DeclarativeBase):
 class User(Base):
     __tablename__ = 'User'
     
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(30))
+    id = Column(String(25), primary_key=True, default=cuid.cuid)
+    name = Column(String(30))
+    email = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+    is_active = Column(Boolean, default=True)
+
+    def __repr__(self):
+        return f"User(id={self.id}, email={self.email})"
