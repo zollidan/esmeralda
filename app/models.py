@@ -1,18 +1,18 @@
-from sqlalchemy import Boolean, Column, String
+from sqlalchemy import Boolean, Column, DateTime, String
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.sql import func
 import cuid 
 
 class Base(DeclarativeBase):
     pass
 
-class User(Base):
-    __tablename__ = 'User'
+class Files(Base):
+    __tablename__ = 'Files'
     
     id = Column(String(25), primary_key=True, default=cuid.cuid)
-    name = Column(String(30))
-    email = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
-    is_active = Column(Boolean, default=True)
+    url = Column(String(255))
+    time_created = Column(DateTime(timezone=True), server_default=func.now())
+
 
     def __repr__(self):
-        return f"User(id={self.id}, email={self.email})"
+        return f"Files(id={self.id}, email={self.url})"

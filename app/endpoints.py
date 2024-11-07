@@ -2,12 +2,20 @@ from fastapi import APIRouter, Depends, HTTPException, status, APIRouter, Respon
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 import requests
-from app.models import User
+from app.config import INDEX_MESSAGE
+from app.models import Files
 from app.database import get_db
 from app.parser.soccerway.index import soccerway
 from . import schemas, models
 
 router = APIRouter()
+
+@router.get('/')
+def index_page():
+    
+    
+    
+    return INDEX_MESSAGE
 
 @router.get('/parser/soccerway')
 def run_soccerway(date: str):
@@ -26,3 +34,18 @@ def run_soccerway_test():
     print(response.status_code)
  
     return response
+
+@router.get('/files')
+def get_files():
+    return {"urls": ["url1", "url2"]}
+
+@router.post('/files/add', status_code=status.HTTP_201_CREATED)
+async def add_file(payload: schemas.FileBody, db: Session = Depends(get_db)):
+    
+    file = models.Files(url=payload.url)
+    
+    db.add(file)
+    db.commit()
+    db.refresh(file)
+  
+    return file
