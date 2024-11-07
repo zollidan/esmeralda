@@ -8,7 +8,7 @@ from art import tprint
 async def lifespan(app: FastAPI):
     print("-"* 15, "LeFort ESMERALDA 2024", "-"* 15)
     tprint('ESMERALDA')
-    create_db()
+    # create_db()
     
     yield
 

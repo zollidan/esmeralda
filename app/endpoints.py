@@ -5,7 +5,7 @@ import requests
 from app.config import INDEX_MESSAGE
 from app.models import Files
 from app.database import get_db
-from app.parser.soccerway.index import soccerway
+from app.parser.parsers_wrapper import soccerway
 from . import schemas, models
 
 router = APIRouter()
@@ -33,10 +33,11 @@ def run_soccerway_test():
 
     print(response.status_code)
  
-    return response
+    return response.status_code
 
 @router.get('/files')
 def get_files():
+    
     return {"urls": ["url1", "url2"]}
 
 @router.post('/files/add', status_code=status.HTTP_201_CREATED)
