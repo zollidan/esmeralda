@@ -18,7 +18,7 @@ def index_page():
     return INDEX_MESSAGE
 
 @router.get('/parser/soccerway')
-def run_soccerway(date: str):
+def run_soccerway_url_method(date: str):
     
     result = soccerway(date)
  
