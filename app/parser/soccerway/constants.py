@@ -1,7 +1,7 @@
 ﻿import xlwt
 
 # Режим отладки
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 # Красивые надписи
 QUITE_MODE = True
