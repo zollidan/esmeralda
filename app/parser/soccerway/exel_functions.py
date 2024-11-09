@@ -16,7 +16,7 @@ def make_header(worksheet):
 
 class ExcelManager():
 
-    def __init__(self, filename=EXEL_NAME, retry_count=MAX_COUNT_REPEAT_EXEL):
+    def __init__(self, filename, retry_count=MAX_COUNT_REPEAT_EXEL):
         self.wb = xlwt.Workbook()
         self.sheet = self.wb.add_sheet('Data')
         self.row = 0
@@ -51,13 +51,13 @@ class ExcelManager():
         k = 1
         for _ in range(self.retry):
             try:
-                self.wb.save(name + '.xls')
+                self.wb.save(name + '.xlsx')
             except:
                 if k >= MAX_COUNT_REPEAT_EXEL:
                     print("!!! Файл не сохранён !!!")
                     break
                 name += "_" + str(k)
             else:
-                print("[ Файл сохранён:", name + ".xls ]")
+                print("[ Файл сохранён:", name + ".xlsx ]")
                 break
 

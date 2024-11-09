@@ -18,10 +18,10 @@ def soccerway(time_date: str):
     
     file_name = f'soccerway-{time_date}-{str(uuid.uuid4())}.xlsx'
     
-    run_soccerway(user_date=time_date)
+    run_soccerway(user_date=time_date, my_file_name=file_name)
 
-    # send_file_record_s3(file_name)
+    send_file_record_s3(file_name)
 
-    # os.remove(file_name)
+    os.remove(file_name)
 
     return f'soccerway worked with date {time_date}' 

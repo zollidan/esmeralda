@@ -5,10 +5,12 @@ from app.parser.soccerway.exel_functions import *
 from app.parser.soccerway.parser_functions import *
 
 # Создаём мнджера для управления Excel файлом
-manager = ExcelManager()
 
 
-def run_soccerway(user_date):
+
+def run_soccerway(user_date, my_file_name):
+    
+    manager = ExcelManager(filename=my_file_name)
 
 # Получаем предел дат от пользователя
     # date_limit = get_date_limit()
