@@ -51,7 +51,7 @@ class ExcelManager():
         k = 1
         for _ in range(self.retry):
             try:
-                self.wb.save(name + '.xlsx')
+                self.wb.save(name ) # + '.xlsx'
             except:
                 if k >= MAX_COUNT_REPEAT_EXEL:
                     print("!!! Файл не сохранён !!!")
