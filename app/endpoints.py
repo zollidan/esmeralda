@@ -6,6 +6,7 @@ from app.config import INDEX_MESSAGE
 from app.models import Files
 from app.database import get_db
 from app.parser.parsers_wrapper import soccerway
+from app.parser.server_parser_funcions import get_files_s3
 from . import schemas, models
 
 router = APIRouter()
@@ -38,15 +39,18 @@ def run_soccerway_test():
 @router.get('/files')
 def get_files():
     
-    return {"urls": ["url1", "url2"]}
+    files = get_files_s3()
+    
+    
+    return {'files': files}
 
-@router.post('/files/add', status_code=status.HTTP_201_CREATED)
-async def add_file(payload: schemas.FileBody, db: Session = Depends(get_db)):
+# @router.post('/files/add', status_code=status.HTTP_201_CREATED)
+# async def add_file(payload: schemas.FileBody, db: Session = Depends(get_db)):
     
-    file = models.Files(url=payload.url)
+#     file = models.Files(url=payload.url)
     
-    db.add(file)
-    db.commit()
-    db.refresh(file)
+#     db.add(file)
+#     db.commit()
+#     db.refresh(file)
   
-    return file
+#     return file
