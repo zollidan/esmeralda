@@ -5,7 +5,7 @@ import requests
 from app.config import INDEX_MESSAGE
 from app.models import Files
 from app.database import get_db
-from app.parser.parsers_wrapper import soccerway
+from app.parser.parsers_wrapper import soccerway_wrapper
 from app.parser.server_parser_funcions import get_files_s3
 from . import schemas, models
 
@@ -21,7 +21,7 @@ def index_page():
 @router.get('/parser/soccerway')
 def run_soccerway_url_method(date: str):
     
-    result = soccerway(date)
+    result = soccerway_wrapper(date)
  
     return result
 

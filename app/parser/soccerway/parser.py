@@ -12,7 +12,7 @@ def run_soccerway(user_date, my_file_name):
     
     manager = ExcelManager(filename=my_file_name)
 
-# Получаем предел дат от пользователя
+    # Получаем предел дат от пользователя
     # date_limit = get_date_limit()
     # date_start, date_end = date_limit
     
