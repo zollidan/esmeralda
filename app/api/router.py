@@ -1,22 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, status, APIRouter, Response
-from pydantic import BaseModel
-from sqlalchemy.orm import Session
+
+
+from fastapi import APIRouter
 import requests
-from app.config import INDEX_MESSAGE
-from app.models import Files
-from app.database import get_db
+
 from app.parser.parsers_wrapper import soccerway_wrapper
 from app.parser.server_parser_funcions import get_files_s3
-from . import schemas, models
 
-router = APIRouter()
 
-@router.get('/')
-def index_page():
+router = APIRouter(prefix='/api', tags=['API'])
+
+# @router.get('/')
+# def index_page():
     
     
     
-    return INDEX_MESSAGE
+#     return INDEX_MESSAGE
 
 @router.get('/parser/soccerway')
 def run_soccerway_url_method(date: str):
