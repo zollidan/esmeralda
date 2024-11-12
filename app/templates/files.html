@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Files</title>
+  </head>
+  <body>
+    <h1>This is Files</h1>
+
+    <p>This is last file created: <a href="http://">{{last_file}}</a></p>
+
+    {% for file in files %}
+    <div>
+      <p>
+        File:
+        <a href="https://storage.yandexcloud.net/esmeralda/{{file}}"
+          >{{file}}</a
+        >
+      </p>
+    </div>
+    {% endfor %}
+    <div>
+      <a href="/">go back</a>
+    </div>
+  </body>
+</html>

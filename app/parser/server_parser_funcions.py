@@ -39,8 +39,8 @@ def get_files_s3():
     obj_list = []
     
     for key in s3.list_objects(Bucket='esmeralda')['Contents']:
-        print(key['Key'])
-        obj_list.append("https://storage.yandexcloud.net/esmeralda/" + key['Key'])
+        # print(key['Key'])
+        obj_list.append(key['Key'])
         
     return obj_list
         

@@ -8,6 +8,7 @@ from aiogram.types import Update
 from fastapi import FastAPI, Request
 from art import tprint
 from app.api.router import router
+from app.pages.router import pages_router
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -18,6 +19,7 @@ async def lifespan(app: FastAPI):
     tprint('ESMERALDA')
     # dp.include_router(tg_user_router)
     app.include_router(router)
+    app.include_router(pages_router)
     # await start_bot()
     # webhook_url = settings.get_webhook_url()
     # await bot.set_webhook(url=webhook_url,

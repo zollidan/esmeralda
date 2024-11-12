@@ -1,4 +1,6 @@
+import asyncio
 import json
+import time
 from fastapi import Depends
 from art import tprint
 import pandas as pd
@@ -13,7 +15,7 @@ from app.parser.soccerway.parser import run_soccerway
 from app.repository import create_file_record
 import uuid
 
-def soccerway_wrapper(time_date: str):
+async def soccerway_wrapper(time_date: str):
      
     
     file_name = f'soccerway-{time_date}-{str(uuid.uuid4())}.xlsx'
@@ -25,19 +27,11 @@ def soccerway_wrapper(time_date: str):
 
     #os.remove(file_name)
     
+    for i in range(30):
+        print(i)
+        await asyncio.sleep(1) 
+    
     
     """ тут отправляется сообещние в телеграм"""
     
     
-
-    return f'soccerway succsess {time_date}' 
-
-# def run_soccerway_test(user_date: str, file_name: str):
-    
-#     print(user_date)
-    
-#     df = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
-#     df.to_excel(file_name, index=False)
-    
-    
-#     print(f'run_soccerway_test {user_date}')
