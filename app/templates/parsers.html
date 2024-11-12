@@ -7,7 +7,25 @@
   </head>
   <body>
     <h1>parsers</h1>
-    <a href="/api/parser/soccerway?date=2024-10-10">Run soccerway</a>
+    <!-- <a href="/api/parser/soccerway?date=2024-10-10"></a> -->
+
+    <input
+      type="search"
+      id="searchbar"
+      placeholder="yyyy-mm-dd"
+      autocomplete="off"
+    />
+    <button id="goto">Search</button>
+    <script>
+      document.getElementById("goto").addEventListener("click", goTo);
+      function goTo() {
+        var date = document.getElementById("searchbar").value;
+
+        //тут будет регулярное выражение, чтобы валидировать данные в инпуте
+
+        window.location.href = "/api/parser/soccerway/?date=" + date;
+      }
+    </script>
     <div>
       <a href="/">go back</a>
     </div>

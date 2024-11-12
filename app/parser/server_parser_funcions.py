@@ -41,7 +41,7 @@ def get_files_s3():
     
     for item in s3.list_objects(Bucket='esmeralda')['Contents']:
         # print(item['LastModified'])
-        obj_list.append([item['Key'], item['LastModified']] )
+        obj_list.append(item['Key']) # item['LastModified']
 
     """
     сделать чтобы была сортировка
