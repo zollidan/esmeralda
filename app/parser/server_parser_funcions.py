@@ -39,9 +39,17 @@ def get_files_s3():
     
     obj_list = []
     
-    for item in s3.list_objects(Bucket='esmeralda')['Contents']:
+    """
+    
+    сделать исключение если нет файлов в бакете
+    
+    """
+    
+    for item in ['Contents']:
         # print(item['LastModified'])
         obj_list.append(item['Key']) # item['LastModified']
+
+    
 
     """
     сделать чтобы была сортировка
