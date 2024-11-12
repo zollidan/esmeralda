@@ -8,7 +8,7 @@ from app.parser.soccerway.parser_functions import *
 
 
 
-def run_soccerway(user_date, my_file_name):
+async def run_soccerway(user_date, my_file_name):
     
     manager = ExcelManager(filename=my_file_name)
 
