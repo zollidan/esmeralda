@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import boto3
 import requests
@@ -38,9 +39,14 @@ def get_files_s3():
     
     obj_list = []
     
-    for key in s3.list_objects(Bucket='esmeralda')['Contents']:
-        # print(key['Key'])
-        obj_list.append(key['Key'])
-        
+    for item in s3.list_objects(Bucket='esmeralda')['Contents']:
+        # print(item['LastModified'])
+        obj_list.append([item['Key'], item['LastModified']] )
+
+    """
+    сделать чтобы была сортировка
+    """
+    
     return obj_list
+
         

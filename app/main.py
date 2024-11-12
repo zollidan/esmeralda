@@ -1,5 +1,7 @@
 import logging
 from contextlib import asynccontextmanager
+
+import telegram
 from app.bot.create_bot import bot, dp, stop_bot, start_bot
 from app.bot.handlers.user_router import tg_user_router
 from app.config import settings
@@ -35,7 +37,6 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-
 
 
 # @app.post("/webhook")
