@@ -18,7 +18,7 @@ import uuid
 async def soccerway_wrapper(time_date: str):
      
     
-    file_name = f'soccerway-{time_date}-{str(uuid.uuid4())}.xlsx'
+    file_name = f'soccerway-{time_date}-{str(uuid.uuid4())}.xls'
     
     await run_soccerway(user_date=time_date, my_file_name=file_name)
 
