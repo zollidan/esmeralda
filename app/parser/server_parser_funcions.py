@@ -40,7 +40,7 @@ def get_files_s3():
     response = s3.list_objects(Bucket='esmeralda')
     
     if 'Contents' not in response:
-        raise Exception('Bucket is empty or does not exist.')
+        return {"error": "'Bucket is empty or does not exist.'"}
     
     files = sorted(response['Contents'], key=lambda x: x['LastModified'])
     
