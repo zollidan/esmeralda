@@ -26,8 +26,7 @@ async def get_parsers_page(request: Request):
 
 @pages_router.get('/files')
 async def get_files_page(request: Request, files=Depends(get_files)):
-    
-    last_file = files[-0]
-    
+        
+    last_file = files[-1]
     
     return templates.TemplateResponse(name='files.html', context={'request': request, "files":files, "last_file": last_file})

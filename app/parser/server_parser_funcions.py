@@ -28,33 +28,26 @@ def send_file_record_s3(file_name):
     # create_file_record = requests.post(f"http://localhost:8000/files/add", data=create_file_body)
     
 def get_files_s3():
-    
     session = boto3.session.Session()
     s3 = session.client(
         service_name='s3',
         endpoint_url='https://storage.yandexcloud.net',
         aws_access_key_id=os.getenv("AWS_ID"),
-        aws_secret_access_key=os.getenv("AWS_SECRET_KEY"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_KEY")
     )
-    
-    obj_list = []
-    
-    """
-    
-    сделать исключение если нет файлов в бакете
-    
-    """
-    
-    for item in s3.list_objects(Bucket='esmeralda')['Contents']:
-        # print(item['LastModified'])
-        obj_list.append(item['Key']) # item['LastModified']
 
-    
 
-    """
-    сделать чтобы была сортировка
-    """
+    response = s3.list_objects(Bucket='esmeralda')
+    
+    if 'Contents' not in response:
+        raise Exception('Bucket is empty or does not exist.')
+    
+    files = sorted(response['Contents'], key=lambda x: x['LastModified'])
+    
+    obj_list = [file['Key'] for file in files]
     
     return obj_list
-
-        
+    
+    # except ClientError as e:
+    #     print(f"An error occurred while listing objects: {e}")
+    #     raise
