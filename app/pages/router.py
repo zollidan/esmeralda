@@ -30,3 +30,7 @@ async def get_files_page(request: Request, files=Depends(get_files)):
     last_file = files[-1]
     
     return templates.TemplateResponse(name='files.html', context={'request': request, "files":files, "last_file": last_file})
+
+@pages_router.get('/progress')
+async def test_progress_page(request: Request):
+    return templates.TemplateResponse(name='progress.html', context={'request': request})

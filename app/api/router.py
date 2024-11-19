@@ -1,6 +1,7 @@
 import asyncio
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, WebSocket
 import requests
+from tqdm import tqdm
 
 from app.parser.parsers_wrapper import soccerway_wrapper
 from app.parser.server_parser_funcions import get_files_s3
@@ -41,6 +42,16 @@ def get_files():
 
     
     return files
+
+@router.websocket("/ws")
+async def test_websocket(websocket: WebSocket):
+    await websocket.accept()
+    
+    for i in tqdm(range(100)):
+        await asyncio.sleep(0.1)  # имитируем долгую задачу
+        await websocket.send_text(f"{i+1}%")  # отправляем прогресс клиенту
+        
+    await websocket.close()  # закрываем соединение после завершения задачи
     
 
 # @router.post('/files/add', status_code=status.HTTP_201_CREATED)
