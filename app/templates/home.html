@@ -3,15 +3,83 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Esmeralda home page</title>
+    <title>aaf-bet.com</title>
+    <!-- Подключение стилей -->
+    <style>
+      /* Общие стили */
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f9f9f9;
+        margin: 0;
+        padding: 20px;
+      }
+
+      /* Стили заголовка */
+      h1 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 40px;
+      }
+
+      /* Шапка сайта */
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Навигация */
+      nav a {
+        text-decoration: none;
+        color: #007bff;
+        padding: 10px 15px;
+        border-radius: 4px;
+        transition: all 0.3s ease-in-out;
+      }
+
+      nav a:hover {
+        background-color: #e6e6fa;
+        color: #000;
+      }
+
+      /* Статус бар */
+      .status-bar-success {
+        background-color: #28a745;
+        color: white;
+        padding: 10px;
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      .status-bar-fail {
+        background-color: #a20e1f;
+        color: white;
+        padding: 10px;
+        text-align: center;
+        margin-top: 20px;
+      }
+    </style>
   </head>
   <body>
-    <h1>home page</h1>
-    <div>
-      <a href="/files">files</a>
-    </div>
-    <div>
-      <a href="/parsers">parsers</a>
-    </div>
+    <!-- Шапка сайта -->
+    <header class="header">
+      <h1>aaf-bet.com</h1>
+      <nav>
+        <a href="/files">Files</a>
+        <a href="/parsers">Parsers</a>
+      </nav>
+    </header>
+
+    <!-- Основной контент -->
+    <main>
+      {% if status_validation.status == 200 %}
+      <div class="status-bar-success">{{status_validation.message}}</div>
+      {% else %}
+      <div class="status-bar-fail">{{status_validation.message}}</div>
+      {% endif %}
+    </main>
   </body>
 </html>
