@@ -14,7 +14,7 @@ async def get_home_page(request: Request):
     response_code = run_soccerway_test_connection()
     
     if response_code != 200:
-        connect_message = {"status": response_code, "message": "services unavalible"}
+        connect_message = {"status": response_code, "message": "services unavailable"}
     else:
         connect_message = {"status": response_code, "message": "Soccerway services are available"}
     return templates.TemplateResponse(name='home.html', context={'request': request, "status_validation": connect_message})
