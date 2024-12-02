@@ -7,12 +7,9 @@ import pandas as pd
 import os
 from sqlalchemy.orm import Session
 import requests
-
-from app import models
-from app.database import get_db
 from app.parser.server_parser_funcions import send_file_record_s3
 from app.parser.soccerway.parser import run_soccerway
-from app.repository import create_file_record
+
 import uuid
 
 async def soccerway_wrapper(time_date: str):
