@@ -7,12 +7,12 @@ from app.parser.server_parser_funcions import get_files_s3
 
 router = APIRouter(prefix='/api', tags=['API'])
 
-# @router.get('/')
-# def index_page():
+@router.get('/')
+def index_page():
     
     
     
-#     return INDEX_MESSAGE
+    return {"version": "0.0.1"}
 
 # Создаем глобальный объект цикла событий
 loop = asyncio.get_event_loop()
@@ -22,7 +22,7 @@ def run_soccerway_url_method(background_tasks: BackgroundTasks, date: str):
     
     background_tasks.add_task(soccerway_wrapper, date)
  
-    return {"message": "soccerway work started"}
+    return {"message": "soccerway work started", "status": 200}
 
 @router.get('/parser/soccerway/connection-test')
 def run_soccerway_test_connection():
@@ -31,25 +31,12 @@ def run_soccerway_test_connection():
 
     response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/131.0'})
  
-    return response.status_code
+    return {"status": response.status_code}
 
 @router.get('/files')
 def get_files():
     
     files = get_files_s3()
     
-
-    
     return files
     
-
-# @router.post('/files/add', status_code=status.HTTP_201_CREATED)
-# async def add_file(payload: schemas.FileBody, db: Session = Depends(get_db)):
-    
-#     file = models.Files(url=payload.url)
-    
-#     db.add(file)
-#     db.commit()
-#     db.refresh(file)
-  
-#     return file

@@ -6,11 +6,13 @@ from app.bot.create_bot import bot, dp, stop_bot, start_bot
 from app.bot.handlers.user_router import tg_user_router
 from app.config import settings
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from aiogram.types import Update
 from fastapi import FastAPI, Request
 from art import tprint
 from app.api.router import router
 from app.pages.router import pages_router
+
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -28,3 +30,15 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+origins = [
+    "https://aaf-bet.ru",
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)

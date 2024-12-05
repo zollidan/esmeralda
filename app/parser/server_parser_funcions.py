@@ -42,12 +42,4 @@ def get_files_s3():
     if 'Contents' not in response:
         return {"error": "'Bucket is empty or does not exist.'"}
     
-    files = sorted(response['Contents'], key=lambda x: x['LastModified'])
-    
-    obj_list = [file['Key'] for file in files]
-    
-    return obj_list
-    
-    # except ClientError as e:
-    #     print(f"An error occurred while listing objects: {e}")
-    #     raise
+    return response["Contents"]
