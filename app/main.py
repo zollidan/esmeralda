@@ -32,6 +32,7 @@ app = FastAPI(lifespan=lifespan)
 
 origins = [
     "https://aaf-bet.ru",
+    "https://www.aaf-bet.ru",
     "http://localhost:3000",
 ]
 
