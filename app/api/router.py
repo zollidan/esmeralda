@@ -1,11 +1,20 @@
 import asyncio
 from fastapi import APIRouter, BackgroundTasks
+from pydantic import BaseModel
 import requests
+
+from app.api.dao import FileDAO
 
 from app.parser.parsers_wrapper import soccerway_wrapper
 from app.parser.server_parser_funcions import get_files_s3
 
 router = APIRouter(prefix='/api', tags=['API'])
+
+class File(BaseModel):
+    name:str
+    url:str
+
+
 
 @router.get('/')
 def index_page():
@@ -39,4 +48,22 @@ def get_files():
     files = get_files_s3()
     
     return files
+    
+@router.get('/files/sql')
+async def get_files_sql():
+    
+    files = await FileDAO.find_all()
+    
+    return files
+
+@router.post('/files/sql', status_code=201)
+async def create_file_sql(file: File):
+    
+    await FileDAO.add(
+        name=file.name,
+        url=file.url
+    )
+    
+    return {"file": file}
+    
     

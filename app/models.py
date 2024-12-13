@@ -6,7 +6,8 @@ import enum
 class File(Base):
     __tablename__ = 'files'
     
-    file_id:Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    file_id: Mapped[int] = mapped_column(Integer, primary_key=True,
+                                           autoincrement=True) 
     
     name: Mapped[str] = mapped_column(String, nullable=False)
     
@@ -15,7 +16,7 @@ class File(Base):
 class User(Base):
     __tablename__ = 'user'
     
-    file_id:Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    file_id:Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     
     login: Mapped[str] = mapped_column(String, nullable=False)
     
