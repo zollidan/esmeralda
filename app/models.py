@@ -12,13 +12,13 @@ class File(Base):
     
     url: Mapped[str] = mapped_column(String, nullable=False)
     
-class User(Base):
-    __tablename__ = 'user'
+class TelegramUser(Base):
+    __tablename__ = 'telegram_user'
     
-    file_id:Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    telegram_id:Mapped[int] = mapped_column(BigInteger, primary_key=True)
     
-    login: Mapped[str] = mapped_column(String, nullable=False)
+    first_name: Mapped[str] = mapped_column(String, nullable=False)
     
-    password: Mapped[str] = mapped_column(String, nullable=False)
+    username: Mapped[str] = mapped_column(String, nullable=False)
     
     
