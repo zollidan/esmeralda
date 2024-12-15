@@ -15,14 +15,6 @@ class File(BaseModel):
     url:str
 
 
-
-@router.get('/')
-def index_page():
-    
-    
-    
-    return {"version": "0.0.1"}
-
 # Создаем глобальный объект цикла событий
 loop = asyncio.get_event_loop()
 
@@ -42,12 +34,16 @@ def run_soccerway_test_connection():
  
     return {"status": response.status_code}
 
+
+
 @router.get('/files')
 def get_files():
     
     files = get_files_s3()
     
     return files
+    
+    
     
 @router.get('/files/sql')
 async def get_files_sql():

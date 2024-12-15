@@ -7,6 +7,7 @@ import pandas as pd
 import os
 from sqlalchemy.orm import Session
 import requests
+from app.api.dao import FileDAO
 from app.parser.server_parser_funcions import send_file_record_s3
 from app.parser.soccerway.parser import run_soccerway
 
@@ -22,6 +23,13 @@ async def soccerway_wrapper(time_date: str):
     send_file_record_s3(file_name)
 
     os.remove(file_name)
+
+
+    
+    await FileDAO.add(
+        name=file_name,
+        url="https://storage.yandexcloud.net/esmeralda/" + file_name
+    )
 
     
     """ тут отправляется сообещние в телеграм"""
