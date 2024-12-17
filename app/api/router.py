@@ -2,28 +2,43 @@ import asyncio
 from fastapi import APIRouter, BackgroundTasks
 from pydantic import BaseModel
 import requests
-
+from celery import Celery
+from celery.result import AsyncResult
 from app.api.dao import FileDAO
-
+from app.parser.testparser.parser import test_parser_celery
 from app.parser.parsers_wrapper import soccerway_wrapper
 from app.parser.server_parser_funcions import get_files_s3
+from app.parser.testparser.parser import parse_data_test
 
 router = APIRouter(prefix='/api', tags=['API'])
 
 class File(BaseModel):
     name:str
     url:str
-
-
-# Создаем глобальный объект цикла событий
-loop = asyncio.get_event_loop()
-
-@router.get('/parser/soccerway')
-def run_soccerway_url_method(background_tasks: BackgroundTasks, date: str):
     
-    background_tasks.add_task(soccerway_wrapper, date)
- 
-    return {"message": "soccerway work started", "status": 200}
+# Маршрут FastAPI
+@router.post('/parser/soccerway')
+def run_soccerway_url_method(date: str):
+    task = parse_data_test.apply_async(date)  # Отправляем задачу в Celery # тестовая задача parse_data_test()
+    return {
+        "message": "soccerway work started",
+        "task_id": task.id,  # Возвращаем ID задачи для проверки статуса
+        "status": 200
+    }
+
+# Маршрут для проверки статуса задачи
+@router.get('/parser/soccerway/status/{task_id}')
+def check_task_status(task_id: str):
+    task_result = AsyncResult(task_id, app=test_parser_celery)
+    if task_result.state == 'PENDING':
+        return {"task_id": task_id, "status": "PENDING", "result": None}
+    elif task_result.state == 'SUCCESS':
+        return {"task_id": task_id, "status": "SUCCESS", "result": task_result.result}
+    elif task_result.state == 'FAILURE':
+        return {"task_id": task_id, "status": "FAILURE", "result": str(task_result.info)}
+    else:
+        return {"task_id": task_id, "status": task_result.state, "result": None}
+
 
 @router.get('/parser/soccerway/connection-test')
 def run_soccerway_test_connection():
