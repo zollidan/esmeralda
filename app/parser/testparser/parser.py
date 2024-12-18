@@ -1,4 +1,4 @@
-from app import celery_app
+from app.celery_app import celery_app
 from app.parser.testparser.parser_funcs import parser_loop
 
 from celery import Celery
