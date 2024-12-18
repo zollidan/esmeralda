@@ -6,10 +6,10 @@ from celery import Celery
 from celery.result import AsyncResult
 from app.celery_app import celery_app
 from app.api.dao import FileDAO
-from app.parser.testparser.parser import test_parser_celery
+from app.parser.testparser.parser import parse_data_test
 from app.parser.parsers_wrapper import soccerway_wrapper
 from app.parser.server_parser_funcions import get_files_s3
-from app.parser.testparser.parser import parse_data_test
+
 
 router = APIRouter(prefix='/api', tags=['API'])
 
@@ -30,7 +30,7 @@ def run_soccerway_url_method(date: str):
 # Маршрут для проверки статуса задачи
 @router.get('/parser/soccerway/status/{task_id}')
 def check_task_status(task_id: str):
-    task_result = AsyncResult(task_id, app=test_parser_celery)
+    task_result = AsyncResult(task_id, app=celery_app)
     if task_result.state == 'PENDING':
         return {"task_id": task_id, "status": "PENDING", "result": None}
     elif task_result.state == 'SUCCESS':
