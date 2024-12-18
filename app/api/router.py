@@ -4,7 +4,7 @@ from pydantic import BaseModel
 import requests
 from celery import Celery
 from celery.result import AsyncResult
-from app import celery_app
+from app.celery_app import celery_app
 from app.api.dao import FileDAO
 from app.parser.testparser.parser import test_parser_celery
 from app.parser.parsers_wrapper import soccerway_wrapper
