@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import requests
 from celery import Celery
 from celery.result import AsyncResult
+from app import celery_app
 from app.api.dao import FileDAO
 from app.parser.testparser.parser import test_parser_celery
 from app.parser.parsers_wrapper import soccerway_wrapper
@@ -19,7 +20,7 @@ class File(BaseModel):
 # Маршрут FastAPI
 @router.post('/parser/soccerway')
 def run_soccerway_url_method(date: str):
-    task = parse_data_test.apply_async(date)  # Отправляем задачу в Celery # тестовая задача parse_data_test()
+    task = parse_data_test.delay(date)  # Отправляем задачу в Celery # тестовая задача parse_data_test()
     return {
         "message": "soccerway work started",
         "task_id": task.id,  # Возвращаем ID задачи для проверки статуса
@@ -38,6 +39,32 @@ def check_task_status(task_id: str):
         return {"task_id": task_id, "status": "FAILURE", "result": str(task_result.info)}
     else:
         return {"task_id": task_id, "status": task_result.state, "result": None}
+    
+@router.get("/tasks/")
+async def get_task_statuses():
+    """
+    Возвращает список задач Celery для фронтенда.
+    
+    тут временные меры, надо будет лучше переделать
+    
+    """
+    # Получаем все задачи из backend Redis
+    task_ids = celery_app.backend.client.keys("celery-task-meta-*")
+    tasks = []
+
+    for task_id in task_ids:
+        # Извлекаем ID задачи из ключа Redis
+        clean_id = task_id.decode().replace("celery-task-meta-", "")
+        async_result = AsyncResult(clean_id, app=celery_app)
+
+        # Собираем информацию о задаче
+        tasks.append({
+            "task_id": clean_id,
+            "status": async_result.status,
+            "result": async_result.result if async_result.ready() else None,
+        })
+
+    return {"tasks": tasks}
 
 
 @router.get('/parser/soccerway/connection-test')
