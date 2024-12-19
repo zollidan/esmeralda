@@ -9,7 +9,7 @@ from app.api.dao import FileDAO
 
 from app.parser.parsers_wrapper import soccerway_wrapper
 from app.parser.server_parser_funcions import get_files_s3
-from app.tasks.parser_tasks import parse_data_task
+from app.tasks.celery_app import parse_data_task
 
 
 router = APIRouter(prefix='/api', tags=['API'])
