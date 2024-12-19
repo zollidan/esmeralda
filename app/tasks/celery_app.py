@@ -6,6 +6,7 @@ from app.parser.testparser.parser import parse_data_test
 celery_app = Celery(
     "tasks",
     broker="redis://localhost:6379/0",  # Брокер
+    backend="redis://localhost:6379/1",
 )
 
 celery_app.conf.update(
