@@ -1,15 +1,14 @@
 import asyncio
+import uuid
 from fastapi import APIRouter, BackgroundTasks
 from pydantic import BaseModel
 import requests
 from celery import Celery
 from celery.result import AsyncResult
-from app.tasks.celery_app import celery_app
+from app.tasks.celery_app import celery_app, soccerway_parser_task
 from app.api.dao import FileDAO
 
-from app.parser.parsers_wrapper import soccerway_wrapper
 from app.parser.server_parser_funcions import get_files_s3
-from app.tasks.celery_app import parse_data_task
 
 
 router = APIRouter(prefix='/api', tags=['API'])
@@ -21,7 +20,25 @@ class File(BaseModel):
 # Маршрут celery soccerway
 @router.post('/parser/soccerway')
 def run_soccerway_url_method(date: str):
-    task = parse_data_task.delay(date)  # Отправляю задачу в Celery # тестовая задача parse_data_test()
+    file_name = f'soccerway-{date}-{str(uuid.uuid4())}.xls'
+    
+    # send_file_record_s3(file_name)
+
+    # os.remove(file_name)
+
+
+    
+    # await FileDAO.add(
+    #     name=file_name,
+    #     url="https://storage.yandexcloud.net/esmeralda/" + file_name
+    # )
+    
+    task = soccerway_parser_task.delay(date)  # Отправляю задачу в Celery # тестовая задача parse_data_test()
+    
+    
+    """ тут отправляется сообещние в телеграм"""
+    
+    
     return {
         "message": "soccerway work started",
         "task_id": task.id,  # Возвращаем ID задачи для проверки статуса

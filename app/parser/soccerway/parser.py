@@ -1,5 +1,8 @@
 
 
+import os
+from app.api.dao import FileDAO
+from app.parser.server_parser_funcions import send_file_record_s3
 from app.parser.soccerway.date_functions import *
 from app.parser.soccerway.exel_functions import *
 from app.parser.soccerway.parser_functions import *
@@ -435,5 +438,16 @@ async def run_soccerway(user_date, my_file_name):
 
         # Сохранение файла
         manager.save()
+        
+        send_file_record_s3(my_file_name)
+
+        os.remove(my_file_name)
+
+
+        
+        await FileDAO.add(
+            name=my_file_name,
+            url="https://storage.yandexcloud.net/esmeralda/" + my_file_name
+        )
 
         # input("Press Enter to continue...")

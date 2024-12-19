@@ -1,5 +1,6 @@
 from celery import Celery
 
+from app.parser.soccerway.parser import run_soccerway
 from app.parser.testparser.parser import parse_data_test
 
 # Создание экземпляра Celery
@@ -21,3 +22,7 @@ celery_app.autodiscover_tasks(['app.tasks'])
 @celery_app.task
 def parse_data_task(date):
     return parse_data_test(date)
+
+@celery_app.task
+def soccerway_parser_task(user_date, my_file_name):
+    return run_soccerway(user_date, my_file_name)
