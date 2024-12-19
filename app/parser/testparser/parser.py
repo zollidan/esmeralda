@@ -1,8 +1,8 @@
-from app.celery_app import celery_app
+
 from app.parser.testparser.parser_funcs import parser_loop
 
-# Функция для выполнения через Celery
-@celery_app.task
-def parse_data_test():
+
+
+def parse_data_test(date):
     print("[Test Parser start working]")
     parser_loop()  # Здесь вызывается ваша функция парсера

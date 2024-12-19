@@ -4,12 +4,12 @@ from pydantic import BaseModel
 import requests
 from celery import Celery
 from celery.result import AsyncResult
-from app.celery_app import celery_app
+from app.tasks.celery_app import celery_app
 from app.api.dao import FileDAO
 
 from app.parser.parsers_wrapper import soccerway_wrapper
 from app.parser.server_parser_funcions import get_files_s3
-from app.parser.testparser.parser import parse_data_test
+from app.tasks.parser_tasks import parse_data_task
 
 
 router = APIRouter(prefix='/api', tags=['API'])
@@ -18,10 +18,10 @@ class File(BaseModel):
     name:str
     url:str
     
-# Маршрут FastAPI
+# Маршрут celery soccerway
 @router.post('/parser/soccerway')
 def run_soccerway_url_method(date: str):
-    task = parse_data_test.delay(date)  # Отправляем задачу в Celery # тестовая задача parse_data_test()
+    task = parse_data_task.delay(date)  # Отправляю задачу в Celery # тестовая задача parse_data_test()
     return {
         "message": "soccerway work started",
         "task_id": task.id,  # Возвращаем ID задачи для проверки статуса

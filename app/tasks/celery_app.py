@@ -7,7 +7,7 @@ celery_app = Celery(
     backend="redis://localhost:6379/1",  # Backend
 )
 
-# # Загрузка конфигурации (опционально)
+# # Загрузка конфигурации 
 # celery_app.conf.update(
 #     task_serializer="json",
 #     result_serializer="json",
