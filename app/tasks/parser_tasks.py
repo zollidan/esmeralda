@@ -1,5 +1,5 @@
 from app.parser.testparser.parser import parse_data_test
-from .celery_app import celery_app
+from app.tasks.celery_app import celery_app
 
 
 # Функция для выполнения через Celery
