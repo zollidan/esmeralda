@@ -16,4 +16,4 @@ jobs:
 
     # Сборка Docker Compose
     - name: Build Docker Compose
-      run: docker-compose build
+      run: docker compose build
