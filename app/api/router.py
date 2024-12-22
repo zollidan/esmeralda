@@ -33,7 +33,7 @@ def run_soccerway_url_method(date: str):
     #     url="https://storage.yandexcloud.net/esmeralda/" + file_name
     # )
     
-    task = soccerway_parser_task.delay(date)  # Отправляю задачу в Celery # тестовая задача parse_data_test()
+    task = soccerway_parser_task.delay(user_date=date, my_file_name=file_name)  # Отправляю задачу в Celery # тестовая задача parse_data_test()
     
     
     """ тут отправляется сообещние в телеграм"""
@@ -46,7 +46,7 @@ def run_soccerway_url_method(date: str):
     }
 
 # Маршрут для проверки статуса задачи
-@router.get('/parser/soccerway/status/{task_id}')
+@router.get('/{task_id}')
 def check_task_status(task_id: str):
     task_result = AsyncResult(task_id, app=celery_app)
     if task_result.state == 'PENDING':

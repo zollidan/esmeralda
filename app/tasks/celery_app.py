@@ -1,3 +1,4 @@
+import os
 from celery import Celery
 
 from app.parser.soccerway.parser import run_soccerway
@@ -6,9 +7,13 @@ from app.parser.testparser.parser import parse_data_test
 # Создание экземпляра Celery
 celery_app = Celery(
     "tasks",
-    broker="redis://localhost:6379/0",  # Брокер
-    backend="redis://localhost:6379/1",
+    # broker="redis://localhost:6379/0",  # Брокер
+    # backend="redis://localhost:6379/1",
 )
+
+celery_app.conf.broker_url = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379")
+celery_app.conf.result_backend = os.environ.get("CELERY_RESULT_BACKEND", "redis://localhost:6379")
+
 
 celery_app.conf.update(
     task_serializer='json',
