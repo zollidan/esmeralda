@@ -7,10 +7,13 @@ on:
     branches: ["main"]
 
 jobs:
-  build:
+  build-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Build the Docker image
-        run: docker-compose up -d --build
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # Сборка Docker Compose
+    - name: Build Docker Compose
+      run: docker-compose build
