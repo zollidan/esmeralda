@@ -1,14 +1,8 @@
-
-
 import os
-from app.api.dao import FileDAO
-from app.parser.server_parser_funcions import send_file_record_s3
 from app.parser.soccerway.date_functions import *
 from app.parser.soccerway.exel_functions import *
 from app.parser.soccerway.parser_functions import *
-
-# Создаём мнджера для управления Excel файлом
-
+from app.config import settings, s3_client
 
 
 def run_soccerway(user_date, my_file_name):
@@ -439,7 +433,7 @@ def run_soccerway(user_date, my_file_name):
         # Сохранение файла
         manager.save()
         
-        send_file_record_s3(my_file_name)
+        s3_client.upload_file(my_file_name, settings.AWS_BUCKET, my_file_name)
 
         os.remove(my_file_name)
 

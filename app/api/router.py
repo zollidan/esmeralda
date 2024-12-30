@@ -1,21 +1,13 @@
-import asyncio
 import uuid
-from fastapi import APIRouter, BackgroundTasks
-from pydantic import BaseModel
+from fastapi import APIRouter, Response
 import requests
-from celery import Celery
 from celery.result import AsyncResult
 from app.tasks.celery_app import celery_app, soccerway_parser_task
-from app.api.dao import FileDAO
-
-from app.parser.server_parser_funcions import get_files_s3
+from app.config import settings, s3_client
 
 
 router = APIRouter(prefix='/api', tags=['API'])
 
-class File(BaseModel):
-    name:str
-    url:str
     
 # Маршрут celery soccerway
 @router.post('/parser/soccerway')
@@ -26,12 +18,6 @@ def run_soccerway_url_method(date: str):
 
     # os.remove(file_name)
 
-
-    
-    # await FileDAO.add(
-    #     name=file_name,
-    #     url="https://storage.yandexcloud.net/esmeralda/" + file_name
-    # )
     
     task = soccerway_parser_task.delay(user_date=date, my_file_name=file_name)  # Отправляю задачу в Celery # тестовая задача parse_data_test()
     
@@ -98,28 +84,23 @@ def run_soccerway_test_connection():
         return {"status": "error", "status_code": response.status_code, "message": response.text}
 
 
-@router.get('/files')
-def get_files():
+@router.get('/s3/files')
+def get_all_s3_files():
     
-    files = get_files_s3()
-    
-    return files
-    
-    
-    
-@router.get('/files/sql')
-async def get_files_sql():
-    
-    files = await FileDAO.find_all()
-    
-    return files
+    return s3_client.list_objects(Bucket=settings.AWS_BUCKET)['Contents']
 
-@router.post('/files/sql', status_code=201)
-async def create_file_sql(file: File):
+
+@router.get("/s3/files/{file_id}")
+async def get_file_by_id(file_id:str):
     
-    await FileDAO.add(
-        name=file.name,
-        url=file.url
+    # Получить объект
+    get_object_response = s3_client.get_object(Bucket=settings.AWS_BUCKET,Key=file_id)
+    file_binary = get_object_response['Body'].read()
+    
+    # Получаем Content-Type из метаданных S3
+    content_type = get_object_response['ContentType']
+    
+    return Response(
+        content=file_binary,
+        media_type=content_type
     )
-    
-    return {"file": file}
