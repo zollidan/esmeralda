@@ -2,22 +2,14 @@ import uuid
 from fastapi import APIRouter, Response
 import requests
 from celery.result import AsyncResult
-from app.tasks.celery_app import celery_app, soccerway_parser_task
+from app.tasks.celery_app import celery_app, soccerway_parser_task, soccerway_old_parser_task
 from app.config import settings, s3_client
-
 
 router = APIRouter(prefix='/api', tags=['API'])
 
-    
-# Маршрут celery soccerway
 @router.post('/parser/soccerway')
 def run_soccerway_url_method(date: str):
     file_name = f'soccerway-{date}-{str(uuid.uuid4())}.xls'
-    
-    # send_file_record_s3(file_name)
-
-    # os.remove(file_name)
-
     
     task = soccerway_parser_task.delay(user_date=date, my_file_name=file_name)  # Отправляю задачу в Celery # тестовая задача parse_data_test()
     
@@ -30,6 +22,40 @@ def run_soccerway_url_method(date: str):
         "task_id": task.id,  # Возвращаем ID задачи для проверки статуса
         "status": 200
     }
+    
+@router.post('/parser/soccerway-old')
+def run_parser2_url_method(date: str):
+    file_name = f'soccerway-{date}-{str(uuid.uuid4())}.xls'
+    
+    
+    task = soccerway_old_parser_task.delay()
+    
+    
+    """ тут отправляется сообещние в телеграм"""
+    
+    
+    return {
+        "message": "parser2 work started",
+        "task_id": task.id,  # Возвращаем ID задачи для проверки статуса
+        "status": 200
+    }
+
+@router.post('/parser/marafon')
+def run_marafon_url_method():
+    try:
+        file_name = f'marafon-{str(uuid.uuid4())}.xlsx'
+
+        task =
+
+        return {
+            "message": "parser2 work started",
+            "task_id": task.id,  # Возвращаем ID задачи для проверки статуса
+            "status": 200
+        }
+    except Exception as e:
+        return {"error", e}
+
+
 
 # Маршрут для проверки статуса задачи
 @router.get('/{task_id}')
@@ -77,6 +103,19 @@ def run_soccerway_test_connection():
 
     response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/131.0'})
     
+    # Проверка на успешный ответ
+    if response.status_code == 200:
+        return {"status": "success", "data": response.json()}
+    else:
+        return {"status": "error", "status_code": response.status_code, "message": response.text}
+
+@router.get('/parser/marafon/connection-test')
+def run_marafon_test_connection():
+    url = "https://www.marathonbet.ru/su/betting/Football+-+11"
+
+    response = requests.get(url, headers={
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/131.0'})
+
     # Проверка на успешный ответ
     if response.status_code == 200:
         return {"status": "success", "data": response.json()}
