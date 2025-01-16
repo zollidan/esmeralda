@@ -16,17 +16,17 @@ app.include_router(parser_router)
 app.include_router(s3_router)
 app.include_router(tasks_router)
 
-# origins = [
-#     "https://aaf-bet.ru",
-#     "https://www.aaf-bet.ru",
-#     "http://localhost:3000",
-# ]
-#
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=origins,
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
+origins = [
+    "https://aaf-bet.ru",
+    "https://www.aaf-bet.ru",
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
