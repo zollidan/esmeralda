@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.connection_check.router import status_check_router
 from app.api.parsers.router import parser_router
