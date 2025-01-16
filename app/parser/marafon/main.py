@@ -1,38 +1,44 @@
+import os
+
 import pandas as pd
-import requests
-from bs4 import BeautifulSoup
-from parser_functions import find_game_data_and_write, find_number_of_pages, find_correct_price
-from tqdm import tqdm
-from art import tprint
 
-main_site_url = 'https://www.marathonbet.ru/su/betting/Football+-+11'
+from app.config import s3_client, settings
+from app.parser.marafon.parser_functions import *
 
-main_data = []
 
-tprint("MARAFON")
-print("Работа начинается.")
+def run_marafon_parser(file_name):
+    main_site_url = 'https://www.marathonbet.ru/su/betting/Football+-+11'
 
-for page in tqdm(range(find_number_of_pages())):
+    main_data = []
 
-    payload = {'page': page, 'pageAction': 'getPage'}
-    req = requests.get(main_site_url, params=payload)
+    # tprint("MARAFON")
+    # print("Работа начинается.")
 
-    soup = BeautifulSoup(req.json()[0]['content'], 'html.parser')
+    for page in tqdm(range(find_number_of_pages())):
 
-    league_block = soup.find_all("div", {"class": "category-container"})
+        payload = {'page': page, 'pageAction': 'getPage'}
+        req = requests.get(main_site_url, params=payload)
 
-    for league in league_block:
-        league_name = league.find("a", {"class": "category-label-link"}).text
-        games = league.find_all("div", {"class": "bg"})
+        soup = BeautifulSoup(req.json()[0]['content'], 'html.parser')
 
-        for game in games:
-            game_data = find_game_data_and_write(game, league_name)
-            main_data.append(game_data)
+        league_block = soup.find_all("div", {"class": "category-container"})
 
-#columns = ['день', 'месяц', 'год', 'команда 1', 'команда 2', 'лига', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', 'link', 'коэффициент', 'less', 'more']
+        for league in league_block:
+            league_name = league.find("a", {"class": "category-label-link"}).text
+            games = league.find_all("div", {"class": "bg"})
 
-df = pd.DataFrame(main_data)
+            for game in games:
+                game_data = find_game_data_and_write(game, league_name)
+                main_data.append(game_data)
 
-df = find_correct_price(df)
+    #columns = ['день', 'месяц', 'год', 'команда 1', 'команда 2', 'лига', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', 'link', 'коэффициент', 'less', 'more']
 
-df.to_excel('marafon.xlsx', index=False)
+    df = pd.DataFrame(main_data)
+
+    df = find_correct_price(df)
+
+    df.to_excel(file_name, index=False)
+
+    s3_client.upload_file(file_name, settings.AWS_BUCKET, file_name)
+
+    os.remove(file_name)

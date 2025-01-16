@@ -1,30 +1,32 @@
 import logging
-from contextlib import asynccontextmanager
 
-from app.config import settings
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
-from art import tprint
-from app.api.router import router
 
+from app.api.connection_check.router import status_check_router
+from app.api.parsers.router import parser_router
+from app.api.s3.router import s3_router
+from app.api.tasks.router import tasks_router
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 app = FastAPI()
 
-app.include_router(router)
+app.include_router(status_check_router)
+app.include_router(parser_router)
+app.include_router(s3_router)
+app.include_router(tasks_router)
 
-origins = [
-    "https://aaf-bet.ru",
-    "https://www.aaf-bet.ru",
-    "http://localhost:3000",
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# origins = [
+#     "https://aaf-bet.ru",
+#     "https://www.aaf-bet.ru",
+#     "http://localhost:3000",
+# ]
+#
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=origins,
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
 

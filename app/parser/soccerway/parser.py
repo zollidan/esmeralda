@@ -437,11 +437,4 @@ def run_soccerway(user_date, my_file_name):
 
         os.remove(my_file_name)
 
-
-        
-        # await FileDAO.add(
-        #     name=my_file_name,
-        #     url="https://storage.yandexcloud.net/esmeralda/" + my_file_name
-        # )
-
         # input("Press Enter to continue...")
