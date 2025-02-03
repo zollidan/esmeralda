@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     AWS_ID: str
     AWS_SECRET_KEY: str
     AWS_BUCKET: str
+    FLOWER_USER:str
+    FLOWER_PASSWORD:str
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env")
     )

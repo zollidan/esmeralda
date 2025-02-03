@@ -3,6 +3,7 @@ from celery import Celery
 
 from app.parser.marafon.main import run_marafon_parser
 from app.parser.soccerway.parser import run_soccerway
+from app.parser.soccerway_old.parser import run_soccerway_old
 
 # Создание экземпляра Celery
 celery_app = Celery(
@@ -24,6 +25,10 @@ celery_app.autodiscover_tasks(['app.tasks'])
 @celery_app.task
 def soccerway_parser_task(user_date, my_file_name):
     return run_soccerway(user_date, my_file_name)
+
+@celery_app.task
+def soccerway_old_parser_task(user_date, my_file_name):
+    return run_soccerway_old(user_date, my_file_name)
 
 @celery_app.task
 def marafon_parser_task(file_name):
