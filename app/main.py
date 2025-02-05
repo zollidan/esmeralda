@@ -1,9 +1,7 @@
 import logging
-from typing import Annotated
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import OAuth2PasswordBearer
 
 from app.api.connection_check.router import status_check_router
 from app.api.parsers.router import parser_router
@@ -22,17 +20,17 @@ app.include_router(tasks_router)
 
 app.include_router(postgresql_router)
 
-# origins = [
-#     "https://aaf-bet.ru",
-#     "https://www.aaf-bet.ru",
-#     "http://localhost:3000",
-# ]
-#
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=origins,
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
+origins = [
+    "https://aaf-bet.ru",
+    "https://www.aaf-bet.ru",
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
