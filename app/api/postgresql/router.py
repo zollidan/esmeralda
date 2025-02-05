@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
-from app.schemas import FileAddSchema
-from app.services import FileService
+from app.api.postgresql.schemas import FileAddSchema
+from app.api.postgresql.services import FileService
 
 postgresql_router = APIRouter(prefix='/api/postgresql_router', tags=['postgresql_router'])
 

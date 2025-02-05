@@ -3,7 +3,6 @@ from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.database import async_session_maker
-from app.models import File
 
 class BaseDao:
 
@@ -36,10 +35,4 @@ class BaseDao:
                     raise e
 
                 return jsonable_encoder(new_instance)
-
-
-class FileService(BaseDao):
-    model = File
-
-
 

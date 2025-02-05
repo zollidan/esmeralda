@@ -8,11 +8,14 @@ class Settings(BaseSettings):
     AWS_BUCKET: str
     FLOWER_USER:str
     FLOWER_PASSWORD:str
-    DB_HOST: str
-    DB_PORT: int
-    DB_NAME: str
-    DB_USER: str
-    DB_PASSWORD: str
+    SUPABASE_USER: str
+    SUPABASE_PASSWORD: str
+    SUPABASE_HOST: str
+    SUPABASE_PORT: str
+    SUPABASE_DBNAME: str
+    JWT_SECRET_KEY: str
+    JWT_ALGORITHM:str
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES:int
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env")
     )
@@ -26,5 +29,8 @@ s3_client = boto3.client(
 )
 
 def get_db_url():
-    return (f"postgresql+asyncpg://{settings.DB_USER}:{settings.DB_PASSWORD}@"
-            f"{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}")
+    return f"postgresql+asyncpg://{settings.SUPABASE_USER}:{settings.SUPABASE_PASSWORD}@{settings.SUPABASE_HOST}:{settings.SUPABASE_PORT}/{settings.SUPABASE_DBNAME}"
+
+
+def get_auth_data():
+    return {"secret_key": settings.JWT_SECRET_KEY, "algorithm": settings.JWT_ALGORITHM}
