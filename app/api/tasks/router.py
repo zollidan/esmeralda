@@ -1,9 +1,6 @@
 from celery.result import AsyncResult
-from fastapi import APIRouter, Request, Response
-import requests
-from requests.auth import HTTPBasicAuth
+from fastapi import APIRouter
 
-from app.config import settings
 from app.tasks.celery_app import celery_app
 
 tasks_router = APIRouter(prefix='/api/tasks', tags=['tasks'])

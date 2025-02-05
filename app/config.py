@@ -8,6 +8,11 @@ class Settings(BaseSettings):
     AWS_BUCKET: str
     FLOWER_USER:str
     FLOWER_PASSWORD:str
+    DB_HOST: str
+    DB_PORT: int
+    DB_NAME: str
+    DB_USER: str
+    DB_PASSWORD: str
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env")
     )
@@ -19,3 +24,7 @@ s3_client = boto3.client(
     aws_access_key_id=settings.AWS_ID,
     aws_secret_access_key=settings.AWS_SECRET_KEY,
 )
+
+def get_db_url():
+    return (f"postgresql+asyncpg://{settings.DB_USER}:{settings.DB_PASSWORD}@"
+            f"{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}")

@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from fastapi import Response
+
 from app.config import s3_client, settings
 
 s3_router = APIRouter(prefix='/api/s3', tags=['s3'])

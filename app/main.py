@@ -1,9 +1,13 @@
 import logging
+from typing import Annotated
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer
 
 from app.api.connection_check.router import status_check_router
 from app.api.parsers.router import parser_router
+from app.api.postgresql.router import postgresql_router
 from app.api.s3.router import s3_router
 from app.api.tasks.router import tasks_router
 
@@ -15,6 +19,8 @@ app.include_router(status_check_router)
 app.include_router(parser_router)
 app.include_router(s3_router)
 app.include_router(tasks_router)
+
+app.include_router(postgresql_router)
 
 # origins = [
 #     "https://aaf-bet.ru",
