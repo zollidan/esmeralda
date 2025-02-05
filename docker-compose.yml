@@ -25,16 +25,6 @@ services:
       - redis
   redis:
     image: redis:7
-  postgres:
-    image: postgres:latest
-    container_name: postgres
-    environment:
-      POSTGRES_USER: amin
-      POSTGRES_PASSWORD: my_super_password
-      POSTGRES_DB: fast_api
-    ports:
-      - "5433:5432"
-
   flower:
     image: mher/flower
     command: [ "celery", "flower", "-A", "app.tasks.celery_app", "--basic-auth=user:pswd"]
