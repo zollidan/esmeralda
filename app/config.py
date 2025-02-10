@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     AWS_ID: str
     AWS_SECRET_KEY: str
     AWS_BUCKET: str
+    FLOWER_URL:str
     FLOWER_USER:str
     FLOWER_PASSWORD:str
     SUPABASE_USER: str
@@ -15,6 +16,8 @@ class Settings(BaseSettings):
     SUPABASE_DBNAME: str
     JWT_SECRET_KEY: str
     JWT_ALGORITHM:str
+    JWT_USER:str
+    JWT_PASSWORD:str
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES:int
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env")

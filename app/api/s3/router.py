@@ -1,6 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi import Response
 
+from app.api.users.auth import JWTBearer
 from app.config import s3_client, settings
 
 s3_router = APIRouter(prefix='/api/s3', tags=['s3'])
@@ -16,7 +17,6 @@ async def get_file_by_id(file_id: str):
     get_object_response = s3_client.get_object(Bucket=settings.AWS_BUCKET, Key=file_id)
     file_binary = get_object_response['Body'].read()
 
-    # Получаем Content-Type из метаданных S3
     content_type = get_object_response['ContentType']
 
     return Response(

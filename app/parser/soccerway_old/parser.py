@@ -1,8 +1,7 @@
 import os
-from app.parser.soccerway.date_functions import *
+import requests
 from app.parser.soccerway.exel_functions import *
 from app.parser.soccerway.parser_functions import *
-from app.config import settings, s3_client
 
 
 def run_soccerway_old(user_date, my_file_name):
@@ -276,7 +275,7 @@ def run_soccerway_old(user_date, my_file_name):
 
                 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
                 # Домашние матчи [25]
-                max_len = min(len(home_last_25), 100)
+                max_len = min(len(home_last_25), 25)
 
                 # Запись в Exel из готовой статистики
                 manager.write(max_len)
@@ -286,7 +285,7 @@ def run_soccerway_old(user_date, my_file_name):
 
                 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
                 # Выездные матчи ПРОТИВНИКА [25]
-                max_len = min(len(away_last_25), 100)
+                max_len = min(len(away_last_25), 25)
 
                 # Запись в Exel
                 manager.write(max_len)
@@ -313,7 +312,7 @@ def run_soccerway_old(user_date, my_file_name):
 
                 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
                 # Все h2h матчи [25]
-                max_len = min(len(head_to_head['all']), 100)
+                max_len = min(len(head_to_head['all']), 25)
                 all_h2h_25 = head_to_head['all'][0:max_len]
 
                 # Получение статистики
@@ -321,20 +320,20 @@ def run_soccerway_old(user_date, my_file_name):
                 goals_all = stats_all_h2h_25['goals_all']
 
                 # Сумма голов [25]
-                summ_goals_all_25 = get_summ_from_list(goals_all, 100)
+                summ_goals_all_25 = get_summ_from_list(goals_all, 25)
 
                 # Сумма голов [3]
-                summ_goals_all_3 = get_summ_from_list(goals_all, 10)
+                summ_goals_all_3 = get_summ_from_list(goals_all, 3)
 
                 # Сумма голов [5]
                 summ_goals_all_5 = get_summ_from_list(goals_all, 5)
 
                 # Запись в Exel
-                max_len = min(len(all_h2h_25), 100)
+                max_len = min(len(all_h2h_25), 25)
                 manager.write(max_len)
                 manager.write(summ_goals_all_25)
                 #
-                max_len = min(len(all_h2h_25), 10)
+                max_len = min(len(all_h2h_25), 3)
                 manager.write(max_len)
                 manager.write(summ_goals_all_3)
                 #
@@ -345,28 +344,28 @@ def run_soccerway_old(user_date, my_file_name):
 
                 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
                 # Все матчи Команды А [25]
-                all_last_25 = get_matches_with_filter(home_team_id, match_date, 100, filter="all")
-                max_len = min(len(all_last_25), 100)
+                all_last_25 = get_matches_with_filter(home_team_id, match_date, 25, filter="all")
+                max_len = min(len(all_last_25), 25)
 
                 # Получение статистики
                 stats_all_last_25 = get_match_stats(all_last_25, home_team_id, max_len)
                 goals_home = stats_all_last_25['goals_all']
 
                 # Сумма голов команды А [25]
-                summ_goals_home_25 = get_summ_from_list(goals_home, 100)
+                summ_goals_home_25 = get_summ_from_list(goals_home, 25)
 
                 # Сумма голов [3]
-                summ_goals_home_3 = get_summ_from_list(goals_home, 10)
+                summ_goals_home_3 = get_summ_from_list(goals_home, 3)
 
                 # Сумма голов [5]
                 summ_goals_home_5 = get_summ_from_list(goals_home, 5)
 
                 # Запись в Exel
-                max_len = min(len(all_last_25), 100)
+                max_len = min(len(all_last_25), 25)
                 manager.write(max_len)
                 manager.write(summ_goals_home_25)
                 #
-                max_len = min(len(all_last_25), 10)
+                max_len = min(len(all_last_25), 3)
                 manager.write(max_len)
                 manager.write(summ_goals_home_3)
                 #
@@ -377,28 +376,28 @@ def run_soccerway_old(user_date, my_file_name):
 
                 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
                 # Все матчи Команды Б [25]
-                away_all_last_25 = get_matches_with_filter(away_team_id, match_date, 100, filter="all")
-                max_len = min(len(away_all_last_25), 100)
+                away_all_last_25 = get_matches_with_filter(away_team_id, match_date, 25, filter="all")
+                max_len = min(len(away_all_last_25), 25)
 
                 # Получение статистики
                 stats_away_all_last_25 = get_match_stats(away_all_last_25, away_team_id, max_len)
                 goals_home = stats_away_all_last_25['goals_all']
 
                 # Сумма голов команды Б [25]
-                summ_goals_home_25 = get_summ_from_list(goals_home, 100)
+                summ_goals_home_25 = get_summ_from_list(goals_home, 25)
 
                 # Сумма голов [3]
-                summ_goals_home_3 = get_summ_from_list(goals_home, 10)
+                summ_goals_home_3 = get_summ_from_list(goals_home, 3)
 
                 # Сумма голов [5]
                 summ_goals_home_5 = get_summ_from_list(goals_home, 5)
 
                 # Запись в Exel
-                max_len = min(len(away_all_last_25), 100)
+                max_len = min(len(away_all_last_25), 25)
                 manager.write(max_len)
                 manager.write(summ_goals_home_25)
                 #
-                max_len = min(len(away_all_last_25), 10)
+                max_len = min(len(away_all_last_25), 3)
                 manager.write(max_len)
                 manager.write(summ_goals_home_3)
                 #
@@ -432,8 +431,29 @@ def run_soccerway_old(user_date, my_file_name):
 
         # Сохранение файла
         manager.save()
-        
-        s3_client.upload_file(my_file_name, settings.AWS_BUCKET, my_file_name)
+
+
+        # URL вашего API
+        url = "http://localhost:8000/api/files/upload/"
+
+        # Файл, который нужно загрузить
+        file_path = my_file_name
+
+        # Заголовки
+        headers = {
+            "accept": "application/json",
+        }
+
+        # Открываем файл и отправляем его как multipart/form-data
+        with open(file_path, "rb") as file:
+            files = {
+                "file_bytes": (file_path, file)  # Имя файла, файл, MIME-тип
+            }
+            response = requests.post(url, headers=headers, files=files)
+
+        # Вывод результата
+        print(response.status_code)
+        print(response.json())
 
         os.remove(my_file_name)
 

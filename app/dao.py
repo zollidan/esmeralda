@@ -1,3 +1,4 @@
+import sqlalchemy
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
@@ -16,7 +17,7 @@ class BaseDao:
             return result.scalars().all()
 
     @classmethod
-    async def find_one_by_id_in_db(cls, data_id: int):
+    async def find_one_by_id_in_db(cls, data_id):
         async with async_session_maker() as session:
             query = select(cls.model).filter_by(id=data_id)
             result = await session.execute(query)
@@ -36,3 +37,15 @@ class BaseDao:
 
                 return jsonable_encoder(new_instance)
 
+    @classmethod
+    async def delete_by_id(cls, data_id):
+        async with async_session_maker() as session:
+            async with session.begin():
+                query = sqlalchemy.delete(cls.model).filter_by(id=data_id)
+                result = await session.execute(query)
+                try:
+                    await session.commit()
+                except SQLAlchemyError as e:
+                    await session.rollback()
+                    raise e
+                return result.rowcount

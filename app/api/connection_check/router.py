@@ -25,7 +25,7 @@ def run_marafon_test_connection():
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36'})
 
     if response.status_code == 200:
-        return {"status": response.status_code, }
+        return {"status": response.status_code}
     else:
         return {"status": "error", "status_code": response.status_code, "message": response.text}
 

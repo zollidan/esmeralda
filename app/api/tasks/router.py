@@ -1,18 +1,17 @@
-from celery.result import AsyncResult
+import requests
 from fastapi import APIRouter
+from requests.auth import HTTPBasicAuth
 
-from app.tasks.celery_app import celery_app
+from app.config import settings
 
 tasks_router = APIRouter(prefix='/api/tasks', tags=['tasks'])
 
-@tasks_router.get("/{task_id}")
+@tasks_router.get("/info/{task_id}")
 def get_task_status(task_id: str):
-    """Получение статуса и результата конкретной задачи"""
-    task_result = AsyncResult(task_id, app=celery_app)
-    return {
-        "task_id": task_id,
-        "status": task_result.status,
-        "result": task_result.result
-    }
+    response = requests.get(f"{settings.FLOWER_URL}/api/task/info/{task_id}", auth=HTTPBasicAuth(settings.FLOWER_USER, settings.FLOWER_PASSWORD))
+    return response.json()
 
-
+@tasks_router.get("/all")
+def get_flower_tasks():
+    response = requests.get(f"{settings.FLOWER_URL}/api/tasks", auth=HTTPBasicAuth(settings.FLOWER_USER, settings.FLOWER_PASSWORD))
+    return response.json()
