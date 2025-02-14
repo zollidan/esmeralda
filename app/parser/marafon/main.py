@@ -31,14 +31,14 @@ def run_marafon_parser(file_name):
                 game_data = find_game_data_and_write(game, league_name)
                 main_data.append(game_data)
 
-    #columns = ['день', 'месяц', 'год', 'команда 1', 'команда 2', 'лига', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', 'link', 'коэффициент', 'less', 'more']
+    columns = ['день', 'месяц', 'год', 'время','команда 1', 'команда 2', 'лига', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', 'link', 'коэффициент', 'less', 'more']
 
-    df = pd.DataFrame(main_data)
+    df = pd.DataFrame(main_data, columns=columns)
 
     df = find_correct_price(df)
 
     df.to_excel(file_name, index=False)
 
-    s3_client.upload_file(file_name, settings.AWS_BUCKET, file_name)
+    recored_and_upload_file(file_name)
 
     os.remove(file_name)

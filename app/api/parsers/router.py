@@ -1,6 +1,8 @@
 import uuid
+
 from fastapi import APIRouter
-from app.tasks.celery_app import celery_app, soccerway_parser_task, marafon_parser_task, soccerway_old_parser_task
+
+from app.tasks.celery_app import soccerway_parser_task, marafon_parser_task, soccerway_old_parser_task
 
 parser_router = APIRouter(prefix='/api/parser', tags=['parsers'])
 

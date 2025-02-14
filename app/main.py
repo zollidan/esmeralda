@@ -11,7 +11,6 @@ from app.api.tasks.router import tasks_router
 from app.api.users.router import user_router
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
 app = FastAPI()
 
 app.include_router(status_check_router)

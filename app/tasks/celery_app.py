@@ -1,4 +1,5 @@
 import os
+
 from celery import Celery
 
 from app.parser.marafon.main import run_marafon_parser

@@ -12,7 +12,7 @@ def run_soccerway_test_connection():
 
     # Проверка на успешный ответ
     if response.status_code == 200:
-        return {"status": response.status_code, }
+        return {"status": response.status_code}
     else:
         return {"status": "error", "status_code": response.status_code, "message": response.text}
 

@@ -1,8 +1,8 @@
 import os
-import requests
+
 from app.parser.soccerway.exel_functions import *
 from app.parser.soccerway.parser_functions import *
-
+from app.dao import recored_and_upload_file
 
 def run_soccerway_old(user_date, my_file_name):
     
@@ -432,29 +432,10 @@ def run_soccerway_old(user_date, my_file_name):
         # Сохранение файла
         manager.save()
 
-
-        # URL вашего API
-        url = "http://localhost:8000/api/files/upload/"
-
-        # Файл, который нужно загрузить
-        file_path = my_file_name
-
-        # Заголовки
-        headers = {
-            "accept": "application/json",
-        }
-
-        # Открываем файл и отправляем его как multipart/form-data
-        with open(file_path, "rb") as file:
-            files = {
-                "file_bytes": (file_path, file)  # Имя файла, файл, MIME-тип
-            }
-            response = requests.post(url, headers=headers, files=files)
-
-        # Вывод результата
-        print(response.status_code)
-        print(response.json())
+        recored_and_upload_file(my_file_name)
 
         os.remove(my_file_name)
+
+        #bot.send_message(settings.ADMIN_ID, 'Работа soccerway завершена!')
 
         # input("Press Enter to continue...")

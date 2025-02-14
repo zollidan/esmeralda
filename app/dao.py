@@ -1,3 +1,4 @@
+import requests
 import sqlalchemy
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
@@ -49,3 +50,30 @@ class BaseDao:
                     await session.rollback()
                     raise e
                 return result.rowcount
+
+
+def recored_and_upload_file(file_name):
+
+    # URL вашего API
+    url = "http://web:8000/api/files/upload/"
+
+    # Файл, который нужно загрузить
+    file_path = file_name
+
+    # Заголовки
+    headers = {
+        "accept": "application/json",
+    }
+
+    # Открываем файл и отправляем его как multipart/form-data
+    with open(file_path, "rb") as file:
+        files = {
+            "file_bytes": (file_path, file)  # Имя файла, файл, MIME-тип
+        }
+        response = requests.post(url, headers=headers, files=files)
+
+    # Вывод результата
+    print(response.status_code)
+    print(response.json())
+
+    return response.status_code
