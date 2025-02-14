@@ -2,7 +2,7 @@ import os
 
 import pandas as pd
 
-from app.config import s3_client, settings
+from app.dao import recored_and_upload_file
 from app.parser.marafon.parser_functions import *
 
 
