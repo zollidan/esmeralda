@@ -31,7 +31,7 @@ def run_marafon_parser(file_name):
                 game_data = find_game_data_and_write(game, league_name)
                 main_data.append(game_data)
 
-    columns = ['день', 'месяц', 'год', 'время','команда 1', 'команда 2', 'лига', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', 'link', 'коэффициент', 'less', 'more']
+    columns = ['день', 'месяц', 'год', 'время','команда 1', 'команда 2', 'лига', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', 'link']
 
     df = pd.DataFrame(main_data, columns=columns)
 
