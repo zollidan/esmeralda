@@ -5,6 +5,10 @@ import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+}
+
 def write_prices_to_list(game_data, prices):
     for price_number in range(len(prices)):
 
@@ -61,7 +65,9 @@ def find_number_of_pages():
     next_page = True
     while next_page:
         payload = {'page': page_counter, 'pageAction': 'getPage'}
-        req = requests.get(main_site_url, params=payload)
+        req = requests.get(main_site_url, params=payload, headers=headers)
+        print(req.status_code)
+        print(req.text)
         if req.json()[1]['val']:
             page_counter += 1
         else:
@@ -74,7 +80,7 @@ def find_correct_price(df):
         if value and float(value) != 2.5:
             new_prices_list = []
 
-            req = requests.get(game_url)
+            req = requests.get(game_url, headers=headers)
 
             soup = BeautifulSoup(req.text, 'html.parser')
 
