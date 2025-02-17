@@ -1,4 +1,5 @@
 import re
+import time
 from datetime import datetime
 
 import requests
@@ -64,6 +65,7 @@ def find_number_of_pages():
     page_counter = 0
     next_page = True
     while next_page:
+        time.sleep(5)
         payload = {'page': page_counter, 'pageAction': 'getPage'}
         req = requests.get(main_site_url, params=payload, headers=headers)
         print(req.status_code)

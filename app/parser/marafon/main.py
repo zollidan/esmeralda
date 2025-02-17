@@ -1,14 +1,18 @@
 import os
 
 import pandas as pd
-
+from fake_useragent import UserAgent
 from app.dao import recored_and_upload_file
 from app.parser.marafon.parser_functions import *
 
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
-}
+# Генератор случайных User-Agent
+ua = UserAgent()
 
+headers = {
+    'User-Agent': ua.random,
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.5',
+}
 
 def run_marafon_parser(file_name):
     main_site_url = 'https://www.marathonbet.ru/su/betting/Football+-+11'
