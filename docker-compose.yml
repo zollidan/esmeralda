@@ -8,10 +8,11 @@ services:
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
-    ports:
-      - "8000:8000"
+    networks:
+      - mynetwork
     depends_on:
       - redis
+
   worker:
     build: .
     command: celery -A app.tasks.celery_app worker --loglevel=info
@@ -20,11 +21,17 @@ services:
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    networks:
+      - mynetwork
     depends_on:
       - web
       - redis
+
   redis:
     image: redis:7
+    networks:
+      - mynetwork
+
   flower:
     image: mher/flower
     command: [ "celery", "flower", "-A", "app.tasks.celery_app", '--address=0.0.0.0']
@@ -34,6 +41,8 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - FLOWER_PORT=5555
       - FLOWER_UNAUTHENTICATED_API=true
+    networks:
+      - mynetwork
     depends_on:
       - web
       - redis
@@ -50,6 +59,9 @@ services:
       - ./certbot/conf:/etc/letsencrypt
     depends_on:
       - web
+    networks:
+      - mynetwork
+
   certbot:
     image: certbot/certbot
     container_name: certbot
@@ -58,3 +70,9 @@ services:
       - ./certbot/conf:/etc/letsencrypt
     depends_on:
       - nginx
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
