@@ -28,14 +28,9 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_LOGIN }}
           password: ${{ secrets.DOCKER_PWD }}
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+          
+      - name: Build Docker Compose images
+        run: docker-compose build
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          push: true
-          tags: dlzleskkkkkkk/esmeralda_web:latest
+      - name: Push Docker Compose images
+        run: docker-compose push
