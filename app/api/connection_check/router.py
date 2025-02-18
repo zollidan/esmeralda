@@ -1,5 +1,6 @@
 import requests
 from fastapi import APIRouter
+from fake_useragent import UserAgent
 
 status_check_router = APIRouter(prefix='/api/connection-test', tags=['connection-test'])
 
@@ -10,23 +11,25 @@ def run_soccerway_test_connection():
     response = requests.get(url, headers={
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/131.0'})
 
-    # Проверка на успешный ответ
     if response.status_code == 200:
         return {"status": response.status_code}
     else:
-        return {"status": "error", "status_code": response.status_code, "message": response.text}
+        return {"status": response.status_code, "message": response.text}
 
 
 @status_check_router.get('/marafon')
 def run_marafon_test_connection():
+    
+    ua = UserAgent()
+    
     url = "https://www.marathonbet.ru/su/betting/Football+-+11?page=0&pageAction=getPage"
 
     response = requests.get(url, headers={
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36'})
+        'User-Agent': ua.random})
 
     if response.status_code == 200:
         return {"status": response.status_code}
     else:
-        return {"status": "error", "status_code": response.status_code, "message": response.text}
+        return {"status": response.status_code, "message": response.text}
 
 

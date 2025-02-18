@@ -14,7 +14,7 @@ async def get_all_files():
 @files_router.get("/{data_id}")
 async def get_file_by_id(data_id: str):
 
-    file = FileService.find_one_by_id_in_db(data_id)
+    file = await FileService.find_one_by_id_in_db(data_id)
 
     return file
 
