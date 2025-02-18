@@ -28,9 +28,9 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_LOGIN }}
           password: ${{ secrets.DOCKER_PWD }}
-          
+
       - name: Build Docker Compose images
-        run: docker-compose build
+        run: docker compose build
 
       - name: Push Docker Compose images
-        run: docker-compose push
+        run: docker compose push
