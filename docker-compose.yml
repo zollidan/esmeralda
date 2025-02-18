@@ -1,6 +1,7 @@
 version: "3.8"
 services:
   web:
+    image: dlzleskkkkkkk/esmeralda_web:latest
     build: .
     command: uvicorn app.main:app --proxy-headers --host 0.0.0.0 --port 8000
     volumes:
@@ -14,6 +15,7 @@ services:
       - redis
 
   worker:
+    image: dlzleskkkkkkk/esmeralda_worker:latest
     build: .
     command: celery -A app.tasks.celery_app worker --loglevel=info
     volumes:
@@ -34,7 +36,8 @@ services:
 
   flower:
     image: mher/flower
-    command: [ "celery", "flower", "-A", "app.tasks.celery_app", '--address=0.0.0.0']
+    command:
+      ["celery", "flower", "-A", "app.tasks.celery_app", "--address=0.0.0.0"]
     ports:
       - "5555:5555"
     environment:
