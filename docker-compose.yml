@@ -1,81 +1,99 @@
-version: "3.8"
 services:
-  web:
-    image: dlzleskkkkkkk/esmeralda_web:latest
-    build: .
-    command: uvicorn app.main:app --proxy-headers --host 0.0.0.0 --port 8000
-    volumes:
-      - .:/code
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-    networks:
-      - mynetwork
-    depends_on:
-      - redis
-
-  worker:
-    image: dlzleskkkkkkk/esmeralda_worker:latest
-    build: .
-    command: celery -A app.tasks.celery_app worker --loglevel=info
-    volumes:
-      - .:/code
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-    networks:
-      - mynetwork
-    depends_on:
-      - web
-      - redis
-
+  # postgres:
+  #   image: postgres:15
+  #   container_name: online-spy-postgres
+  #   restart: always
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   networks:
+  #     - network1
+<<<<<<< HEAD
   redis:
     image: redis:7
-    networks:
-      - mynetwork
+    ports:
+      - "6379:6379"
 
+  web:
+    build: .
+    container_name: fastapi_app
+    command: uv run uvicorn main:app --host 0.0.0.0 --port 8000
+    expose:
+      - 8000
+    ports:
+        - "8000:8000"
+    labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.web.rule=Host(`api.localhost`)"
+        - "traefik.http.routers.web.entrypoints=web"
+        - "traefik.http.services.web.loadbalancer.server.port=8000"
+    depends_on:
+      - minio
+
+  celery:
+    build: .
+    container_name: celery_worker
+    command: uv run celery -A tasks worker --loglevel=info
+    depends_on:
+      - redis
+  
   flower:
     image: mher/flower
-    command:
-      ["celery", "flower", "-A", "app.tasks.celery_app", "--address=0.0.0.0"]
-    ports:
-      - "5555:5555"
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - FLOWER_PORT=5555
-      - FLOWER_UNAUTHENTICATED_API=true
-    networks:
-      - mynetwork
+    command: celery flower -A tasks --port=5555
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.flower.rule=Host(`flower.localhost`)"
+      - "traefik.http.routers.flower.entrypoints=web"
+      - "traefik.http.services.flower.loadbalancer.server.port=5555"
     depends_on:
-      - web
-      - redis
+      - celery
+=======
+>>>>>>> bcf539546fbd8937c9123a805765e1bfd4ff5b7f
 
-  nginx:
-    image: nginx:latest
-    container_name: nginx
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+<<<<<<< HEAD
+      - "9001:9001"
+    env_file:
+      - .env
+    labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.web.rule=Host(`cdn.localhost`)"
+        - "traefik.http.routers.web.entrypoints=web"
+        - "traefik.http.services.web.loadbalancer.server.port=9000"
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+
+  traefik:
+    image: "traefik:v3.3"
+    container_name: "traefik"
+    command:
+      #- "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entryPoints.web.address=:80"
     ports:
       - "80:80"
-      - "443:443"
+      - "8080:8080"
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./certbot/www:/var/www/certbot
-      - ./certbot/conf:/etc/letsencrypt
-    depends_on:
-      - web
-    networks:
-      - mynetwork
-
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+=======
+      - "9000:9000"
+      - "9001:9001"
+    env_file:
+      - .env
     volumes:
-      - ./certbot/www:/var/www/certbot
-      - ./certbot/conf:/etc/letsencrypt
-    depends_on:
-      - nginx
-    networks:
-      - mynetwork
+      - minio-data:/data
+    command: server /data --console-address ":9001"
 
-networks:
-  mynetwork:
-    driver: bridge
+>>>>>>> bcf539546fbd8937c9123a805765e1bfd4ff5b7f
+volumes:
+  postgres_data:
+  minio-data:

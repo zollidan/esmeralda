@@ -1,10 +1,13 @@
 /venv
-/**/__pycache__
+__pycache__
 /**.xlsx
 .env
 
 db.sqlite3
+database.db
+.venv
 
 .idea
 
 .vs
+uv.lock
