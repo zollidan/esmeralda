@@ -13,6 +13,6 @@ WORKDIR /app
 
 ADD . /app
 
-RUN uv sync --frozen --no-cache
+RUN uv lock && uv sync --frozen --no-cache
 
 CMD ["uv", "run", "uvicorn", "main:app", "--port", "80", "--host", "0.0.0.0"]

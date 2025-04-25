@@ -6,24 +6,15 @@ from fastapi.responses import StreamingResponse
 from minio import Minio, S3Error
 from pydantic_settings import BaseSettings
 from sqlmodel import Field, Session, SQLModel, create_engine, select
-<<<<<<< HEAD
 from celery.result import AsyncResult
-=======
->>>>>>> bcf539546fbd8937c9123a805765e1bfd4ff5b7f
 
 BUCKET_NAME = "esmeralda"
 
 # class Settings(BaseSettings):
 #     pass
 
-<<<<<<< HEAD
 s3_client = Minio(
     "minio:9000",
-=======
-
-s3_client = Minio(
-    "localhost:9000",
->>>>>>> bcf539546fbd8937c9123a805765e1bfd4ff5b7f
     access_key="admin",
     secret_key="adminpassword123",
     secure=False
@@ -51,13 +42,10 @@ async def lifespan(app: FastAPI):
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 app = FastAPI(lifespan=lifespan)
 
-<<<<<<< HEAD
 @app.get("/hello/world")
 def index():
     return {"version": "0.0.1"}
 
-=======
->>>>>>> bcf539546fbd8937c9123a805765e1bfd4ff5b7f
 @app.post("/api/files/")
 def create_file(file: File):
     with Session(engine) as session:
@@ -103,7 +91,6 @@ def delete_file(id: UUID):
         session.commit()
         return {"ok": True}
 
-<<<<<<< HEAD
 @app.post("/api/run/soccerway1")
 def run_soccerway():
     from tasks import run_soccerway_1
@@ -120,5 +107,3 @@ async def get_task_status(task_id: str):
         "status": result.status,
         "result": result.result if result.ready() else None
     }
-=======
->>>>>>> bcf539546fbd8937c9123a805765e1bfd4ff5b7f

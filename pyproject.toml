@@ -5,18 +5,10 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-<<<<<<< HEAD
     "celery>=5.5.1",
     "fastapi[standard]>=0.115.12",
     "minio>=7.2.15",
     "pydantic-settings>=2.9.1",
     "redis>=5.2.1",
-=======
-    "cuid>=0.4",
-    "fastapi[standard]>=0.115.12",
-    "minio>=7.2.15",
-    "pydantic-settings>=2.9.1",
-    "sqlalchemy>=2.0.40",
->>>>>>> bcf539546fbd8937c9123a805765e1bfd4ff5b7f
     "sqlmodel>=0.0.24",
 ]

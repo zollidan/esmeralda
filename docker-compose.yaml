@@ -20,12 +20,26 @@ services:
     build: .
     container_name: fastapi_app
     command: uv run uvicorn main:app --host 0.0.0.0 --port 8000
-    expose:
-      - 8000
-    ports:
-      - "8000:8000"
+    # expose:
+    #   - 8000
+    # ports:
+    #   - "8000:8000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web.entrypoints=http"
+      - "traefik.http.routers.web.rule=Host(`api.aaf-bet.ru`)"
+      - "traefik.http.middlewares.web-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.web.middlewares=web-https-redirect"
+      - "traefik.http.routers.web-secure.entrypoints=https"
+      - "traefik.http.routers.web-secure.rule=Host(`api.aaf-bet.ru`)"
+      - "traefik.http.routers.web-secure.tls=true"
+      - "traefik.http.routers.web-secure.service=web"
+      - "traefik.http.services.web.loadbalancer.server.port=8000"
+      - "traefik.docker.network=proxy"
     depends_on:
       - minio
+    networks:
+      proxy:
 
   # celery:
   #   build: .
@@ -43,13 +57,25 @@ services:
   minio:
     image: minio/minio:latest
     container_name: minio
-    ports:
-      - "9001:9001"
     env_file:
       - .env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.minio.entrypoints=http"
+      - "traefik.http.routers.minio.rule=Host(`cdn.aaf-bet.ru`)"
+      - "traefik.http.middlewares.minio-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.minio.middlewares=minio-https-redirect"
+      - "traefik.http.routers.minio-secure.entrypoints=https"
+      - "traefik.http.routers.minio-secure.rule=Host(`cdn.aaf-bet.ru`)"
+      - "traefik.http.routers.minio-secure.tls=true"
+      - "traefik.http.routers.minio-secure.service=minio"
+      - "traefik.http.services.minio.loadbalancer.server.port=9001"
+      - "traefik.docker.network=proxy"
     volumes:
       - minio-data:/data
     command: server /data --console-address ":9001"
+    networks:
+      proxy:
 
   traefik:
     image: traefik:latest
@@ -68,15 +94,15 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik/traefik.yaml:/traefik.yaml:ro
+      - ./traefik/traefik.yml:/traefik.yml:ro
       - ./traefik/acme.json:/acme.json
-      - ./traefik/config.yaml:/config.yaml:ro
+      - ./traefik/config.yml:/config.yml:ro
       - ./traefik/logs:/var/log/traefik
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik.entrypoints=http"
       - "traefik.http.routers.traefik.rule=Host(`traefik.aaf-bet.ru`)"
-      - "traefik.http.middlewares.traefik-auth.basicauth.users=admin:password12345"
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=admin:$$2y$$05$$y79.t051zOe1/5CgVPP2JeFB5rLBgobTeCwb.YTpfwA/xx7ETpz6W"
       - "traefik.http.middlewares.traefik-https-redirect.redirectscheme.scheme=https"
       - "traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https"
       - "traefik.http.routers.traefik.middlewares=traefik-https-redirect"

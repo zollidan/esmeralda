@@ -1,0 +1,117 @@
+2025-04-25T14:26:56Z INF Traefik version 3.3.6 built on 2025-04-18T09:18:47Z version=3.3.6
+2025-04-25T14:26:56Z INF 
+Stats collection is disabled.
+Help us improve Traefik by turning this feature on :)
+More details on: https://doc.traefik.io/traefik/contributing/data-collection/
+
+2025-04-25T14:26:56Z INF Starting provider aggregator *aggregator.ProviderAggregator
+2025-04-25T14:26:56Z INF Starting provider *file.Provider
+2025-04-25T14:26:56Z INF Starting provider *traefik.Provider
+2025-04-25T14:26:56Z INF Starting provider *docker.Provider
+2025-04-25T14:26:56Z INF Starting provider *acme.ChallengeTLSALPN
+2025-04-25T14:26:56Z INF Starting provider *acme.Provider
+2025-04-25T14:26:56Z INF Testing certificate renew... acmeCA=https://acme-v02.api.letsencrypt.org/directory providerName=cloudflare.acme
+2025-04-25T14:28:15Z INF I have to go...
+2025-04-25T14:28:15Z INF Stopping server gracefully
+2025-04-25T14:28:15Z ERR error="accept tcp [::]:443: use of closed network connection" entryPointName=https
+2025-04-25T14:28:15Z ERR Error while starting server error="accept tcp [::]:443: use of closed network connection" entryPointName=https
+2025-04-25T14:28:15Z ERR error="accept tcp [::]:80: use of closed network connection" entryPointName=http
+2025-04-25T14:28:15Z ERR Error while starting server error="accept tcp [::]:80: use of closed network connection" entryPointName=http
+2025-04-25T14:28:25Z INF Server stopped
+2025-04-25T14:28:25Z INF Shutting down
+2025-04-25T14:32:32Z INF Traefik version 3.3.6 built on 2025-04-18T09:18:47Z version=3.3.6
+2025-04-25T14:32:32Z INF 
+Stats collection is disabled.
+Help us improve Traefik by turning this feature on :)
+More details on: https://doc.traefik.io/traefik/contributing/data-collection/
+
+2025-04-25T14:32:32Z INF Starting provider aggregator *aggregator.ProviderAggregator
+2025-04-25T14:32:32Z INF Starting provider *file.Provider
+2025-04-25T14:32:32Z INF Starting provider *traefik.Provider
+2025-04-25T14:32:32Z INF Starting provider *docker.Provider
+2025-04-25T14:32:32Z INF Starting provider *acme.ChallengeTLSALPN
+2025-04-25T14:32:32Z INF Starting provider *acme.Provider
+2025-04-25T14:32:32Z INF Testing certificate renew... acmeCA=https://acme-v02.api.letsencrypt.org/directory providerName=cloudflare.acme
+2025-04-25T14:48:48Z WRN Could not find network named "proxy" for container "/fastapi_app". Maybe you're missing the project's prefix in the label? container=web-esmeralda-0b8fb3e39f170fb49434f7c6bcbbcd30488d740d7344d36c00c2e5c55ed3155a providerName=docker serviceName=portainer
+2025-04-25T14:48:48Z WRN Defaulting to first available network (&{"esmeralda_default" "172.18.0.4" '\x00' "" "75d5f431ffe910e4d0c284a8744a8e77ae8dfd4b182fef19eaca2b9d33f11c71"}) for container "/fastapi_app". container=web-esmeralda-0b8fb3e39f170fb49434f7c6bcbbcd30488d740d7344d36c00c2e5c55ed3155a providerName=docker serviceName=portainer
+2025-04-25T14:51:16Z INF I have to go...
+2025-04-25T14:51:16Z INF Stopping server gracefully
+2025-04-25T14:51:16Z ERR error="accept tcp [::]:80: use of closed network connection" entryPointName=http
+2025-04-25T14:51:16Z ERR Error while starting server error="accept tcp [::]:80: use of closed network connection" entryPointName=http
+2025-04-25T14:51:16Z ERR error="accept tcp [::]:443: use of closed network connection" entryPointName=https
+2025-04-25T14:51:16Z WRN Could not find network named "proxy" for container "/fastapi_app". Maybe you're missing the project's prefix in the label? container=web-esmeralda-0b8fb3e39f170fb49434f7c6bcbbcd30488d740d7344d36c00c2e5c55ed3155a providerName=docker serviceName=portainer
+2025-04-25T14:51:16Z WRN Defaulting to first available network (&{"esmeralda_default" "172.18.0.4" '\x00' "" "75d5f431ffe910e4d0c284a8744a8e77ae8dfd4b182fef19eaca2b9d33f11c71"}) for container "/fastapi_app". container=web-esmeralda-0b8fb3e39f170fb49434f7c6bcbbcd30488d740d7344d36c00c2e5c55ed3155a providerName=docker serviceName=portainer
+2025-04-25T14:51:16Z ERR error="close tcp [::]:443: use of closed network connection" entryPointName=https
+2025-04-25T14:51:17Z INF Server stopped
+2025-04-25T14:51:17Z INF Shutting down
+2025-04-25T14:53:39Z INF Traefik version 3.3.6 built on 2025-04-18T09:18:47Z version=3.3.6
+2025-04-25T14:53:39Z INF 
+Stats collection is disabled.
+Help us improve Traefik by turning this feature on :)
+More details on: https://doc.traefik.io/traefik/contributing/data-collection/
+
+2025-04-25T14:53:39Z INF Starting provider aggregator *aggregator.ProviderAggregator
+2025-04-25T14:53:39Z INF Starting provider *file.Provider
+2025-04-25T14:53:39Z INF Starting provider *traefik.Provider
+2025-04-25T14:53:39Z INF Starting provider *docker.Provider
+2025-04-25T14:53:39Z INF Starting provider *acme.ChallengeTLSALPN
+2025-04-25T14:53:39Z INF Starting provider *acme.Provider
+2025-04-25T14:53:39Z INF Testing certificate renew... acmeCA=https://acme-v02.api.letsencrypt.org/directory providerName=cloudflare.acme
+2025-04-25T14:53:39Z WRN Could not find network named "proxy" for container "/fastapi_app". Maybe you're missing the project's prefix in the label? container=web-esmeralda-88c41926ccb5b2a55c8d27ca554310f2ab044bd347c73f221a6996d343241b15 providerName=docker serviceName=web
+2025-04-25T14:53:39Z WRN Defaulting to first available network (&{"esmeralda_default" "172.18.0.4" '\x00' "" "543fbb49e6fd935eacfe42274dbfedaed27b7016ed722d81bd597231056acb4a"}) for container "/fastapi_app". container=web-esmeralda-88c41926ccb5b2a55c8d27ca554310f2ab044bd347c73f221a6996d343241b15 providerName=docker serviceName=web
+2025-04-25T14:53:39Z WRN Could not find network named "proxy" for container "/minio". Maybe you're missing the project's prefix in the label? container=minio-esmeralda-f791faf9bc23619dc7f92df83af08c37fa000a6ed1889c3e896b545c0a1a9fd5 providerName=docker serviceName=minio
+2025-04-25T14:53:39Z WRN Defaulting to first available network (&{"esmeralda_default" "172.18.0.3" '\x00' "" "543fbb49e6fd935eacfe42274dbfedaed27b7016ed722d81bd597231056acb4a"}) for container "/minio". container=minio-esmeralda-f791faf9bc23619dc7f92df83af08c37fa000a6ed1889c3e896b545c0a1a9fd5 providerName=docker serviceName=minio
+2025-04-25T14:58:14Z INF I have to go...
+2025-04-25T14:58:14Z INF Stopping server gracefully
+2025-04-25T14:58:14Z ERR error="accept tcp [::]:443: use of closed network connection" entryPointName=https
+2025-04-25T14:58:14Z ERR Error while starting server error="accept tcp [::]:443: use of closed network connection" entryPointName=https
+2025-04-25T14:58:14Z ERR error="accept tcp [::]:80: use of closed network connection" entryPointName=http
+2025-04-25T14:58:14Z ERR Error while starting server error="accept tcp [::]:80: use of closed network connection" entryPointName=http
+2025-04-25T14:58:14Z WRN Could not find network named "proxy" for container "/fastapi_app". Maybe you're missing the project's prefix in the label? container=web-esmeralda-88c41926ccb5b2a55c8d27ca554310f2ab044bd347c73f221a6996d343241b15 providerName=docker serviceName=web
+2025-04-25T14:58:14Z WRN Defaulting to first available network (&{"esmeralda_default" "172.18.0.4" '\x00' "" "543fbb49e6fd935eacfe42274dbfedaed27b7016ed722d81bd597231056acb4a"}) for container "/fastapi_app". container=web-esmeralda-88c41926ccb5b2a55c8d27ca554310f2ab044bd347c73f221a6996d343241b15 providerName=docker serviceName=web
+2025-04-25T14:58:14Z WRN Could not find network named "proxy" for container "/minio". Maybe you're missing the project's prefix in the label? container=minio-esmeralda-f791faf9bc23619dc7f92df83af08c37fa000a6ed1889c3e896b545c0a1a9fd5 providerName=docker serviceName=minio
+2025-04-25T14:58:14Z WRN Defaulting to first available network (&{"esmeralda_default" "172.18.0.3" '\x00' "" "543fbb49e6fd935eacfe42274dbfedaed27b7016ed722d81bd597231056acb4a"}) for container "/minio". container=minio-esmeralda-f791faf9bc23619dc7f92df83af08c37fa000a6ed1889c3e896b545c0a1a9fd5 providerName=docker serviceName=minio
+2025-04-25T14:58:14Z WRN Could not find network named "proxy" for container "/minio". Maybe you're missing the project's prefix in the label? container=minio-esmeralda-f791faf9bc23619dc7f92df83af08c37fa000a6ed1889c3e896b545c0a1a9fd5 providerName=docker serviceName=minio
+2025-04-25T14:58:14Z WRN Defaulting to first available network (&{"esmeralda_default" "172.18.0.3" '\x00' "" "543fbb49e6fd935eacfe42274dbfedaed27b7016ed722d81bd597231056acb4a"}) for container "/minio". container=minio-esmeralda-f791faf9bc23619dc7f92df83af08c37fa000a6ed1889c3e896b545c0a1a9fd5 providerName=docker serviceName=minio
+2025-04-25T14:58:15Z INF Server stopped
+2025-04-25T14:58:15Z INF Shutting down
+2025-04-25T14:58:28Z INF Traefik version 3.3.6 built on 2025-04-18T09:18:47Z version=3.3.6
+2025-04-25T14:58:28Z INF 
+Stats collection is disabled.
+Help us improve Traefik by turning this feature on :)
+More details on: https://doc.traefik.io/traefik/contributing/data-collection/
+
+2025-04-25T14:58:28Z INF Starting provider aggregator *aggregator.ProviderAggregator
+2025-04-25T14:58:28Z INF Starting provider *file.Provider
+2025-04-25T14:58:28Z INF Starting provider *traefik.Provider
+2025-04-25T14:58:28Z INF Starting provider *docker.Provider
+2025-04-25T14:58:28Z INF Starting provider *acme.ChallengeTLSALPN
+2025-04-25T14:58:28Z INF Starting provider *acme.Provider
+2025-04-25T14:58:28Z INF Testing certificate renew... acmeCA=https://acme-v02.api.letsencrypt.org/directory providerName=cloudflare.acme
+2025-04-25T14:58:29Z WRN Could not find network named "proxy" for container "/minio". Maybe you're missing the project's prefix in the label? container=minio-esmeralda-c6425c19e0b06bf756f4240e7899ca2fd7906f5c0b2579c5573cfd9384c87a5a providerName=docker serviceName=minio
+2025-04-25T14:58:29Z WRN Defaulting to first available network (&{"esmeralda_default" "172.18.0.2" '\x00' "" "0663039a47dd2b3066af54123a667c1d68d6ba251a82f20e2ce7bfcb230b240d"}) for container "/minio". container=minio-esmeralda-c6425c19e0b06bf756f4240e7899ca2fd7906f5c0b2579c5573cfd9384c87a5a providerName=docker serviceName=minio
+2025-04-25T14:59:56Z INF I have to go...
+2025-04-25T14:59:56Z INF Stopping server gracefully
+2025-04-25T14:59:56Z ERR error="accept tcp [::]:443: use of closed network connection" entryPointName=https
+2025-04-25T14:59:56Z ERR Error while starting server error="accept tcp [::]:443: use of closed network connection" entryPointName=https
+2025-04-25T14:59:56Z ERR error="accept tcp [::]:80: use of closed network connection" entryPointName=http
+2025-04-25T14:59:56Z ERR Error while starting server error="accept tcp [::]:80: use of closed network connection" entryPointName=http
+2025-04-25T14:59:57Z WRN Could not find network named "proxy" for container "/minio". Maybe you're missing the project's prefix in the label? container=minio-esmeralda-c6425c19e0b06bf756f4240e7899ca2fd7906f5c0b2579c5573cfd9384c87a5a providerName=docker serviceName=minio
+2025-04-25T14:59:57Z WRN Defaulting to first available network (&{"esmeralda_default" "172.18.0.2" '\x00' "" "0663039a47dd2b3066af54123a667c1d68d6ba251a82f20e2ce7bfcb230b240d"}) for container "/minio". container=minio-esmeralda-c6425c19e0b06bf756f4240e7899ca2fd7906f5c0b2579c5573cfd9384c87a5a providerName=docker serviceName=minio
+2025-04-25T14:59:57Z WRN Could not find network named "proxy" for container "/minio". Maybe you're missing the project's prefix in the label? container=minio-esmeralda-c6425c19e0b06bf756f4240e7899ca2fd7906f5c0b2579c5573cfd9384c87a5a providerName=docker serviceName=minio
+2025-04-25T14:59:57Z WRN Defaulting to first available network (&{"esmeralda_default" "172.18.0.2" '\x00' "" "0663039a47dd2b3066af54123a667c1d68d6ba251a82f20e2ce7bfcb230b240d"}) for container "/minio". container=minio-esmeralda-c6425c19e0b06bf756f4240e7899ca2fd7906f5c0b2579c5573cfd9384c87a5a providerName=docker serviceName=minio
+2025-04-25T14:59:57Z INF Server stopped
+2025-04-25T14:59:57Z INF Shutting down
+2025-04-25T15:00:08Z INF Traefik version 3.3.6 built on 2025-04-18T09:18:47Z version=3.3.6
+2025-04-25T15:00:08Z INF 
+Stats collection is disabled.
+Help us improve Traefik by turning this feature on :)
+More details on: https://doc.traefik.io/traefik/contributing/data-collection/
+
+2025-04-25T15:00:08Z INF Starting provider aggregator *aggregator.ProviderAggregator
+2025-04-25T15:00:08Z INF Starting provider *file.Provider
+2025-04-25T15:00:08Z INF Starting provider *traefik.Provider
+2025-04-25T15:00:08Z INF Starting provider *docker.Provider
+2025-04-25T15:00:08Z INF Starting provider *acme.ChallengeTLSALPN
+2025-04-25T15:00:08Z INF Starting provider *acme.Provider
+2025-04-25T15:00:08Z INF Testing certificate renew... acmeCA=https://acme-v02.api.letsencrypt.org/directory providerName=cloudflare.acme
