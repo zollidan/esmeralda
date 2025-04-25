@@ -1,5 +1,6 @@
 import logging
 from contextlib import asynccontextmanager
+import os
 from uuid import UUID, uuid4
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
@@ -7,6 +8,7 @@ from minio import Minio, S3Error
 from pydantic_settings import BaseSettings
 from sqlmodel import Field, Session, SQLModel, create_engine, select
 from celery.result import AsyncResult
+from tasks import run_soccerway_1, celery_app
 
 BUCKET_NAME = "esmeralda"
 
@@ -15,8 +17,8 @@ BUCKET_NAME = "esmeralda"
 
 s3_client = Minio(
     "minio:9000",
-    access_key="admin",
-    secret_key="adminpassword123",
+    access_key=os.environ.get("MINIO_ROOT_USER"),
+    secret_key=os.environ.get("MINIO_ROOT_PASSWORD"),
     secure=False
 )
 
@@ -93,11 +95,16 @@ def delete_file(id: UUID):
 
 @app.post("/api/run/soccerway1")
 def run_soccerway():
-    from tasks import run_soccerway_1
 
+    #file_name = f'soccerway-{date}-{str(uuid4())}.xls'
+    
     task = run_soccerway_1.delay()
-
-    return {"status": "ok", "task_id": task.id}
+    
+    return {
+        "message": "started",
+        "task_id": task.id,
+        "status": 200
+    }
 
 @app.get("/api/task/{task_id}")
 async def get_task_status(task_id: str):

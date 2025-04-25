@@ -1,8 +1,21 @@
+import os
 from celery import Celery
 
-app = Celery('parser', broker='redis://redis:6379/0')  # hostname â docker-compose
+celery_app = Celery(
+    "tasks",
+)
 
-@app.task
+celery_app.conf.broker_url = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379")
+celery_app.conf.result_backend = os.environ.get("CELERY_RESULT_BACKEND", "redis://redis:6379")
+
+
+celery_app.conf.update(
+    task_serializer='json',
+    result_serializer='json',
+    accept_content=['json'],
+)
+
+@celery_app.task
 def run_soccerway_1():
     from parsers.soccerway_1.parser import main
     main()

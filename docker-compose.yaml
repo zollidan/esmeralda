@@ -88,9 +88,8 @@ services:
     ports:
       - 80:80
       - 443:443
-    environment:
-      - CF_API_EMAIL=sf5100050@gmail.com
-      - CF_DNS_API_TOKEN=nNNgev4e7QKVliwmLBx-QXC_TpeO_eh0KA4AHAq_
+    env_file:
+      - .env
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
