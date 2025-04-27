@@ -4,6 +4,10 @@ from bs4 import BeautifulSoup
 
 import re
 import json
+from art import tprint
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from date_functions import *
 from request_functions import *
@@ -12,7 +16,7 @@ from exel_functions import *
 from parser_functions import *
 from constants import *
 
-from art import tprint
+
 
 def main():
 

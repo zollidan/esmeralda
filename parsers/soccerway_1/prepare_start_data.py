@@ -11,6 +11,10 @@ import xlwt
 from datetime import datetime
 from datetime import timedelta
 
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from constants import USER_AGENT
 
 

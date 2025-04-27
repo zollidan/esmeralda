@@ -3,59 +3,64 @@ services:
     build: .
     container_name: fastapi_app
     command: uv run uvicorn main:app --host 0.0.0.0 --port 8000
-    expose:
-      - 8000
     env_file:
-      - .env
+      - .env.dev
     ports:
       - "8000:8000"
     depends_on:
       - minio
       - redis
     networks:
-      proxy:
+      - proxy
 
   celery:
     build: .
     container_name: celery_worker
     command: uv run celery -A tasks worker --loglevel=info
     env_file:
-      - .env
+      - .env.dev
     depends_on:
       - redis
+    networks:
+      - proxy
 
   flower:
     image: mher/flower
-    command: celery flower -A tasks --address=0.0.0.0 --port=5555
+    command: celery flower -A tasks.celery_app --address=0.0.0.0 --port=5555
     ports:
       - "5555:5555"
     env_file:
-      - .env
+      - .env.dev
     depends_on:
       - celery
       - redis
+    networks:
+      - proxy
 
   redis:
     image: redis:7
     container_name: redis
     ports:
       - "6379:6379"
+    networks:
+      - proxy
+
   minio:
     image: minio/minio:latest
     container_name: minio
     env_file:
-      - .env
+      - .env.dev
+    ports:
+      - "9001:9001"
     volumes:
       - minio-data:/data
     command: server /data --console-address ":9001"
     networks:
-      proxy:
+      - proxy
 
 networks:
   proxy:
-    name: proxy
-    external: true
+    driver: bridge
 
 volumes:
-  postgres_data:
   minio-data:

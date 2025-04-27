@@ -1,6 +1,10 @@
-import os
 from celery import Celery
 
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from parsers.soccerway_1.parser import main
 celery_app = Celery(
     "tasks",
 )
@@ -17,5 +21,5 @@ celery_app.conf.update(
 
 @celery_app.task
 def run_soccerway_1():
-    from parsers.soccerway_1.parser import main
+    
     main()

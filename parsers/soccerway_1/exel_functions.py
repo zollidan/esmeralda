@@ -1,6 +1,10 @@
 import xlwt
 from datetime import datetime
 
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from constants import *
 
 # Создание шапки в EXEL файле

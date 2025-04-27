@@ -2,6 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 import os
 from uuid import UUID, uuid4
+from fastapi import UploadFile, File as FastAPIFile
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from minio import Minio, S3Error
@@ -10,16 +11,16 @@ from sqlmodel import Field, Session, SQLModel, create_engine, select
 from celery.result import AsyncResult
 from tasks import run_soccerway_1, celery_app
 
-BUCKET_NAME = "esmeralda"
+BUCKET_NAME = os.environ.get("BUCKET_NAME")
 
 # class Settings(BaseSettings):
 #     pass
 
 s3_client = Minio(
-    "minio:9000",
+    os.environ.get("MINIO_ENDPOINT"),
     access_key=os.environ.get("MINIO_ROOT_USER"),
     secret_key=os.environ.get("MINIO_ROOT_PASSWORD"),
-    secure=False
+    secure=False,
 )
 
 sqlite_file_name = "database.db"
@@ -35,6 +36,7 @@ class File(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
     name: str = Field(index=True)
     file_url: str = Field(index=True)
+    created_at: datetime = Field(default=datetime.utcnow(), nullable=False)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -46,15 +48,38 @@ app = FastAPI(lifespan=lifespan)
 
 @app.get("/hello/world")
 def index():
-    return {"version": "0.0.1"}
+    return {"message": "","version": "0.0.1"}
 
-@app.post("/api/files/")
-def create_file(file: File):
-    with Session(engine) as session:
-        session.add(file)
-        session.commit()
-        session.refresh(file)
-        return file
+@app.post("/api/files/upload")
+async def create_file(file: UploadFile = FastAPIFile(...)):
+    file_id = uuid4()  # Генерация уникального UUID
+    file_extension = os.path.splitext(file.filename)[1]
+    file_name = f"{file_id}{file_extension}"  # Уникальное имя файла
+
+    try:
+        # Сохранение файла в MinIO
+        s3_client.put_object(
+            BUCKET_NAME,
+            file_name,
+            file.file,
+            length=-1,  # Используется для потоков
+            part_size=10 * 1024 * 1024,  # Размер частей (10MB)
+            content_type=file.content_type
+        )
+
+        # Сохранение информации о файле в базе данных
+        file_url = f"{BUCKET_NAME}/{file_name}"
+        new_file = File(id=file_id, name=file.filename, file_url=file_url)
+
+        with Session(engine) as session:
+            session.add(new_file)
+            session.commit()
+            session.refresh(new_file)
+
+        return {"id": str(file_id), "name": file.filename, "url": file_url}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error uploading file: {e}")
 
 @app.get("/api/files/")
 def read_files():
