@@ -15,6 +15,7 @@ from request_functions import *
 from exel_functions import *
 from parser_functions import *
 from constants import *
+import requests
 
 
 
@@ -337,4 +338,17 @@ def main():
                 name += str(k)
                 k += 1
 
+        try:
+
+            url = "http://web:8000/api/files/upload"
+            files = {'file': (name + '.xls', open(name + '.xls', 'rb'), 'application/vnd.ms-excel')}
+            response = requests.post(url, files=files)
+
+            if response.status_code == 200:
+                print("[ Файл успешно отправлен на сервер FastAPI ]")
+            else:
+                print("[ Ошибка при отправке файла на сервер FastAPI ]", response.status_code, response.text)
+        except Exception as e:
+            print("[ Ошибка при отправке файла на сервер FastAPI ]", str(e))
+        
         # input("Press Enter to continue...")

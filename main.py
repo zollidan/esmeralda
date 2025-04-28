@@ -1,15 +1,18 @@
 import logging
 from contextlib import asynccontextmanager
+from datetime import datetime
 import os
 from uuid import UUID, uuid4
 from fastapi import UploadFile, File as FastAPIFile
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from minio import Minio, S3Error
+from pydantic import BaseModel
 from pydantic_settings import BaseSettings
 from sqlmodel import Field, Session, SQLModel, create_engine, select
 from celery.result import AsyncResult
 from tasks import run_soccerway_1, celery_app
+from passlib.context import CryptContext
 
 BUCKET_NAME = os.environ.get("BUCKET_NAME")
 
@@ -17,7 +20,7 @@ BUCKET_NAME = os.environ.get("BUCKET_NAME")
 #     pass
 
 s3_client = Minio(
-    os.environ.get("MINIO_ENDPOINT"),
+    str(os.environ.get("MINIO_ENDPOINT")),
     access_key=os.environ.get("MINIO_ROOT_USER"),
     secret_key=os.environ.get("MINIO_ROOT_PASSWORD"),
     secure=False,
@@ -36,7 +39,17 @@ class File(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
     name: str = Field(index=True)
     file_url: str = Field(index=True)
-    created_at: datetime = Field(default=datetime.utcnow(), nullable=False)
+    created_at: datetime = Field(default=datetime.now(), nullable=False)
+    
+class User(SQLModel, table=True):
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    email: str = Field(index=True, unique=True, nullable=False)
+    hashed_password: str = Field(nullable=False)
+    created_at: datetime = Field(default=datetime.now(), nullable=False)
+
+class UserCreateSchema(BaseModel):
+    email: str
+    password: str 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -46,29 +59,29 @@ async def lifespan(app: FastAPI):
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 app = FastAPI(lifespan=lifespan)
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 @app.get("/hello/world")
 def index():
     return {"message": "","version": "0.0.1"}
 
 @app.post("/api/files/upload")
 async def create_file(file: UploadFile = FastAPIFile(...)):
-    file_id = uuid4()  # Генерация уникального UUID
+    file_id = uuid4()
     file_extension = os.path.splitext(file.filename)[1]
-    file_name = f"{file_id}{file_extension}"  # Уникальное имя файла
+    file_name = f"{file_id}{file_extension}"
 
     try:
-        # Сохранение файла в MinIO
         s3_client.put_object(
             BUCKET_NAME,
             file_name,
             file.file,
-            length=-1,  # Используется для потоков
-            part_size=10 * 1024 * 1024,  # Размер частей (10MB)
+            length=-1,  
+            part_size=10 * 1024 * 1024,  
             content_type=file.content_type
         )
 
-        # Сохранение информации о файле в базе данных
-        file_url = f"{BUCKET_NAME}/{file_name}"
+        file_url = f"/api/files/{file_name}"
         new_file = File(id=file_id, name=file.filename, file_url=file_url)
 
         with Session(engine) as session:
@@ -120,8 +133,6 @@ def delete_file(id: UUID):
 
 @app.post("/api/run/soccerway1")
 def run_soccerway():
-
-    #file_name = f'soccerway-{date}-{str(uuid4())}.xls'
     
     task = run_soccerway_1.delay()
     
@@ -129,6 +140,32 @@ def run_soccerway():
         "message": "started",
         "task_id": task.id,
         "status": 200
+    }
+    
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+    
+@app.post("/api/auth/register")
+async def register_user(user: UserCreateSchema):
+    
+    hashed_password = get_password_hash(user.password)
+    
+    with Session(engine) as session:        
+        existing_email = session.exec(select(User).where(User.email == user.email)).first()
+        if existing_email:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        
+        user = User(email=user.email, hashed_password=hashed_password)
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+    
+    return {
+        "message": "User registered successfully",
+        "user": user,
     }
 
 @app.get("/api/task/{task_id}")
