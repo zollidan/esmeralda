@@ -115,3 +115,52 @@ More details on: https://doc.traefik.io/traefik/contributing/data-collection/
 2025-04-25T15:00:08Z INF Starting provider *acme.ChallengeTLSALPN
 2025-04-25T15:00:08Z INF Starting provider *acme.Provider
 2025-04-25T15:00:08Z INF Testing certificate renew... acmeCA=https://acme-v02.api.letsencrypt.org/directory providerName=cloudflare.acme
+2025-04-28T18:48:09Z INF Traefik version 3.3.6 built on 2025-04-18T09:18:47Z version=3.3.6
+2025-04-28T18:48:09Z INF 
+Stats collection is disabled.
+Help us improve Traefik by turning this feature on :)
+More details on: https://doc.traefik.io/traefik/contributing/data-collection/
+
+2025-04-28T18:48:09Z ERR The ACME resolve is skipped from the resolvers list error="unable to get ACME account: permissions 777 for acme.json are too open, please use 600" resolver=cloudflare
+2025-04-28T18:48:09Z INF Starting provider aggregator *aggregator.ProviderAggregator
+2025-04-28T18:48:09Z INF Starting provider *file.Provider
+2025-04-28T18:48:09Z INF Starting provider *traefik.Provider
+2025-04-28T18:48:09Z INF Starting provider *docker.Provider
+2025-04-28T18:48:09Z INF Starting provider *acme.ChallengeTLSALPN
+2025-04-28T18:48:09Z WRN Could not find network named "proxy" for container "/minio". Maybe you're missing the project's prefix in the label? container=minio-esmeralda-639d0add5055f9755d31dc0533cca780fad0fee849c77dd2c3f5a6a67e1b084d providerName=docker serviceName=minio
+2025-04-28T18:48:09Z WRN Defaulting to first available network (&{"esmeralda_proxy" "172.21.0.2" '\x00' "" "00c59e9da20e4294614d12a42f277bd1791bc9587efd6cec1ae32adb685c77c0"}) for container "/minio". container=minio-esmeralda-639d0add5055f9755d31dc0533cca780fad0fee849c77dd2c3f5a6a67e1b084d providerName=docker serviceName=minio
+2025-04-28T18:48:09Z ERR Router uses a nonexistent certificate resolver certificateResolver=cloudflare routerName=traefik-secure@docker
+2025-04-28T18:48:09Z WRN Could not find network named "proxy" for container "/fastapi_app". Maybe you're missing the project's prefix in the label? container=web-esmeralda-1f7c50fc3077a1bb0802ce033f99765e8dbc375609d704ed0ed84d4359aed318 providerName=docker serviceName=web
+2025-04-28T18:48:09Z WRN Defaulting to first available network (&{"esmeralda_proxy" "172.21.0.4" '\x00' "" "00c59e9da20e4294614d12a42f277bd1791bc9587efd6cec1ae32adb685c77c0"}) for container "/fastapi_app". container=web-esmeralda-1f7c50fc3077a1bb0802ce033f99765e8dbc375609d704ed0ed84d4359aed318 providerName=docker serviceName=web
+2025-04-28T18:48:09Z WRN Could not find network named "proxy" for container "/minio". Maybe you're missing the project's prefix in the label? container=minio-esmeralda-639d0add5055f9755d31dc0533cca780fad0fee849c77dd2c3f5a6a67e1b084d providerName=docker serviceName=minio
+2025-04-28T18:48:09Z WRN Defaulting to first available network (&{"esmeralda_proxy" "172.21.0.2" '\x00' "" "00c59e9da20e4294614d12a42f277bd1791bc9587efd6cec1ae32adb685c77c0"}) for container "/minio". container=minio-esmeralda-639d0add5055f9755d31dc0533cca780fad0fee849c77dd2c3f5a6a67e1b084d providerName=docker serviceName=minio
+2025-04-28T18:48:09Z WRN Could not find network named "proxy" for container "/fastapi_app". Maybe you're missing the project's prefix in the label? container=web-esmeralda-1f7c50fc3077a1bb0802ce033f99765e8dbc375609d704ed0ed84d4359aed318 providerName=docker serviceName=web
+2025-04-28T18:48:09Z WRN Defaulting to first available network (&{"esmeralda_proxy" "172.21.0.4" '\x00' "" "00c59e9da20e4294614d12a42f277bd1791bc9587efd6cec1ae32adb685c77c0"}) for container "/fastapi_app". container=web-esmeralda-1f7c50fc3077a1bb0802ce033f99765e8dbc375609d704ed0ed84d4359aed318 providerName=docker serviceName=web
+2025-04-28T18:48:09Z WRN Could not find network named "proxy" for container "/minio". Maybe you're missing the project's prefix in the label? container=minio-esmeralda-639d0add5055f9755d31dc0533cca780fad0fee849c77dd2c3f5a6a67e1b084d providerName=docker serviceName=minio
+2025-04-28T18:48:09Z WRN Defaulting to first available network (&{"esmeralda_proxy" "172.21.0.2" '\x00' "" "00c59e9da20e4294614d12a42f277bd1791bc9587efd6cec1ae32adb685c77c0"}) for container "/minio". container=minio-esmeralda-639d0add5055f9755d31dc0533cca780fad0fee849c77dd2c3f5a6a67e1b084d providerName=docker serviceName=minio
+2025-04-28T18:48:10Z WRN Could not find network named "proxy" for container "/esmeralda-flower-1". Maybe you're missing the project's prefix in the label? container=flower-esmeralda-830de31f6a9afee85b61e29914bf9d61139a017594ef0728344a0e7384fb0b80 providerName=docker serviceName=web
+2025-04-28T18:48:10Z WRN Defaulting to first available network (&{"esmeralda_proxy" "172.21.0.6" '\x00' "" "00c59e9da20e4294614d12a42f277bd1791bc9587efd6cec1ae32adb685c77c0"}) for container "/esmeralda-flower-1". container=flower-esmeralda-830de31f6a9afee85b61e29914bf9d61139a017594ef0728344a0e7384fb0b80 providerName=docker serviceName=web
+2025-04-28T18:48:10Z WRN Could not find network named "proxy" for container "/fastapi_app". Maybe you're missing the project's prefix in the label? container=web-esmeralda-1f7c50fc3077a1bb0802ce033f99765e8dbc375609d704ed0ed84d4359aed318 providerName=docker serviceName=web
+2025-04-28T18:48:10Z WRN Defaulting to first available network (&{"esmeralda_proxy" "172.21.0.4" '\x00' "" "00c59e9da20e4294614d12a42f277bd1791bc9587efd6cec1ae32adb685c77c0"}) for container "/fastapi_app". container=web-esmeralda-1f7c50fc3077a1bb0802ce033f99765e8dbc375609d704ed0ed84d4359aed318 providerName=docker serviceName=web
+2025-04-28T18:48:10Z WRN Could not find network named "proxy" for container "/minio". Maybe you're missing the project's prefix in the label? container=minio-esmeralda-639d0add5055f9755d31dc0533cca780fad0fee849c77dd2c3f5a6a67e1b084d providerName=docker serviceName=minio
+2025-04-28T18:48:10Z WRN Defaulting to first available network (&{"esmeralda_proxy" "172.21.0.2" '\x00' "" "00c59e9da20e4294614d12a42f277bd1791bc9587efd6cec1ae32adb685c77c0"}) for container "/minio". container=minio-esmeralda-639d0add5055f9755d31dc0533cca780fad0fee849c77dd2c3f5a6a67e1b084d providerName=docker serviceName=minio
+2025-04-28T18:48:10Z ERR Router defined multiple times with different configurations configuration=["flower-esmeralda-830de31f6a9afee85b61e29914bf9d61139a017594ef0728344a0e7384fb0b80","web-esmeralda-1f7c50fc3077a1bb0802ce033f99765e8dbc375609d704ed0ed84d4359aed318"] providerName=docker routerName=web-secure
+2025-04-28T18:48:10Z ERR Router defined multiple times with different configurations configuration=["flower-esmeralda-830de31f6a9afee85b61e29914bf9d61139a017594ef0728344a0e7384fb0b80","web-esmeralda-1f7c50fc3077a1bb0802ce033f99765e8dbc375609d704ed0ed84d4359aed318"] providerName=docker routerName=web
+2025-04-28T18:48:11Z ERR Router uses a nonexistent certificate resolver certificateResolver=cloudflare routerName=traefik-secure@docker
+2025-04-28T18:49:11Z WRN Could not find network named "proxy" for container "/esmeralda-flower-1". Maybe you're missing the project's prefix in the label? container=flower-esmeralda-830de31f6a9afee85b61e29914bf9d61139a017594ef0728344a0e7384fb0b80 providerName=docker serviceName=web
+2025-04-28T18:49:11Z WRN Defaulting to first available network (&{"esmeralda_proxy" "172.21.0.6" '\x00' "" "00c59e9da20e4294614d12a42f277bd1791bc9587efd6cec1ae32adb685c77c0"}) for container "/esmeralda-flower-1". container=flower-esmeralda-830de31f6a9afee85b61e29914bf9d61139a017594ef0728344a0e7384fb0b80 providerName=docker serviceName=web
+2025-04-28T18:49:11Z WRN Could not find network named "proxy" for container "/minio". Maybe you're missing the project's prefix in the label? container=minio-esmeralda-639d0add5055f9755d31dc0533cca780fad0fee849c77dd2c3f5a6a67e1b084d providerName=docker serviceName=minio
+2025-04-28T18:49:11Z WRN Defaulting to first available network (&{"esmeralda_proxy" "172.21.0.2" '\x00' "" "00c59e9da20e4294614d12a42f277bd1791bc9587efd6cec1ae32adb685c77c0"}) for container "/minio". container=minio-esmeralda-639d0add5055f9755d31dc0533cca780fad0fee849c77dd2c3f5a6a67e1b084d providerName=docker serviceName=minio
+2025-04-28T18:49:12Z ERR Router uses a nonexistent certificate resolver certificateResolver=cloudflare routerName=traefik-secure@docker
+2025-04-28T18:49:12Z WRN Could not find network named "proxy" for container "/esmeralda-flower-1". Maybe you're missing the project's prefix in the label? container=flower-esmeralda-830de31f6a9afee85b61e29914bf9d61139a017594ef0728344a0e7384fb0b80 providerName=docker serviceName=web
+2025-04-28T18:49:12Z WRN Defaulting to first available network (&{"esmeralda_proxy" "172.21.0.6" '\x00' "" "00c59e9da20e4294614d12a42f277bd1791bc9587efd6cec1ae32adb685c77c0"}) for container "/esmeralda-flower-1". container=flower-esmeralda-830de31f6a9afee85b61e29914bf9d61139a017594ef0728344a0e7384fb0b80 providerName=docker serviceName=web
+2025-04-28T18:49:13Z ERR Router uses a nonexistent certificate resolver certificateResolver=cloudflare routerName=traefik-secure@docker
+2025-04-28T18:49:24Z ERR Router uses a nonexistent certificate resolver certificateResolver=cloudflare routerName=traefik-secure@docker
+2025-04-28T18:49:36Z INF I have to go...
+2025-04-28T18:49:36Z INF Stopping server gracefully
+2025-04-28T18:49:36Z ERR error="accept tcp [::]:443: use of closed network connection" entryPointName=https
+2025-04-28T18:49:36Z ERR error="accept tcp [::]:80: use of closed network connection" entryPointName=http
+2025-04-28T18:49:36Z ERR error="close tcp [::]:443: use of closed network connection" entryPointName=https
+2025-04-28T18:49:36Z ERR error="close tcp [::]:80: use of closed network connection" entryPointName=http
+2025-04-28T18:49:36Z INF Server stopped
+2025-04-28T18:49:36Z INF Shutting down
