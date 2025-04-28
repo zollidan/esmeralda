@@ -20,10 +20,6 @@ services:
     build: .
     container_name: fastapi_app
     command: uv run uvicorn main:app --host 0.0.0.0 --port 8000
-    # expose:
-    #   - 8000
-    # ports:
-    #   - "8000:8000"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web.entrypoints=http"
@@ -41,18 +37,29 @@ services:
     networks:
       proxy:
 
-  # celery:
-  #   build: .
-  #   container_name: celery_worker
-  #   command: uv run celery -A tasks worker --loglevel=info
-  #   depends_on:
-  #     - redis
+  celery:
+    build: .
+    container_name: celery_worker
+    command: uv run celery -A tasks worker --loglevel=info
+    env_file:
+      - .env.dev
+    depends_on:
+      - redis
+    networks:
+      - proxy
 
-  # flower:
-  #   image: mher/flower
-  #   command: celery flower -A tasks --port=5555
-  #   depends_on:
-  #     - celery
+  flower:
+    image: mher/flower
+    command: celery flower -A tasks.celery_app --address=0.0.0.0 --port=5555
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env.dev
+    depends_on:
+      - celery
+      - redis
+    networks:
+      - proxy
 
   minio:
     image: minio/minio:latest
@@ -62,11 +69,11 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.minio.entrypoints=http"
-      - "traefik.http.routers.minio.rule=Host(`cdn.aaf-bet.ru`)"
+      - "traefik.http.routers.minio.rule=Host(`s3.aaf-bet.ru`)"
       - "traefik.http.middlewares.minio-https-redirect.redirectscheme.scheme=https"
       - "traefik.http.routers.minio.middlewares=minio-https-redirect"
       - "traefik.http.routers.minio-secure.entrypoints=https"
-      - "traefik.http.routers.minio-secure.rule=Host(`cdn.aaf-bet.ru`)"
+      - "traefik.http.routers.minio-secure.rule=Host(`s3.aaf-bet.ru`)"
       - "traefik.http.routers.minio-secure.tls=true"
       - "traefik.http.routers.minio-secure.service=minio"
       - "traefik.http.services.minio.loadbalancer.server.port=9001"
@@ -116,9 +123,7 @@ services:
 
 networks:
   proxy:
-    name: proxy
-    external: true
+    driver: bridge
 
 volumes:
-  postgres_data:
   minio-data:
