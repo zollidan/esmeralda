@@ -12,3 +12,4 @@ database.db
 .vs
 uv.lock
 frontend/package-lock.json
+grafana_data/*

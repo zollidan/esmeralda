@@ -13,6 +13,7 @@ from sqlmodel import Field, Session, SQLModel, create_engine, select
 from celery.result import AsyncResult
 from tasks import run_soccerway_1, celery_app
 from passlib.context import CryptContext
+from prometheus_fastapi_instrumentator import Instrumentator
 
 BUCKET_NAME = os.environ.get("BUCKET_NAME")
 
@@ -60,6 +61,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 app = FastAPI(lifespan=lifespan)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+Instrumentator().instrument(app).expose(app)
 
 @app.get("/hello/world")
 def index():
