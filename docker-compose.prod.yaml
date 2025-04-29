@@ -85,7 +85,6 @@ services:
     networks:
       proxy:
 
-  
   prometheus:
     image: prom/prometheus
     container_name: prometheus
@@ -94,10 +93,13 @@ services:
     volumes:
       - ./prometheus_data/prometheus.yml:/etc/prometheus/prometheus.yml
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    depends_on:
+      - web
+      - minio
+      - node-exporter
     networks:
       proxy:
-
 
   grafana:
     image: grafana/grafana
@@ -118,10 +120,10 @@ services:
       - /sys:/host/sys:ro
       - /:/rootfs:ro
     command:
-      - '--path.procfs=/host/proc'
-      - '--path.rootfs=/rootfs'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - "--path.procfs=/host/proc"
+      - "--path.rootfs=/rootfs"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
     expose:
       - 9100
     networks:
@@ -147,13 +149,6 @@ services:
       - ./traefik/acme.json:/acme.json
       - ./traefik/config.yml:/config.yml:ro
       - ./traefik/logs:/var/log/traefik
-    command:
-      - --metrics.prometheus=true
-      - --metrics.prometheus.buckets=0.100000, 0.300000, 1.200000, 5.000000
-      - --metrics.prometheus.addEntryPointsLabels=true
-      - --metrics.prometheus.addServicesLabels=true
-      - --entryPoints.metrics.address=:8899
-      - --metrics.prometheus.entryPoint=metrics
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik.entrypoints=http"
