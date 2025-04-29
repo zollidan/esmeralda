@@ -1,21 +1,23 @@
+import datetime
 import logging
 from contextlib import asynccontextmanager
-from datetime import datetime
 import os
+from typing import Annotated
 from uuid import UUID, uuid4
-from fastapi import UploadFile, File as FastAPIFile
+from dotenv import load_dotenv
+from fastapi import Depends, UploadFile, File as FastAPIFile
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
+from fastapi.security import OAuth2PasswordBearer
 from minio import Minio, S3Error
-from pydantic import BaseModel
 from pydantic_settings import BaseSettings
 from sqlmodel import Field, Session, SQLModel, create_engine, select
 from celery.result import AsyncResult
 from tasks import run_soccerway_1, celery_app
-from passlib.context import CryptContext
-from prometheus_fastapi_instrumentator import Instrumentator
 
 BUCKET_NAME = os.environ.get("BUCKET_NAME")
+
+load_dotenv(dotenv_path=".env.dev")
 
 # class Settings(BaseSettings):
 #     pass
@@ -36,21 +38,18 @@ engine = create_engine(sqlite_url, echo=True, connect_args=connect_args)
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
 
+class User(SQLModel, table=True):
+    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
+    username: str = Field(index=True)
+    email: str = Field(index=True)
+    full_name: str = Field(index=True)
+    disabled: bool = Field(index=True)
+
 class File(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
     name: str = Field(index=True)
     file_url: str = Field(index=True)
-    created_at: datetime = Field(default=datetime.now(), nullable=False)
-    
-class User(SQLModel, table=True):
-    id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
-    email: str = Field(index=True, unique=True, nullable=False)
-    hashed_password: str = Field(nullable=False)
-    created_at: datetime = Field(default=datetime.now(), nullable=False)
-
-class UserCreateSchema(BaseModel):
-    email: str
-    password: str 
+    created_at: datetime.datetime = Field(default=datetime.datetime.now(), nullable=False)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -60,31 +59,32 @@ async def lifespan(app: FastAPI):
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 app = FastAPI(lifespan=lifespan)
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-Instrumentator().instrument(app).expose(app)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 @app.get("/hello/world")
 def index():
     return {"message": "","version": "0.0.1"}
 
+@app.get("/items/")
+async def read_items(token: Annotated[str, Depends(oauth2_scheme)]):
+    return {"token": token}
+
 @app.post("/api/files/upload")
-async def create_file(file: UploadFile = FastAPIFile(...)):
+def create_file(file: UploadFile = FastAPIFile(...)):
     file_id = uuid4()
     file_extension = os.path.splitext(file.filename)[1]
     file_name = f"{file_id}{file_extension}"
-
     try:
         s3_client.put_object(
             BUCKET_NAME,
             file_name,
             file.file,
-            length=-1,  
-            part_size=10 * 1024 * 1024,  
+            length=-1,
+            part_size=10 * 1024 * 1024, 
             content_type=file.content_type
         )
 
-        file_url = f"/api/files/{file_name}"
+        file_url = f"{BUCKET_NAME}/{file_name}"
         new_file = File(id=file_id, name=file.filename, file_url=file_url)
 
         with Session(engine) as session:
@@ -136,6 +136,8 @@ def delete_file(id: UUID):
 
 @app.post("/api/run/soccerway1")
 def run_soccerway():
+
+    #file_name = f'soccerway-{date}-{str(uuid4())}.xls'
     
     task = run_soccerway_1.delay()
     
@@ -143,32 +145,6 @@ def run_soccerway():
         "message": "started",
         "task_id": task.id,
         "status": 200
-    }
-    
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
-def get_password_hash(password):
-    return pwd_context.hash(password)
-    
-@app.post("/api/auth/register")
-async def register_user(user: UserCreateSchema):
-    
-    hashed_password = get_password_hash(user.password)
-    
-    with Session(engine) as session:        
-        existing_email = session.exec(select(User).where(User.email == user.email)).first()
-        if existing_email:
-            raise HTTPException(status_code=400, detail="Email already registered")
-        
-        user = User(email=user.email, hashed_password=hashed_password)
-        session.add(user)
-        session.commit()
-        session.refresh(user)
-    
-    return {
-        "message": "User registered successfully",
-        "user": user,
     }
 
 @app.get("/api/task/{task_id}")
