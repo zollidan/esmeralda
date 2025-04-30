@@ -3,6 +3,7 @@ import logging
 from contextlib import asynccontextmanager
 import os
 import re
+from aiogram import Bot
 from fastapi import status
 from typing import Annotated
 from uuid import UUID, uuid4
@@ -14,9 +15,7 @@ from fastapi.security import OAuth2PasswordBearer
 from minio import Minio, S3Error
 from pydantic_settings import BaseSettings
 from sqlmodel import Field, Session, SQLModel, create_engine, select
-from celery.result import AsyncResult
-from tasks import run_soccerway_1, celery_app
-from aiogram import Bot
+from tasks import run_soccerway_1
 
 load_dotenv(dotenv_path=".env.dev")
 
@@ -30,11 +29,12 @@ class Settings(BaseSettings):
     APP_MODE: str = os.environ.get("APP_MODE")
     TELEGRAM_BOT_TOKEN: str = os.environ.get("TELEGRAM_BOT_TOKEN")
     TELEGRAM_CHAT_ID: str = os.environ.get("TELEGRAM_CHAT_ID")
+    TELEGRAM_TOPIC_ID: int = os.environ.get("TELEGRAM_TOPIC_ID")
 
 settings = Settings()
 
 s3_client = Minio(
-    str(os.environ.get("MINIO_ENDPOINT")),
+    str(settings.MINIO_ENDPOINT),
     access_key=os.environ.get("MINIO_ROOT_USER"),
     secret_key=os.environ.get("MINIO_ROOT_PASSWORD"),
     secure=False,
@@ -195,10 +195,10 @@ def run_soccerway(start_date: str, end_date: str):
 #         "task_id": "task.id",
 #     }
 
-@app.get("/api/bot/send_message")
+@app.get("/api/bot/send_report_message")
 async def send_message(text: str):
     try:
-        await bot.send_message(chat_id=settings.TELEGRAM_CHAT_ID, text=text)
+        await bot.send_message(chat_id=settings.TELEGRAM_CHAT_ID, message_thread_id=settings.TELEGRAM_TOPIC_ID, text=text)
     except Exception as e:
         logging.error(f"Error sending message: {e}")
         raise HTTPException(status_code=500, detail="Error sending message")
