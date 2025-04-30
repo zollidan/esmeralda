@@ -2,10 +2,12 @@ import datetime
 import logging
 from contextlib import asynccontextmanager
 import os
+import re
+from fastapi import status
 from typing import Annotated
 from uuid import UUID, uuid4
 from dotenv import load_dotenv
-from fastapi import Depends, UploadFile, File as FastAPIFile
+from fastapi import Depends, Response, UploadFile, File as FastAPIFile
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordBearer
@@ -61,10 +63,6 @@ app = FastAPI(lifespan=lifespan)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-@app.get("/hello/world")
-def index():
-    return {"message": "","version": "0.0.1"}
-
 @app.get("/items/")
 async def read_items(token: Annotated[str, Depends(oauth2_scheme)]):
     return {"token": token}
@@ -84,7 +82,7 @@ def create_file(file: UploadFile = FastAPIFile(...)):
             content_type=file.content_type
         )
 
-        file_url = f"{BUCKET_NAME}/{file_name}"
+        file_url = f"api/files/{file_name}"
         new_file = File(id=file_id, name=file.filename, file_url=file_url)
 
         with Session(engine) as session:
@@ -118,6 +116,7 @@ def get_file(id: str):
 
 @app.get("/api/files/{id}/info")
 def read_file_info(id: UUID):
+    
     with Session(engine) as session:
         file = session.get(File, id)
         if not file:
@@ -134,24 +133,53 @@ def delete_file(id: UUID):
         session.commit()
         return {"ok": True}
 
-@app.post("/api/run/soccerway1")
-def run_soccerway():
+def is_valid_date(date_str):
+    return bool(re.match(r'^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$', date_str))
 
-    #file_name = f'soccerway-{date}-{str(uuid4())}.xls'
+@app.post("/api/run/soccerway1")
+def run_soccerway(start_date: str, end_date: str):
     
-    task = run_soccerway_1.delay()
-    
+    if not (is_valid_date(start_date) and is_valid_date(end_date)):
+            return Response(status_code=status.HTTP_400_BAD_REQUEST, content="Invalid date format. Use YYYY-MM-DD.")
+        
+    try:
+        task = run_soccerway_1.delay()
+    except Exception as e:
+        logging.error(f"Error starting task: {e}")
+        raise HTTPException(status_code=500, detail="Error starting task")
+        
     return {
         "message": "started",
         "task_id": task.id,
         "status": 200
     }
+    
+@app.post("/api/run/soccerway2")
+def run_soccerway(start_date: str, end_date: str):
 
-@app.get("/api/task/{task_id}")
-async def get_task_status(task_id: str):
-    result = AsyncResult(task_id, app=celery_app)
+    if not (is_valid_date(start_date) and is_valid_date(end_date)):
+        return Response(status_code=status.HTTP_400_BAD_REQUEST, content="Invalid date format. Use YYYY-MM-DD.")
+    try:
+        print(start_date, end_date)
+    except Exception as e:
+        logging.error(f"Error starting task: {e}")
+        raise HTTPException(status_code=500, detail="Error starting task")
+        
     return {
-        "task_id": task_id,
-        "status": result.status,
-        "result": result.result if result.ready() else None
+        "message": "started",
+        "task_id": "task.id",
     }
+    
+# @app.post("/api/run/marafon")
+# def run_soccerway():
+
+#     try:
+#         task = run_marafon.delay()
+#     except Exception as e:
+#         logging.error(f"Error starting task: {e}")
+#         raise HTTPException(status_code=500, detail="Error starting task")
+        
+#     return {
+#         "message": "started",
+#         "task_id": "task.id",
+#     }
