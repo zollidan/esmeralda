@@ -19,7 +19,7 @@ import requests
 
 
 
-def main():
+def main(date_start, date_end):
 
     tprint("soccerway-1")
 
@@ -34,10 +34,6 @@ def main():
     # date_limit = get_date_limit()
     # date_start = date_limit[0]
     # date_end = date_limit[1]
-
-    date_start = '2025-04-15'
-    date_end = '2025-04-15'
-
 
     # Список дат в указанном пределе, с разницой в день
     date_list = make_date_list(date_start, date_end)
@@ -343,12 +339,11 @@ def main():
             url = "http://web:8000/api/files/upload"
             files = {'file': (name + '.xls', open(name + '.xls', 'rb'), 'application/vnd.ms-excel')}
             response = requests.post(url, files=files)
-
+                
             if response.status_code == 200:
                 print("[ Файл успешно отправлен на сервер FastAPI ]")
             else:
                 print("[ Ошибка при отправке файла на сервер FastAPI ]", response.status_code, response.text)
         except Exception as e:
             print("[ Ошибка при отправке файла на сервер FastAPI ]", str(e))
-        
-        # input("Press Enter to continue...")
+    

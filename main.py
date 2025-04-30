@@ -16,13 +16,22 @@ from pydantic_settings import BaseSettings
 from sqlmodel import Field, Session, SQLModel, create_engine, select
 from celery.result import AsyncResult
 from tasks import run_soccerway_1, celery_app
-
-BUCKET_NAME = os.environ.get("BUCKET_NAME")
+from aiogram import Bot
 
 load_dotenv(dotenv_path=".env.dev")
 
-# class Settings(BaseSettings):
-#     pass
+class Settings(BaseSettings):
+    MINIO_ENDPOINT: str = os.environ.get("MINIO_ENDPOINT")
+    MINIO_ROOT_USER: str = os.environ.get("MINIO_ROOT_USER")
+    MINIO_ROOT_PASSWORD: str = os.environ.get("MINIO_ROOT_PASSWORD")
+    BUCKET_NAME: str = os.environ.get("BUCKET_NAME")
+    CELERY_BROKER_URL: str = os.environ.get("CELERY_BROKER_URL")
+    CELERY_RESULT_BACKEND: str = os.environ.get("CELERY_RESULT_BACKEND")
+    APP_MODE: str = os.environ.get("APP_MODE")
+    TELEGRAM_BOT_TOKEN: str = os.environ.get("TELEGRAM_BOT_TOKEN")
+    TELEGRAM_CHAT_ID: str = os.environ.get("TELEGRAM_CHAT_ID")
+
+settings = Settings()
 
 s3_client = Minio(
     str(os.environ.get("MINIO_ENDPOINT")),
@@ -30,6 +39,8 @@ s3_client = Minio(
     secret_key=os.environ.get("MINIO_ROOT_PASSWORD"),
     secure=False,
 )
+
+bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
 
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
@@ -74,7 +85,7 @@ def create_file(file: UploadFile = FastAPIFile(...)):
     file_name = f"{file_id}{file_extension}"
     try:
         s3_client.put_object(
-            BUCKET_NAME,
+            settings.BUCKET_NAME,
             file_name,
             file.file,
             length=-1,
@@ -104,10 +115,10 @@ def read_files():
 @app.get("/api/files/{id}")
 def get_file(id: str):
     try:
-        stat = s3_client.stat_object(BUCKET_NAME, id)
+        stat = s3_client.stat_object(settings.BUCKET_NAME, id)
         content_type = stat.content_type 
         
-        obj = s3_client.get_object(BUCKET_NAME, id)
+        obj = s3_client.get_object(settings.BUCKET_NAME, id)
 
         return StreamingResponse(obj, media_type=content_type)
 
@@ -183,3 +194,15 @@ def run_soccerway(start_date: str, end_date: str):
 #         "message": "started",
 #         "task_id": "task.id",
 #     }
+
+@app.get("/api/bot/send_message")
+async def send_message(text: str):
+    try:
+        await bot.send_message(chat_id=settings.TELEGRAM_CHAT_ID, text=text)
+    except Exception as e:
+        logging.error(f"Error sending message: {e}")
+        raise HTTPException(status_code=500, detail="Error sending message")
+        
+    return {
+        "message": "Message sent",
+    }
