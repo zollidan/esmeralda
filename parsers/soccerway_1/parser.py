@@ -346,7 +346,7 @@ def main(date_start, date_end):
                 params = {'text': 'Soccerway1 завершил работу!'}
                 
                 try:
-                    requests.post("http://web:8000/api/bot/send_report_message")
+                    requests.post("http://web:8000/api/bot/send_report_message", params=params)
                 except Exception as e:
                     print("[ Ошибка при отправке сообщения в телеграм ]", str(e))
             else:
