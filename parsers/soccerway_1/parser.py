@@ -342,6 +342,13 @@ def main(date_start, date_end):
                 
             if response.status_code == 200:
                 print("[ Файл успешно отправлен на сервер FastAPI ]")
+                
+                params = {'text': 'Soccerway1 завершил работу!'}
+                
+                try:
+                    requests.post("http://web:8000/api/bot/send_report_message")
+                except Exception as e:
+                    print("[ Ошибка при отправке сообщения в телеграм ]", str(e))
             else:
                 print("[ Ошибка при отправке файла на сервер FastAPI ]", response.status_code, response.text)
         except Exception as e:

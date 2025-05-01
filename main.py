@@ -148,13 +148,13 @@ def is_valid_date(date_str):
     return bool(re.match(r'^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$', date_str))
 
 @app.post("/api/run/soccerway1")
-def run_soccerway(start_date: str, end_date: str):
+def run_soccerway(date_start: str, date_end: str):
     
-    if not (is_valid_date(start_date) and is_valid_date(end_date)):
+    if not (is_valid_date(date_start) and is_valid_date(date_end)):
             return Response(status_code=status.HTTP_400_BAD_REQUEST, content="Invalid date format. Use YYYY-MM-DD.")
         
     try:
-        task = run_soccerway_1.delay()
+        task = run_soccerway_1.delay(date_start, date_end)
     except Exception as e:
         logging.error(f"Error starting task: {e}")
         raise HTTPException(status_code=500, detail="Error starting task")
@@ -195,7 +195,7 @@ def run_soccerway(start_date: str, end_date: str):
 #         "task_id": "task.id",
 #     }
 
-@app.get("/api/bot/send_report_message")
+@app.post("/api/bot/send_report_message")
 async def send_message(text: str):
     try:
         await bot.send_message(chat_id=settings.TELEGRAM_CHAT_ID, message_thread_id=settings.TELEGRAM_TOPIC_ID, text=text)

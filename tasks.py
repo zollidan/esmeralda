@@ -20,6 +20,6 @@ celery_app.conf.update(
 )
 
 @celery_app.task
-def run_soccerway_1():
+def run_soccerway_1(date_start, date_end):
     
-    main()
+    main(date_start, date_end)
