@@ -346,24 +346,24 @@ async def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
             
-# @app.post("/auth/registration")
-# async def registration(form_data: UserRegisterSchema):
-#     with Session(engine) as session:
-#         existing_user = session.exec(select(User).where(User.username == form_data.username)).first()
-#         if existing_user:
-#             raise HTTPException(status_code=400, detail="Username already exists")
+@app.post("/auth/registration")
+async def registration(form_data: UserRegisterSchema):
+    with Session(engine) as session:
+        existing_user = session.exec(select(User).where(User.username == form_data.username)).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Username already exists")
 
-#         hashed_password = pwd_context.hash(form_data.password)
-#         user = User(username=form_data.username, full_name=form_data.full_name, hashed_password=hashed_password)
+        hashed_password = pwd_context.hash(form_data.password)
+        user = User(username=form_data.username, full_name=form_data.full_name, hashed_password=hashed_password)
         
-#         session.add(user)
-#         session.commit()
-#         session.refresh(user)
-#         return {
-#             "id": str(user.id),
-#             "username": user.username,
-#             "full_name": user.full_name,
-#         }
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+        return {
+            "id": str(user.id),
+            "username": user.username,
+            "full_name": user.full_name,
+        }
         
 
         
