@@ -26,3 +26,6 @@ dependencies = [
     "tqdm>=4.67.1",
     "xlwt>=1.3.0",
 ]
+
+[tool.ruff]
+exclude = ["parsers/"]

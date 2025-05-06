@@ -235,7 +235,7 @@ def main(date_start, date_end):
                 
                 os.remove(name + '.xls')
                 
-                params = {'text': 'Soccerway1 завершил работу!'}
+                params = {'text': 'Soccerway2 завершил работу!'}
                 
                 try:
                     requests.post("http://web:8000/api/bot/send_report_message", params=params)

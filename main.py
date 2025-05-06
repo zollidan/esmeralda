@@ -4,7 +4,6 @@ from contextlib import asynccontextmanager
 import os
 import re
 from aiogram import Bot
-from authx import AuthX, AuthXConfig
 from fastapi import Request, status
 from typing import Annotated
 from uuid import UUID, uuid4
@@ -14,7 +13,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi.middleware.cors import CORSMiddleware
 import jwt
 from minio import Minio, S3Error
 from pydantic_settings import BaseSettings
@@ -260,7 +258,7 @@ def is_valid_date(date_str):
     return bool(re.match(r'^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$', date_str))
 
 @app.post("/api/run/soccerway1")
-def run_soccerway(date_start: str, date_end: str):
+def run_soccerway1(date_start: str, date_end: str):
     
     if not (is_valid_date(date_start) and is_valid_date(date_end)):
             return Response(status_code=status.HTTP_400_BAD_REQUEST, content="Invalid date format. Use YYYY-MM-DD.")
@@ -277,7 +275,7 @@ def run_soccerway(date_start: str, date_end: str):
     }
     
 @app.post("/api/run/soccerway2")
-def run_soccerway(start_date: str, end_date: str):
+def run_soccerway2(start_date: str, end_date: str):
 
     if not (is_valid_date(start_date) and is_valid_date(end_date)):
         return Response(status_code=status.HTTP_400_BAD_REQUEST, content="Invalid date format. Use YYYY-MM-DD.")
@@ -293,7 +291,7 @@ def run_soccerway(start_date: str, end_date: str):
     }
     
 # @app.post("/api/run/marafon")
-# def run_soccerway():
+# def run_marafon():
 
 #     try:
 #         task = run_marafon.delay()
@@ -364,8 +362,6 @@ async def registration(form_data: UserRegisterSchema):
             "username": user.username,
             "full_name": user.full_name,
         }
-        
-
         
 @app.get("/users/me/", response_model=User)
 async def read_users_me(request: Request):
