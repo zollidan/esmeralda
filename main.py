@@ -14,12 +14,13 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 import jwt
 from minio import Minio, S3Error
 from pydantic_settings import BaseSettings
 from passlib.context import CryptContext
 from sqlmodel import Field, Session, SQLModel, create_engine, select
-from tasks import run_soccerway_1
+from tasks import run_soccerway_1, run_soccerway_2
 
 load_dotenv(dotenv_path=".env.dev")
 
@@ -122,8 +123,9 @@ app = FastAPI(lifespan=lifespan)
 
 class JWTMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+
         # Skip authentication for public endpoints
-        if request.url.path in ["/auth/login", "/auth/registration", "/docs", "/openapi.json"]:
+        if request.url.path in ["/auth/login", "/auth/registration", "/docs", "/openapi.json", "/api/files/upload", "/api/bot/send_report_message"]:
             return await call_next(request)
 
         # Extract token from Authorization header
@@ -172,6 +174,21 @@ class JWTMiddleware(BaseHTTPMiddleware):
         return response
 
 app.add_middleware(JWTMiddleware)
+
+# origins = [
+#     "http://localhost.tiangolo.com",
+#     "https://localhost.tiangolo.com",
+#     "http://localhost",
+#     "http://localhost:8080",
+# ]
+
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=origins,
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
 
 @app.post("/api/files/upload")
 def create_file(file: UploadFile = FastAPIFile(...)):
@@ -257,7 +274,6 @@ def run_soccerway(date_start: str, date_end: str):
     return {
         "message": "started",
         "task_id": task.id,
-        "status": 200
     }
     
 @app.post("/api/run/soccerway2")
@@ -266,14 +282,14 @@ def run_soccerway(start_date: str, end_date: str):
     if not (is_valid_date(start_date) and is_valid_date(end_date)):
         return Response(status_code=status.HTTP_400_BAD_REQUEST, content="Invalid date format. Use YYYY-MM-DD.")
     try:
-        print(start_date, end_date)
+        task = run_soccerway_2.delay(start_date, end_date)
     except Exception as e:
         logging.error(f"Error starting task: {e}")
         raise HTTPException(status_code=500, detail="Error starting task")
         
     return {
         "message": "started",
-        "task_id": "task.id",
+        "task_id": task.id,
     }
     
 # @app.post("/api/run/marafon")
@@ -330,24 +346,24 @@ async def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
             
-@app.post("/auth/registration")
-async def registration(form_data: UserRegisterSchema):
-    with Session(engine) as session:
-        existing_user = session.exec(select(User).where(User.username == form_data.username)).first()
-        if existing_user:
-            raise HTTPException(status_code=400, detail="Username already exists")
+# @app.post("/auth/registration")
+# async def registration(form_data: UserRegisterSchema):
+#     with Session(engine) as session:
+#         existing_user = session.exec(select(User).where(User.username == form_data.username)).first()
+#         if existing_user:
+#             raise HTTPException(status_code=400, detail="Username already exists")
 
-        hashed_password = pwd_context.hash(form_data.password)
-        user = User(username=form_data.username, full_name=form_data.full_name, hashed_password=hashed_password)
+#         hashed_password = pwd_context.hash(form_data.password)
+#         user = User(username=form_data.username, full_name=form_data.full_name, hashed_password=hashed_password)
         
-        session.add(user)
-        session.commit()
-        session.refresh(user)
-        return {
-            "id": str(user.id),
-            "username": user.username,
-            "full_name": user.full_name,
-        }
+#         session.add(user)
+#         session.commit()
+#         session.refresh(user)
+#         return {
+#             "id": str(user.id),
+#             "username": user.username,
+#             "full_name": user.full_name,
+#         }
         
 
         
