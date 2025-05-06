@@ -343,6 +343,8 @@ def main(date_start, date_end):
             if response.status_code == 200:
                 print("[ Файл успешно отправлен на сервер FastAPI ]")
                 
+                os.remove(name + '.xls')
+                
                 params = {'text': 'Soccerway1 завершил работу!'}
                 
                 try:
