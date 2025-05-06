@@ -1,19 +1,23 @@
-import datetime
+from datetime import datetime, timedelta, timezone
 import logging
 from contextlib import asynccontextmanager
 import os
 import re
 from aiogram import Bot
-from fastapi import status
+from authx import AuthX, AuthXConfig
+from fastapi import Request, status
 from typing import Annotated
 from uuid import UUID, uuid4
 from dotenv import load_dotenv
 from fastapi import Depends, Response, UploadFile, File as FastAPIFile
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from starlette.middleware.base import BaseHTTPMiddleware
+import jwt
 from minio import Minio, S3Error
 from pydantic_settings import BaseSettings
+from passlib.context import CryptContext
 from sqlmodel import Field, Session, SQLModel, create_engine, select
 from tasks import run_soccerway_1
 
@@ -30,6 +34,9 @@ class Settings(BaseSettings):
     TELEGRAM_BOT_TOKEN: str = os.environ.get("TELEGRAM_BOT_TOKEN")
     TELEGRAM_CHAT_ID: str = os.environ.get("TELEGRAM_CHAT_ID")
     TELEGRAM_TOPIC_ID: int = os.environ.get("TELEGRAM_TOPIC_ID")
+    SECRET_KEY: str = os.environ.get("SECRET_KEY")
+    ALGORITHM: str = os.environ.get("ALGORITHM")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES")
 
 settings = Settings()
 
@@ -45,24 +52,65 @@ bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 connect_args = {"check_same_thread": False}
 engine = create_engine(sqlite_url, echo=True, connect_args=connect_args)
-
-def create_db_and_tables():
-    SQLModel.metadata.create_all(engine)
 
 class User(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
     username: str = Field(index=True)
-    email: str = Field(index=True)
     full_name: str = Field(index=True)
-    disabled: bool = Field(index=True)
-
+    disabled: bool = Field(index=True, default=False)
+    hashed_password: str = Field(index=True)
+    
+class UserRegisterSchema(SQLModel):
+    username: str
+    full_name: str
+    password: str
+    
+class UserLoginSchema(SQLModel):
+    username: str
+    password: str
+    
 class File(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
     name: str = Field(index=True)
     file_url: str = Field(index=True)
-    created_at: datetime.datetime = Field(default=datetime.datetime.now(), nullable=False)
+    created_at: datetime = Field(default=datetime.now(), nullable=False)
+
+def create_db_and_tables():
+    SQLModel.metadata.create_all(engine)
+    
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+    
+def get_user(username: str):
+    with Session(engine) as session:
+        user = session.exec(select(User).where(User.username == username)).first()
+        return user
+    
+def authenticate_user(username: str, password: str):
+    user = get_user(username)
+    if not user:
+        return False
+    if not verify_password(password, user.hashed_password):
+        return False
+    return user
+    
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return encoded_jwt
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -72,11 +120,58 @@ async def lifespan(app: FastAPI):
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 app = FastAPI(lifespan=lifespan)
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+class JWTMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # Skip authentication for public endpoints
+        if request.url.path in ["/auth/login", "/auth/registration", "/docs", "/openapi.json"]:
+            return await call_next(request)
 
-@app.get("/items/")
-async def read_items(token: Annotated[str, Depends(oauth2_scheme)]):
-    return {"token": token}
+        # Extract token from Authorization header
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return Response(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content="Missing or invalid Authorization header",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        token = auth_header.split("Bearer ")[1]
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+            username = payload.get("sub")
+            if username is None:
+                return Response(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    content="Could not validate credentials",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+        except jwt.InvalidTokenError:
+            return Response(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content="Invalid token",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        user = get_user(username)
+        if user is None:
+            return Response(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content="User not found",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        if user.disabled:
+            return Response(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content="Inactive user",
+            )
+
+        # Store user in request.state
+        request.state.user = user
+        response = await call_next(request)
+        return response
+
+app.add_middleware(JWTMiddleware)
 
 @app.post("/api/files/upload")
 def create_file(file: UploadFile = FastAPIFile(...)):
@@ -195,6 +290,15 @@ def run_soccerway(start_date: str, end_date: str):
 #         "task_id": "task.id",
 #     }
 
+@app.post("/api/run/test_parser")
+def run_test_parser():
+    
+    return {
+        "message": "started",
+        "task_id": "task.id",
+        "status": 200
+    }
+
 @app.post("/api/bot/send_report_message")
 async def send_message(text: str):
     try:
@@ -206,3 +310,47 @@ async def send_message(text: str):
     return {
         "message": "Message sent",
     }
+
+@app.post("/auth/login")
+async def login_for_access_token(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+):
+    user = authenticate_user(form_data.username, form_data.password)
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    access_token = create_access_token(
+        data={"sub": user.username, "userId": str(user.id)}, expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+            
+@app.post("/auth/registration")
+async def registration(form_data: UserRegisterSchema):
+    with Session(engine) as session:
+        existing_user = session.exec(select(User).where(User.username == form_data.username)).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Username already exists")
+
+        hashed_password = pwd_context.hash(form_data.password)
+        user = User(username=form_data.username, full_name=form_data.full_name, hashed_password=hashed_password)
+        
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+        return {
+            "id": str(user.id),
+            "username": user.username,
+            "full_name": user.full_name,
+        }
+        
+
+        
+@app.get("/users/me/", response_model=User)
+async def read_users_me(request: Request):
+    return request.state.user

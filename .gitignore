@@ -14,3 +14,4 @@ uv.lock
 frontend/package-lock.json
 grafana_data/*
 .env.dev
+.env.dev
