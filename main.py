@@ -12,6 +12,7 @@ from fastapi import Depends, Response, UploadFile, File as FastAPIFile
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 import jwt
 from minio import Minio, S3Error
@@ -173,20 +174,18 @@ class JWTMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(JWTMiddleware)
 
-# origins = [
-#     "http://localhost.tiangolo.com",
-#     "https://localhost.tiangolo.com",
-#     "http://localhost",
-#     "http://localhost:8080",
-# ]
+origins = [
+    "https://esmeralda-frontend.vercel.app"
+    "http://localhost:3000",
+]
 
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=origins,
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post("/api/files/upload")
 def create_file(file: UploadFile = FastAPIFile(...)):
