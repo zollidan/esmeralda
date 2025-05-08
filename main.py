@@ -120,59 +120,59 @@ async def lifespan(app: FastAPI):
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 app = FastAPI(lifespan=lifespan)
 
-class JWTMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
+# class JWTMiddleware(BaseHTTPMiddleware):
+#     async def dispatch(self, request: Request, call_next):
 
-        # Skip authentication for public endpoints
-        if request.url.path in ["/auth/login", "/auth/registration", "/docs", "/openapi.json", "/api/files/upload", "/api/bot/send_report_message"]:
-            return await call_next(request)
+#         # Skip authentication for public endpoints
+#         if request.url.path in ["/auth/login", "/auth/registration", "/docs", "/openapi.json", "/api/files/upload", "/api/bot/send_report_message"]:
+#             return await call_next(request)
 
-        # Extract token from Authorization header
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            return Response(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                content="Missing or invalid Authorization header",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+#         # Extract token from Authorization header
+#         auth_header = request.headers.get("Authorization")
+#         if not auth_header or not auth_header.startswith("Bearer "):
+#             return Response(
+#                 status_code=status.HTTP_401_UNAUTHORIZED,
+#                 content="Missing or invalid Authorization header",
+#                 headers={"WWW-Authenticate": "Bearer"},
+#             )
 
-        token = auth_header.split("Bearer ")[1]
-        try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-            username = payload.get("sub")
-            if username is None:
-                return Response(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    content="Could not validate credentials",
-                    headers={"WWW-Authenticate": "Bearer"},
-                )
-        except jwt.InvalidTokenError:
-            return Response(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                content="Invalid token",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+#         token = auth_header.split("Bearer ")[1]
+#         try:
+#             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+#             username = payload.get("sub")
+#             if username is None:
+#                 return Response(
+#                     status_code=status.HTTP_401_UNAUTHORIZED,
+#                     content="Could not validate credentials",
+#                     headers={"WWW-Authenticate": "Bearer"},
+#                 )
+#         except jwt.InvalidTokenError:
+#             return Response(
+#                 status_code=status.HTTP_401_UNAUTHORIZED,
+#                 content="Invalid token",
+#                 headers={"WWW-Authenticate": "Bearer"},
+#             )
 
-        user = get_user(username)
-        if user is None:
-            return Response(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                content="User not found",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+#         user = get_user(username)
+#         if user is None:
+#             return Response(
+#                 status_code=status.HTTP_401_UNAUTHORIZED,
+#                 content="User not found",
+#                 headers={"WWW-Authenticate": "Bearer"},
+#             )
 
-        if user.disabled:
-            return Response(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                content="Inactive user",
-            )
+#         if user.disabled:
+#             return Response(
+#                 status_code=status.HTTP_400_BAD_REQUEST,
+#                 content="Inactive user",
+#             )
 
-        # Store user in request.state
-        request.state.user = user
-        response = await call_next(request)
-        return response
+#         # Store user in request.state
+#         request.state.user = user
+#         response = await call_next(request)
+#         return response
 
-app.add_middleware(JWTMiddleware)
+# app.add_middleware(JWTMiddleware)
 
 origins = [
     "https://esmeralda-frontend.vercel.app"
