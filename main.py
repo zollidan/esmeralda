@@ -187,6 +187,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/healthcheck")
+def healthcheck():
+    return {"status": "ok"}
+
 @app.post("/api/files/upload")
 def create_file(file: UploadFile = FastAPIFile(...)):
     file_id = uuid4()
@@ -274,12 +278,12 @@ def run_soccerway1(date_start: str, date_end: str):
     }
     
 @app.post("/api/run/soccerway2")
-def run_soccerway2(start_date: str, end_date: str):
+def run_soccerway2(date_start: str, date_end: str):
 
-    if not (is_valid_date(start_date) and is_valid_date(end_date)):
+    if not (is_valid_date(date_start) and is_valid_date(date_end)):
         return Response(status_code=status.HTTP_400_BAD_REQUEST, content="Invalid date format. Use YYYY-MM-DD.")
     try:
-        task = run_soccerway_2.delay(start_date, end_date)
+        task = run_soccerway_2.delay(date_start, date_end)
     except Exception as e:
         logging.error(f"Error starting task: {e}")
         raise HTTPException(status_code=500, detail="Error starting task")
@@ -303,15 +307,6 @@ def run_soccerway2(start_date: str, end_date: str):
 #         "task_id": "task.id",
 #     }
 
-@app.post("/api/run/test_parser")
-def run_test_parser():
-    
-    return {
-        "message": "started",
-        "task_id": "task.id",
-        "status": 200
-    }
-
 @app.post("/api/bot/send_report_message")
 async def send_message(text: str):
     try:
@@ -324,44 +319,44 @@ async def send_message(text: str):
         "message": "Message sent",
     }
 
-@app.post("/auth/login")
-async def login_for_access_token(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-):
-    user = authenticate_user(form_data.username, form_data.password)
+# @app.post("/auth/login")
+# async def login_for_access_token(
+#     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+# ):
+#     user = authenticate_user(form_data.username, form_data.password)
     
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+#     if not user:
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail="Incorrect username or password",
+#             headers={"WWW-Authenticate": "Bearer"},
+#         )
 
-    access_token = create_access_token(
-        data={"sub": user.username, "userId": str(user.id)}, expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
+#     access_token = create_access_token(
+#         data={"sub": user.username, "userId": str(user.id)}, expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+#     )
+#     return {"access_token": access_token, "token_type": "bearer"}
 
             
-@app.post("/auth/registration")
-async def registration(form_data: UserRegisterSchema):
-    with Session(engine) as session:
-        existing_user = session.exec(select(User).where(User.username == form_data.username)).first()
-        if existing_user:
-            raise HTTPException(status_code=400, detail="Username already exists")
+# @app.post("/auth/registration")
+# async def registration(form_data: UserRegisterSchema):
+#     with Session(engine) as session:
+#         existing_user = session.exec(select(User).where(User.username == form_data.username)).first()
+#         if existing_user:
+#             raise HTTPException(status_code=400, detail="Username already exists")
 
-        hashed_password = pwd_context.hash(form_data.password)
-        user = User(username=form_data.username, full_name=form_data.full_name, hashed_password=hashed_password)
+#         hashed_password = pwd_context.hash(form_data.password)
+#         user = User(username=form_data.username, full_name=form_data.full_name, hashed_password=hashed_password)
         
-        session.add(user)
-        session.commit()
-        session.refresh(user)
-        return {
-            "id": str(user.id),
-            "username": user.username,
-            "full_name": user.full_name,
-        }
+#         session.add(user)
+#         session.commit()
+#         session.refresh(user)
+#         return {
+#             "id": str(user.id),
+#             "username": user.username,
+#             "full_name": user.full_name,
+#         }
         
-@app.get("/users/me/", response_model=User)
-async def read_users_me(request: Request):
-    return request.state.user
+# @app.get("/users/me/", response_model=User)
+# async def read_users_me(request: Request):
+#     return request.state.user
