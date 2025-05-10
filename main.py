@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     SECRET_KEY: str = os.environ.get("SECRET_KEY")
     ALGORITHM: str = os.environ.get("ALGORITHM")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES")
+    POSTGRES_HOST: str = os.environ.get("POSTGRES_HOST")
+    POSTGRES_PORT: str = os.environ.get("POSTGRES_PORT")
+    POSTGRES_USER: str = os.environ.get("POSTGRES_USER")
+    POSTGRES_PASSWORD: str = os.environ.get("POSTGRES_PASSWORD")
+    POSTGRES_DB: str = os.environ.get("POSTGRES_DB")
 
 settings = Settings()
 
@@ -49,14 +54,11 @@ s3_client = Minio(
 
 bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
 
-sqlite_file_name = "database.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-connect_args = {"check_same_thread": False}
-engine = create_engine(sqlite_url, echo=True, connect_args=connect_args)
+postgres_url = f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
+engine = create_engine(postgres_url, echo=False)
 
 class User(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
