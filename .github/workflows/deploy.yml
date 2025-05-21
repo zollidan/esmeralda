@@ -1,0 +1,125 @@
+# .github/workflows/deploy.yml
+name: Deploy FastAPI application
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install uv
+        run: |
+          pip install uv
+
+      - name: Install dependencies
+        run: |
+          uv pip install pytest pytest-cov
+          uv pip sync
+
+      - name: Run tests
+        run: |
+          uv run pytest --cov=./ --cov-report=xml
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
+
+  build-and-deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=branch
+            type=sha,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            # Переходим в директорию проекта
+            cd /opt/fastapi-app
+
+            # Создаем бэкап текущего конфига docker-compose
+            cp docker-compose.prod.yaml docker-compose.prod.yaml.bak
+
+            # Обновляем код из репозитория
+            git pull origin main || git pull origin master
+
+            # Создаем временный файл docker-compose с обновленным image
+            cat docker-compose.prod.yaml | sed "s|build: .|image: ghcr.io/${{ github.repository }}:sha-$(echo ${{ github.sha }} | cut -c1-7)|g" > docker-compose.deploy.yaml
+
+            # Авторизуемся в GitHub Container Registry
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # Обновляем и перезапускаем сервисы
+            docker compose -f docker-compose.deploy.yaml pull
+            docker compose -f docker-compose.deploy.yaml up -d
+
+            # Очищаем неиспользуемые образы
+            docker image prune -f
+
+            # Проверяем статус
+            docker compose -f docker-compose.deploy.yaml ps
+
+  notify:
+    needs: [build-and-deploy]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Notify deployment status
+        run: |
+          if [ "${{ needs.build-and-deploy.result }}" == "success" ]; then
+            echo "✅ Deployment successful!"
+          else
+            echo "❌ Deployment failed!"
+          fi
