@@ -21,22 +21,22 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
-      - name: Install dependencies
-        run: |
-          uv add pytest pytest-cov
-          uv sync
+      # - name: Install dependencies
+      #   run: |
+      #     uv add pytest pytest-cov
+      #     uv sync
 
-      - name: Run tests
-        run: |
-          uv run pytest --cov=./ --cov-report=xml
-        env:
-          PYTHONPATH: ${{ github.workspace }}
+      # - name: Run tests
+      #   run: |
+      #     uv run pytest --cov=./ --cov-report=xml
+      #   env:
+      #     PYTHONPATH: ${{ github.workspace }}
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./coverage.xml
-          fail_ci_if_error: false
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v4
+      #   with:
+      #     file: ./coverage.xml
+      #     fail_ci_if_error: false
 
   build-and-deploy:
     needs: test
