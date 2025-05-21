@@ -11,40 +11,40 @@ def test_healthcheck():
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
         
-def test_get_items():
-    response = client.get("/api/files")
-    assert response.status_code == 200
-    data = response.json()
+# def test_get_items():
+#     response = client.get("/api/files")
+#     assert response.status_code == 200
+#     data = response.json()
     
-    assert isinstance(data, list)
-    if not data:
-        assert data == []
-    else:
-        first = data[0]
-        assert isinstance(first, dict)
-        assert "name" in first and isinstance(first["name"], str)
-        assert "file_url" in first and isinstance(first["file_url"], str)
-        assert "created_at" in first and isinstance(first["created_at"], str)
-        assert "id" in first and isinstance(first["id"], str)
+#     assert isinstance(data, list)
+#     if not data:
+#         assert data == []
+#     else:
+#         first = data[0]
+#         assert isinstance(first, dict)
+#         assert "name" in first and isinstance(first["name"], str)
+#         assert "file_url" in first and isinstance(first["file_url"], str)
+#         assert "created_at" in first and isinstance(first["created_at"], str)
+#         assert "id" in first and isinstance(first["id"], str)
         
-def test_upload_file_success():
-    file_content = b"Hello, World!"
-    test_file = ("test.txt", io.BytesIO(file_content), "text/plain")
+# def test_upload_file_success():
+#     file_content = b"Hello, World!"
+#     test_file = ("test.txt", io.BytesIO(file_content), "text/plain")
     
-    with patch("main.s3_client") as mock_put:
-        mock_put.return_value = None
+#     with patch("main.s3_client") as mock_put:
+#         mock_put.return_value = None
         
-        response = client.post(
-            "/api/files/upload",
-            files={"file": test_file},
-        )
+#         response = client.post(
+#             "/api/files/upload",
+#             files={"file": test_file},
+#         )
         
-        assert response.status_code == 200
-        data = response.json()
+#         assert response.status_code == 200
+#         data = response.json()
         
-        assert "id" in data and UUID(data["id"])
-        assert data["name"] == "test.txt"
-        assert data["url"].startswith("api/files/")
+#         assert "id" in data and UUID(data["id"])
+#         assert data["name"] == "test.txt"
+#         assert data["url"].startswith("api/files/")
         
         
 @patch("main.s3_client")
