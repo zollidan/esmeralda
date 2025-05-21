@@ -10,9 +10,11 @@ from uuid import UUID, uuid4
 from dotenv import load_dotenv
 from fastapi import Depends, Response, UploadFile, File as FastAPIFile
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from starlette.middleware.base import BaseHTTPMiddleware
 import jwt
 from minio import Minio, S3Error
@@ -121,6 +123,9 @@ async def lifespan(app: FastAPI):
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 app = FastAPI(lifespan=lifespan)
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
 # class JWTMiddleware(BaseHTTPMiddleware):
 #     async def dispatch(self, request: Request, call_next):
@@ -362,3 +367,9 @@ async def send_message(text: str):
 # @app.get("/users/me/", response_model=User)
 # async def read_users_me(request: Request):
 #     return request.state.user
+
+@app.get("/admin", response_class=HTMLResponse)
+async def read_item(request: Request, id: str):
+    return templates.TemplateResponse(
+        request=request, name="index.html"
+    )
