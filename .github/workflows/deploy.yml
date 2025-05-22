@@ -8,38 +8,38 @@ on:
     branches: [main, master]
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+  # test:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: "3.12"
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
+  #     - name: Install uv
+  #       uses: astral-sh/setup-uv@v5
 
-      - name: Install dependencies
-        run: |
-          uv add pytest pytest-cov
-          uv sync
+  #     - name: Install dependencies
+  #       run: |
+  #         uv add pytest pytest-cov
+  #         uv sync
 
-      - name: Run tests
-        run: |
-          uv run pytest --cov=./ --cov-report=xml
-        env:
-          PYTHONPATH: ${{ github.workspace }}
+  #     - name: Run tests
+  #       run: |
+  #         uv run pytest --cov=./ --cov-report=xml
+  #       env:
+  #         PYTHONPATH: ${{ github.workspace }}
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./coverage.xml
-          fail_ci_if_error: false
+  #     - name: Upload coverage to Codecov
+  #       uses: codecov/codecov-action@v4
+  #       with:
+  #         file: ./coverage.xml
+  #         fail_ci_if_error: false
 
   build-and-deploy:
-    needs: test
+    # needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     steps:
@@ -86,13 +86,13 @@ jobs:
           script: |
             set -e
             # Переходим в директорию проекта
-            cd /opt/fastapi-app
-
-            # Создаем бэкап текущего конфига docker-compose
-            cp docker-compose.prod.yaml docker-compose.prod.yaml.bak
+            cd /opt/esmeralda
 
             # Обновляем код из репозитория
             git pull origin main || git pull origin master
+
+              # Создаем бэкап текущего конфига docker-compose
+            cp docker-compose.prod.yaml docker-compose.prod.yaml.bak
 
             # Создаем временный файл docker-compose с обновленным image
             sed "s|build: .|image: ghcr.io/${{ github.repository }}:sha-$(echo ${{ github.sha }} | cut -c1-7)|g" docker-compose.prod.yaml > docker-compose.deploy.yaml

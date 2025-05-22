@@ -118,7 +118,7 @@ fi
 
 # Создание директории проекта
 print_status "Создание директории для FastAPI проекта..."
-PROJECT_DIR="/opt/fastapi-app"
+PROJECT_DIR="/opt/esmeralda"
 mkdir -p $PROJECT_DIR
 chown $DEPLOY_USER:$DEPLOY_USER $PROJECT_DIR
 
@@ -136,27 +136,30 @@ print_status "Создание конфигураций Traefik..."
 cat > $PROJECT_DIR/traefik/traefik.yml << EOF
 api:
   dashboard: true
-  insecure: false
-
+  debug: true
 entryPoints:
   http:
     address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: https
+          scheme: https
   https:
     address: ":443"
-
+serversTransport:
+  insecureSkipVerify: true
 providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"
     exposedByDefault: false
-    network: proxy
   file:
     filename: /config.yml
-
 certificatesResolvers:
   cloudflare:
     acme:
-      email: \${CF_API_EMAIL}
-      storage: /acme.json
+      email: sf5100050@gmail.com
+      storage: acme.json
       dnsChallenge:
         provider: cloudflare
         resolvers:
@@ -164,53 +167,60 @@ certificatesResolvers:
           - "1.0.0.1:53"
 
 log:
-  filePath: "/var/log/traefik/traefik.log"
   level: "INFO"
-
+  filePath: "/var/log/traefik/traefik.log"
 accessLog:
   filePath: "/var/log/traefik/access.log"
+
 EOF
 
 # config.yml
-cat > $PROJECT_DIR/traefik/config.yml << EOF
-http:
-  middlewares:
-    https-redirect:
-      redirectScheme:
-        scheme: https
-        permanent: true
-    secure-headers:
-      headers:
-        sslRedirect: true
-        forceSTSHeader: true
-        stsIncludeSubdomains: true
-        stsPreload: true
-        stsSeconds: 31536000
-EOF
+# cat > $PROJECT_DIR/traefik/config.yml << EOF
+# http:
+#   middlewares:
+#     https-redirect:
+#       redirectScheme:
+#         scheme: https
+#         permanent: true
+#     secure-headers:
+#       headers:
+#         sslRedirect: true
+#         forceSTSHeader: true
+#         stsIncludeSubdomains: true
+#         stsPreload: true
+#         stsSeconds: 31536000
+# EOF
 
 # Пример .env файла
 cat > $PROJECT_DIR/.env.example << EOF
-# Cloudflare credentials for Traefik
-CF_API_KEY=your_cloudflare_api_key
-CF_API_EMAIL=your_email@example.com
+MINIO_ROOT_PASSWORD=
+BUCKET_NAME=
+MINIO_PROMETHEUS_AUTH_TYPE=
 
-# PostgreSQL configuration
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=secure_password_here
-POSTGRES_DB=fastapi_db
+CF_API_EMAIL=
+CF_DNS_API_TOKEN=
 
-# MinIO configuration
-MINIO_ROOT_USER=minio
-MINIO_ROOT_PASSWORD=minio_password
+CELERY_BROKER_URL=
+CELERY_RESULT_BACKEND=
 
-# Celery/Redis configuration
-CELERY_BROKER_URL=redis://redis:6379/0
-CELERY_RESULT_BACKEND=redis://redis:6379/0
+FLOWER_PORT=
+FLOWER_UNAUTHENTICATED_API=
 
-# Application settings
-DEBUG=False
-SECRET_KEY=your_secret_key_here
-ALLOWED_HOSTS=api.aaf-bet.ru,localhost,127.0.0.1
+APP_MODE=
+
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=-
+TELEGRAM_TOPIC_ID=
+
+SECRET_KEY=
+ALGORITHM=
+ACCESS_TOKEN_EXPIRE_MINUTES=
+
+POSTGRES_HOST=
+POSTGRES_PORT=
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+POSTGRES_DB=
 EOF
 
 # Настройка логирования Docker
