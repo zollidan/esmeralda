@@ -1,130 +1,85 @@
-# .github/workflows/deploy.yml
-name: Deploy FastAPI application
+name: Deploy to Production
 
 on:
   push:
-    branches: [main, master]
-  pull_request:
-    branches: [main, master]
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
-  # test:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-
-  #     - name: Set up Python
-  #       uses: actions/setup-python@v5
-  #       with:
-  #         python-version: "3.12"
-
-  #     - name: Install uv
-  #       uses: astral-sh/setup-uv@v5
-
-  #     - name: Install dependencies
-  #       run: |
-  #         uv add pytest pytest-cov
-  #         uv sync
-
-  #     - name: Run tests
-  #       run: |
-  #         uv run pytest --cov=./ --cov-report=xml
-  #       env:
-  #         PYTHONPATH: ${{ github.workspace }}
-
-  #     - name: Upload coverage to Codecov
-  #       uses: codecov/codecov-action@v4
-  #       with:
-  #         file: ./coverage.xml
-  #         fail_ci_if_error: false
-
-  build-and-deploy:
-    # needs: test
+  deploy:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Log in to Container Registry
-        uses: docker/login-action@v3
+      - name: Create .env file
+        run: |
+          cat > .env << EOF
+          MINIO_ROOT_USER=${{secrets.MINIO_ROOT_USER}}
+          MINIO_ROOT_PASSWORD=${{secrets.MINIO_ROOT_PASSWORD}}
+          BUCKET_NAME=${{secrets.BUCKET_NAME}}
+          MINIO_PROMETHEUS_AUTH_TYPE=${{secrets.MINIO_PROMETHEUS_AUTH_TYPE}}
+
+          CF_API_EMAIL=${{secrets.CF_API_EMAIL}}
+          CF_DNS_API_TOKEN=${{secrets.CF_DNS_API_TOKEN}}
+
+          CELERY_BROKER_URL=${{secrets.CELERY_BROKER_URL}}
+          CELERY_RESULT_BACKEND=${{secrets.CELERY_RESULT_BACKEND}}
+
+          FLOWER_PORT=${{secrets.FLOWER_PORT}}
+          FLOWER_UNAUTHENTICATED_API=${{secrets.FLOWER_UNAUTHENTICATED_API}}
+
+          APP_MODE=${{secrets.APP_MODE}}
+
+          TELEGRAM_BOT_TOKEN=${{secrets.TELEGRAM_BOT_TOKEN}}
+          TELEGRAM_CHAT_ID=${{secrets.TELEGRAM_CHAT_ID}}
+          TELEGRAM_TOPIC_ID=${{secrets.TELEGRAM_TOPIC_ID}}
+
+          SECRET_KEY=${{secrets.SECRET_KEY}}
+          ALGORITHM=${{secrets.ALGORITHM}}
+          ACCESS_TOKEN_EXPIRE_MINUTES=${{secrets.ACCESS_TOKEN_EXPIRE_MINUTES}}
+
+          POSTGRES_HOST=${{secrets.POSTGRES_HOST}}
+          POSTGRES_PORT=${{secrets.POSTGRES_PORT}}
+          POSTGRES_USER=${{secrets.POSTGRES_USER}}
+          POSTGRES_PASSWORD=${{secrets.POSTGRES_PASSWORD}}
+          POSTGRES_DB=${{secrets.POSTGRES_DB}}
+          # Добавьте другие переменные окружения
+          EOF
+
+      - name: Copy files to server
+        uses: appleboy/scp-action@v0.1.5
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "."
+          target: "~/app"
+          rm: true
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Extract metadata for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository }}
-          tags: |
-            type=ref,event=branch
-            type=sha,format=short
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Deploy to server
+      - name: Deploy with Docker Compose
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.PORT }}
           script: |
-            set -e
-            # Переходим в директорию проекта
-            cd /opt/esmeralda
+            cd ~/app
 
-            # Обновляем код из репозитория
-            git pull origin main || git pull origin master
+            # Создание необходимых директорий и файлов
+            mkdir -p traefik/logs
+            touch traefik/acme.json
+            chmod 600 traefik/acme.json
 
-              # Создаем бэкап текущего конфига docker-compose
-            cp docker-compose.prod.yaml docker-compose.prod.yaml.bak
+            # Остановка старых контейнеров
+            docker-compose -f docker-compose.prod.yaml down
 
-            # Создаем временный файл docker-compose с обновленным image
-            sed "s|build: .|image: ghcr.io/${{ github.repository }}:sha-$(echo ${{ github.sha }} | cut -c1-7)|g" docker-compose.prod.yaml > docker-compose.deploy.yaml
+            # Очистка неиспользуемых образов
+            docker system prune -f
 
-            # Передаем .env файл из GitHub Secrets, если он существует
-            if [ ! -z "${{ secrets.ENV_FILE }}" ]; then
-              echo "${{ secrets.ENV_FILE }}" > .env
-              echo "✅ Файл .env обновлен из GitHub Secrets"
-            fi
+            # Запуск новых контейнеров
+            docker-compose -f docker-compose.prod.yaml up -d --build
 
-            # Авторизуемся в GitHub Container Registry
-            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-            # Обновляем и перезапускаем сервисы
-            docker compose -f docker-compose.deploy.yaml pull
-            docker compose -f docker-compose.deploy.yaml up -d
-
-            # Очищаем неиспользуемые образы
-            docker image prune -f
-
-            # Проверяем статус
-            docker compose -f docker-compose.deploy.yaml ps
-
-  notify:
-    needs: [build-and-deploy]
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: Notify deployment status
-        run: |
-          if [ "${{ needs.build-and-deploy.result }}" == "success" ]; then
-            echo "✅ Deployment successful!"
-          else
-            echo "❌ Deployment failed!"
-          fi
+            # Проверка статуса
+            docker-compose -f docker-compose.prod.yaml ps
