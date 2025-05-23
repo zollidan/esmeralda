@@ -198,6 +198,15 @@ app.add_middleware(
 def healthcheck():
     return {"status": "ok"}
 
+@app.get("/info")
+def info():
+    return {
+        "version": "1.0.0",
+        "description": "API for Esmeralda project",
+        "author": "LeFort Tech Team @2025",
+        "email": ""
+    }
+
 @app.post("/api/files/upload")
 def create_file(file: UploadFile = FastAPIFile(...)):
     file_id = uuid4()
