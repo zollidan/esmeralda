@@ -23,7 +23,7 @@ from passlib.context import CryptContext
 from sqlmodel import Field, Session, SQLModel, create_engine, select
 from tasks import run_soccerway_1, run_soccerway_2
 
-load_dotenv(dotenv_path=".env.dev")
+load_dotenv(dotenv_path=".env")
 
 class Settings(BaseSettings):
     MINIO_ENDPOINT: str = os.environ.get("MINIO_ENDPOINT")
