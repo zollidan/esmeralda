@@ -201,7 +201,7 @@ def healthcheck():
 @app.get("/info")
 def info():
     return {
-        "version": "1.0.0",
+        "version": "1.0.1",
         "description": "API for Esmeralda project",
         "author": "LeFort Tech Team @2025",
         "email": ""
