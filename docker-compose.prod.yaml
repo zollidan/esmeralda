@@ -11,6 +11,8 @@ services:
     build: .
     container_name: fastapi_app
     command: uv run uvicorn main:app --host 0.0.0.0 --port 8000
+    env_file:
+      - .env
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web.entrypoints=http"
@@ -25,8 +27,30 @@ services:
       - "traefik.docker.network=proxy"
     depends_on:
       - minio
+      - postgres
     networks:
-      proxy:
+      - proxy
+
+  # НОВЫЙ СЕРВИС - Telegram Bot
+  telegram-bot:
+    build: .
+    container_name: telegram_bot
+    command: uv run bot.py
+    env_file:
+      - .env
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - postgres
+      - minio
+    networks:
+      - proxy
+    # Логирование для мониторинга
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   celery:
     build: .
@@ -41,6 +65,7 @@ services:
 
   flower:
     image: mher/flower
+    container_name: flower
     command: celery flower -A tasks.celery_app --address=0.0.0.0 --port=5555
     env_file:
       - .env
@@ -83,7 +108,7 @@ services:
       - minio-data:/data
     command: server /data --console-address ":9001"
     networks:
-      proxy:
+      - proxy
 
   traefik:
     image: traefik:latest
@@ -92,7 +117,7 @@ services:
     security_opt:
       - no-new-privileges:true
     networks:
-      proxy:
+      - proxy
     ports:
       - 80:80
       - 443:443
@@ -121,6 +146,7 @@ services:
       - "traefik.http.routers.traefik-secure.tls.domains[0].main=aaf-bet.ru"
       - "traefik.http.routers.traefik-secure.tls.domains[0].sans=*.aaf-bet.ru"
       - "traefik.http.routers.traefik-secure.service=api@internal"
+
   postgres:
     image: postgres:latest
     container_name: postgres

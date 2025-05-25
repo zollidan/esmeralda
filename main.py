@@ -22,30 +22,9 @@ from pydantic_settings import BaseSettings
 from passlib.context import CryptContext
 from sqlmodel import Field, Session, SQLModel, create_engine, select
 from tasks import run_soccerway_1, run_soccerway_2
+from config import settings
 
-load_dotenv(dotenv_path=".env")
-
-class Settings(BaseSettings):
-    MINIO_ENDPOINT: str = os.environ.get("MINIO_ENDPOINT")
-    MINIO_ROOT_USER: str = os.environ.get("MINIO_ROOT_USER")
-    MINIO_ROOT_PASSWORD: str = os.environ.get("MINIO_ROOT_PASSWORD")
-    BUCKET_NAME: str = os.environ.get("BUCKET_NAME")
-    CELERY_BROKER_URL: str = os.environ.get("CELERY_BROKER_URL")
-    CELERY_RESULT_BACKEND: str = os.environ.get("CELERY_RESULT_BACKEND")
-    APP_MODE: str = os.environ.get("APP_MODE")
-    TELEGRAM_BOT_TOKEN: str = os.environ.get("TELEGRAM_BOT_TOKEN")
-    TELEGRAM_CHAT_ID: str = os.environ.get("TELEGRAM_CHAT_ID")
-    TELEGRAM_TOPIC_ID: int = os.environ.get("TELEGRAM_TOPIC_ID")
-    SECRET_KEY: str = os.environ.get("SECRET_KEY")
-    ALGORITHM: str = os.environ.get("ALGORITHM")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES")
-    POSTGRES_HOST: str = os.environ.get("POSTGRES_HOST")
-    POSTGRES_PORT: str = os.environ.get("POSTGRES_PORT")
-    POSTGRES_USER: str = os.environ.get("POSTGRES_USER")
-    POSTGRES_PASSWORD: str = os.environ.get("POSTGRES_PASSWORD")
-    POSTGRES_DB: str = os.environ.get("POSTGRES_DB")
-
-settings = Settings()
+APP_VERSION = "1.0.1"
 
 s3_client = Minio(
     str(settings.MINIO_ENDPOINT),
@@ -62,42 +41,52 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 postgres_url = f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
 engine = create_engine(postgres_url, echo=False)
 
+
 class User(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
     username: str = Field(index=True)
     full_name: str = Field(index=True)
     disabled: bool = Field(index=True, default=False)
     hashed_password: str = Field(index=True)
-    
+
+
 class UserRegisterSchema(SQLModel):
     username: str
     full_name: str
     password: str
-    
+
+
 class UserLoginSchema(SQLModel):
     username: str
     password: str
-    
+
+
 class File(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True, index=True)
     name: str = Field(index=True)
     file_url: str = Field(index=True)
     created_at: datetime = Field(default=datetime.now(), nullable=False)
 
+
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
-    
+
+
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
+
 def get_password_hash(password):
     return pwd_context.hash(password)
-    
+
+
 def get_user(username: str):
     with Session(engine) as session:
-        user = session.exec(select(User).where(User.username == username)).first()
+        user = session.exec(select(User).where(
+            User.username == username)).first()
         return user
-    
+
+
 def authenticate_user(username: str, password: str):
     user = get_user(username)
     if not user:
@@ -105,7 +94,8 @@ def authenticate_user(username: str, password: str):
     if not verify_password(password, user.hashed_password):
         return False
     return user
-    
+
+
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     if expires_delta:
@@ -113,19 +103,19 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     else:
         expire = datetime.now(timezone.utc) + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    encoded_jwt = jwt.encode(
+        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     create_db_and_tables()
     yield
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 app = FastAPI(lifespan=lifespan)
-
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
 
 # class JWTMiddleware(BaseHTTPMiddleware):
 #     async def dispatch(self, request: Request, call_next):
@@ -194,18 +184,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/healthcheck")
 def healthcheck():
     return {"status": "ok"}
 
+
 @app.get("/info")
 def info():
     return {
-        "version": "1.0.1",
+        "version": APP_VERSION,
         "description": "API for Esmeralda project",
         "author": "LeFort Tech Team @2025",
         "email": ""
     }
+
 
 @app.post("/api/files/upload")
 def create_file(file: UploadFile = FastAPIFile(...)):
@@ -218,7 +211,7 @@ def create_file(file: UploadFile = FastAPIFile(...)):
             file_name,
             file.file,
             length=-1,
-            part_size=10 * 1024 * 1024, 
+            part_size=10 * 1024 * 1024,
             content_type=file.content_type
         )
 
@@ -233,7 +226,9 @@ def create_file(file: UploadFile = FastAPIFile(...)):
         return {"id": str(file_id), "name": file.filename, "url": file_url}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error uploading file: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Error uploading file: {e}")
+
 
 @app.get("/api/files/")
 def read_files():
@@ -241,12 +236,13 @@ def read_files():
         files = session.exec(select(File)).all()
         return files
 
+
 @app.get("/api/files/{id}")
 def get_file(id: str):
     try:
         stat = s3_client.stat_object(settings.BUCKET_NAME, id)
-        content_type = stat.content_type 
-        
+        content_type = stat.content_type
+
         obj = s3_client.get_object(settings.BUCKET_NAME, id)
 
         return StreamingResponse(obj, media_type=content_type)
@@ -254,14 +250,16 @@ def get_file(id: str):
     except S3Error as e:
         raise HTTPException(status_code=404, detail=f"File not found: {e}")
 
+
 @app.get("/api/files/{id}/info")
 def read_file_info(id: UUID):
-    
+
     with Session(engine) as session:
         file = session.get(File, id)
         if not file:
             raise HTTPException(status_code=404, detail="File not found")
         return file
+
 
 @app.delete("/api/files/{id}")
 def delete_file(id: UUID):
@@ -273,26 +271,29 @@ def delete_file(id: UUID):
         session.commit()
         return {"ok": True}
 
+
 def is_valid_date(date_str):
     return bool(re.match(r'^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$', date_str))
 
+
 @app.post("/api/run/soccerway1")
 def run_soccerway1(date_start: str, date_end: str):
-    
+
     if not (is_valid_date(date_start) and is_valid_date(date_end)):
-            return Response(status_code=status.HTTP_400_BAD_REQUEST, content="Invalid date format. Use YYYY-MM-DD.")
-        
+        return Response(status_code=status.HTTP_400_BAD_REQUEST, content="Invalid date format. Use YYYY-MM-DD.")
+
     try:
         task = run_soccerway_1.delay(date_start, date_end)
     except Exception as e:
         logging.error(f"Error starting task: {e}")
         raise HTTPException(status_code=500, detail="Error starting task")
-        
+
     return {
         "message": "started",
         "task_id": task.id,
     }
-    
+
+
 @app.post("/api/run/soccerway2")
 def run_soccerway2(date_start: str, date_end: str):
 
@@ -303,12 +304,12 @@ def run_soccerway2(date_start: str, date_end: str):
     except Exception as e:
         logging.error(f"Error starting task: {e}")
         raise HTTPException(status_code=500, detail="Error starting task")
-        
+
     return {
         "message": "started",
         "task_id": task.id,
     }
-    
+
 # @app.post("/api/run/marafon")
 # def run_marafon():
 
@@ -317,11 +318,12 @@ def run_soccerway2(date_start: str, date_end: str):
 #     except Exception as e:
 #         logging.error(f"Error starting task: {e}")
 #         raise HTTPException(status_code=500, detail="Error starting task")
-        
+
 #     return {
 #         "message": "started",
 #         "task_id": "task.id",
 #     }
+
 
 @app.post("/api/bot/send_report_message")
 async def send_message(text: str):
@@ -330,7 +332,7 @@ async def send_message(text: str):
     except Exception as e:
         logging.error(f"Error sending message: {e}")
         raise HTTPException(status_code=500, detail="Error sending message")
-        
+
     return {
         "message": "Message sent",
     }
@@ -340,7 +342,7 @@ async def send_message(text: str):
 #     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 # ):
 #     user = authenticate_user(form_data.username, form_data.password)
-    
+
 #     if not user:
 #         raise HTTPException(
 #             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -353,7 +355,7 @@ async def send_message(text: str):
 #     )
 #     return {"access_token": access_token, "token_type": "bearer"}
 
-            
+
 # @app.post("/auth/registration")
 # async def registration(form_data: UserRegisterSchema):
 #     with Session(engine) as session:
@@ -363,7 +365,7 @@ async def send_message(text: str):
 
 #         hashed_password = pwd_context.hash(form_data.password)
 #         user = User(username=form_data.username, full_name=form_data.full_name, hashed_password=hashed_password)
-        
+
 #         session.add(user)
 #         session.commit()
 #         session.refresh(user)
@@ -372,13 +374,7 @@ async def send_message(text: str):
 #             "username": user.username,
 #             "full_name": user.full_name,
 #         }
-        
+
 # @app.get("/users/me/", response_model=User)
 # async def read_users_me(request: Request):
 #     return request.state.user
-
-@app.get("/admin", response_class=HTMLResponse)
-async def read_item(request: Request, id: str):
-    return templates.TemplateResponse(
-        request=request, name="index.html"
-    )
