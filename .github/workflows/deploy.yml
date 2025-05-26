@@ -66,8 +66,6 @@ jobs:
           POSTGRES_PASSWORD=${{secrets.POSTGRES_PASSWORD}}
           POSTGRES_DB=${{secrets.POSTGRES_DB}}
           # Добавьте другие переменные окружения
-          GRAFANA_ADMIN_USERNAME=${{secrets.GRAFANA_ADMIN_USERNAME}}
-          GRAFANA_ADMIN_PASSWORD=${{secrets.GRAFANA_ADMIN_PASSWORD}}
 
           EOF
 
