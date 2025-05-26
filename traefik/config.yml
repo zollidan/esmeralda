@@ -1,0 +1,58 @@
+# Динамическая конфигурация Traefik для WebSocket поддержки
+
+http:
+  middlewares:
+    # Middleware для WebSocket заголовков
+    websocket-headers:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+          X-Forwarded-For: ""
+        customResponseHeaders:
+          X-Frame-Options: "SAMEORIGIN"
+          X-Content-Type-Options: "nosniff"
+
+    # CORS для Grafana
+    grafana-cors:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - OPTIONS
+          - PUT
+          - POST
+          - DELETE
+        accessControlAllowOriginList:
+          - "https://grafana.aaf-bet.ru"
+        accessControlAllowHeaders:
+          - "*"
+        accessControlExposeHeaders:
+          - "*"
+        accessControlAllowCredentials: true
+        accessControlMaxAge: 100
+        addVaryHeader: true
+
+  routers:
+    # Специальный роутер для WebSocket соединений Grafana
+    grafana-websocket:
+      rule: "Host(`grafana.aaf-bet.ru`) && (Path(`/api/live/ws`) || PathPrefix(`/api/live/`))"
+      service: grafana-websocket
+      tls:
+        certResolver: cloudflare
+      middlewares:
+        - websocket-headers
+        - grafana-cors
+
+  services:
+    # Сервис для WebSocket соединений
+    grafana-websocket:
+      loadBalancer:
+        servers:
+          - url: "http://grafana:3000"
+        # Включаем поддержку WebSocket
+        passHostHeader: true
+        serversTransport: websocket-transport
+
+  serversTransports:
+    websocket-transport:
+      serverName: "grafana.aaf-bet.ru"
+      insecureSkipVerify: false
