@@ -210,57 +210,55 @@ services:
         labels: "service=postgres,environment=production"
 
   # ============= МОНИТОРИНГ И ЛОГИРОВАНИЕ =============
-
-  # Loki для хранения логов
   loki:
-    image: grafana/loki:2.9.0
+    image: grafana/loki:latest
     container_name: loki
-    user: "0" # Добавляем права root для записи в volume
+    restart: unless-stopped
     ports:
       - "3100:3100"
     volumes:
-      - ./monitoring/loki-config.yml:/etc/loki/local-config.yaml:ro
       - loki-data:/loki
+      - ./loki/loki-config.yml:/etc/loki/local-config.yaml:ro
     command: -config.file=/etc/loki/local-config.yaml
     networks:
       - proxy
-    restart: unless-stopped
-
-  # Promtail для сбора логов
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=loki,environment=production"
   promtail:
-    image: grafana/promtail:2.9.0
+    image: grafana/promtail:latest
     container_name: promtail
-    user: "0" # Права root для чтения Docker логов
+    restart: unless-stopped
     volumes:
       - /var/log:/var/log:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./monitoring/promtail-config.yml:/etc/promtail/config.yml:ro
+      - ./promtail/promtail-config.yml:/etc/promtail/config.yml:ro
     command: -config.file=/etc/promtail/config.yml
-    networks:
-      - proxy
     depends_on:
       - loki
-    restart: unless-stopped
-
-  # Grafana для визуализации логов
+    networks:
+      - proxy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=promtail,environment=production"
   grafana:
-    image: grafana/grafana:10.2.0
+    image: grafana/grafana:latest
     container_name: grafana
+    restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin123
       - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_SERVER_ROOT_URL=https://grafana.aaf-bet.ru
-      - GF_SERVER_SERVE_FROM_SUB_PATH=false
-      - GF_LIVE_ALLOWED_ORIGINS=https://grafana.aaf-bet.ru
+      - GF_INSTALL_PLUGINS=redis-datasource
     volumes:
       - grafana-data:/var/lib/grafana
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
-    networks:
-      - proxy
-    depends_on:
-      - loki
-    restart: unless-stopped
+      - grafana-config:/etc/grafana
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.grafana.entrypoints=http"
@@ -270,41 +268,21 @@ services:
       - "traefik.http.routers.grafana-secure.entrypoints=https"
       - "traefik.http.routers.grafana-secure.rule=Host(`grafana.aaf-bet.ru`)"
       - "traefik.http.routers.grafana-secure.tls=true"
-      - "traefik.http.routers.grafana-secure.tls.certresolver=cloudflare"
       - "traefik.http.routers.grafana-secure.service=grafana"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
       - "traefik.docker.network=proxy"
-      # WebSocket поддержка для Grafana Live
-      - "traefik.http.middlewares.grafana-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
-      - "traefik.http.middlewares.grafana-headers.headers.customrequestheaders.X-Forwarded-For="
-      - "traefik.http.routers.grafana-secure.middlewares=grafana-headers"
-
-  # AlertManager для уведомлений об ошибках
-  # alertmanager:
-  #   image: prom/alertmanager:v0.26.0
-  #   container_name: alertmanager
-  #   volumes:
-  #     - ./monitoring/alertmanager:/etc/alertmanager
-  #     - alertmanager-data:/alertmanager
-  #   command:
-  #     - "--config.file=/etc/alertmanager/alertmanager.yml"
-  #     - "--storage.path=/alertmanager"
-  #     - "--web.external-url=https://alerts.aaf-bet.ru"
-  #   networks:
-  #     - proxy
-  #   restart: unless-stopped
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.alertmanager.entrypoints=http"
-  #     - "traefik.http.routers.alertmanager.rule=Host(`alerts.aaf-bet.ru`)"
-  #     - "traefik.http.middlewares.alertmanager-https-redirect.redirectscheme.scheme=https"
-  #     - "traefik.http.routers.alertmanager.middlewares=alertmanager-https-redirect"
-  #     - "traefik.http.routers.alertmanager-secure.entrypoints=https"
-  #     - "traefik.http.routers.alertmanager-secure.rule=Host(`alerts.aaf-bet.ru`)"
-  #     - "traefik.http.routers.alertmanager-secure.tls=true"
-  #     - "traefik.http.routers.alertmanager-secure.service=alertmanager"
-  #     - "traefik.http.services.alertmanager.loadbalancer.server.port=9093"
-  #     - "traefik.docker.network=proxy"
+    networks:
+      - proxy
+    depends_on:
+      - postgres
+      - redis
+    # Логирование для Grafana
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=grafana,environment=production"
 
 networks:
   proxy:
@@ -313,6 +291,6 @@ networks:
 volumes:
   minio-data:
   postgres-data:
-  loki-data:
   grafana-data:
-  alertmanager-data:
+  grafana-config:
+  loki-data:

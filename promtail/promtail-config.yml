@@ -1,0 +1,56 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Логи всех Docker контейнеров
+  - job_name: containers
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: containerlogs
+          __path__: /var/lib/docker/containers/*/*log
+
+    pipeline_stages:
+      # Парсим JSON логи Docker
+      - json:
+          expressions:
+            output: log
+            stream: stream
+            attrs:
+
+      # Извлекаем метки из атрибутов контейнера
+      - json:
+          source: attrs
+          expressions:
+            tag:
+
+      # Парсим тег контейнера для получения имени
+      - regex:
+          source: tag
+          expression: "^.+/(?P<container_name>.+?)-.+$"
+
+      # Добавляем метки
+      - labels:
+          stream:
+          container_name:
+
+      # Устанавливаем выходной формат
+      - output:
+          source: output
+
+  # Системные логи
+  - job_name: syslog
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: syslog
+          __path__: /var/log/syslog
