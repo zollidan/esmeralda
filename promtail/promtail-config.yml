@@ -9,50 +9,168 @@ clients:
   - url: http://loki:3100/loki/api/v1/push
 
 scrape_configs:
-  # Сбор логов Docker контейнеров
-  - job_name: docker
-    static_configs:
-      - targets:
-          - localhost
-        labels:
-          job: docker
-          __path__: /var/lib/docker/containers/*/*.log
+  # Сбор логов всех Docker контейнеров
+  - job_name: docker-containers
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    
+    relabel_configs:
+      # Только контейнеры из нашего проекта
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_project']
+        regex: '.*'
+        action: keep
+      
+      # Устанавливаем имя контейнера как метку
+      - source_labels: ['__meta_docker_container_name']
+        target_label: 'container_name'
+        regex: '/(.*)'
+        replacement: '${1}'
+      
+      # Устанавливаем имя сервиса из Docker Compose
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_service']
+        target_label: 'service_name'
+      
+      # Устанавливаем путь к логам
+      - source_labels: ['__meta_docker_container_id']
+        target_label: '__path__'
+        replacement: '/var/lib/docker/containers/${1}/${1}-json.log'
 
-    # Парсинг JSON логов Docker
     pipeline_stages:
+      # Парсинг JSON логов Docker
       - json:
           expressions:
             output: log
             stream: stream
-            attrs:
-      - json:
-          source: attrs
-          expressions:
-            tag:
-      - regex:
-          source: tag
-          expression: "^(?P<container_name>(?:[^|]*))"
+            time: time
+      
+      # Парсинг временных меток
       - timestamp:
           source: time
           format: RFC3339Nano
-      - labels:
-          stream:
-          container_name:
+      
+      # Дополнительные метки для каждого сервиса
+      - match:
+          selector: '{service_name="web"}'
+          stages:
+            - regex:
+                source: output
+                expression: '(?P<level>INFO|ERROR|WARNING|DEBUG)'
+            - labels:
+                level:
+                service_type: api
+      
+      - match:
+          selector: '{service_name="telegram-bot"}'
+          stages:
+            - regex:
+                source: output
+                expression: '(?P<level>INFO|ERROR|WARNING|DEBUG)'
+            - labels:
+                level:
+                service_type: bot
+      
+      - match:
+          selector: '{service_name="celery"}'
+          stages:
+            - regex:
+                source: output
+                expression: '\[(?P<timestamp>.*?)\]:\s(?P<level>\w+)/(?P<worker>\w+)\s(?P<message>.*)'
+            - labels:
+                level:
+                worker:
+                service_type: worker
+      
+      - match:
+          selector: '{service_name="postgres"}'
+          stages:
+            - regex:
+                source: output
+                expression: '(?P<timestamp>\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}.\d+\sUTC)\s\[(?P<pid>\d+)\]\s(?P<level>\w+):\s+(?P<message>.*)'
+            - labels:
+                level:
+                pid:
+                service_type: database
+      
+      - match:
+          selector: '{service_name="redis"}'
+          stages:
+            - regex:
+                source: output
+                expression: '(?P<pid>\d+):\w+\s(?P<timestamp>\d+\s\w+\s\d+:\d+:\d+.\d+)\s(?P<level>[-*#.])\s(?P<message>.*)'
+            - labels:
+                level:
+                service_type: cache
+      
+      - match:
+          selector: '{service_name="minio"}'
+          stages:
+            - json:
+                source: output
+                expressions:
+                  level: level
+                  api: api.name
+                  time: time
+            - labels:
+                level:
+                api:
+                service_type: storage
+      
+      - match:
+          selector: '{service_name="traefik"}'
+          stages:
+            - json:
+                source: output
+                expressions:
+                  level: level
+                  msg: msg
+                  router: routerName
+            - labels:
+                level:
+                router:
+                service_type: proxy
+      
+      # Финальная обработка - вывод логов
       - output:
           source: output
 
-  # Сбор системных логов (опционально)
-  - job_name: system
+  # Сбор конкретных логов приложения (если есть файлы логов)
+  - job_name: application-logs
     static_configs:
       - targets:
           - localhost
         labels:
-          job: syslog
-          __path__: /var/log/syslog
+          job: app-files
+          service_type: application
+          __path__: /var/log/app/*.log
 
     pipeline_stages:
+      - match:
+          selector: '{job="app-files"}'
+          stages:
+            - regex:
+                source: filename
+                expression: '.*/(?P<app_name>.*).log'
+            - labels:
+                app_name:
+
+  # Системные логи (опционально)
+  - job_name: system-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: system
+          service_type: system
+          __path__: /var/log/syslog
+    
+    pipeline_stages:
       - regex:
-          expression: '^(?P<timestamp>\S+\s+\d+\s+\S+)\s+(?P<hostname>\S+)\s+(?P<service>\S+):\s+(?P<message>.*)$'
+          source: __path__
+          expression: '.*/(?P<log_type>.*)'
+      - regex:
+          expression: '^(?P<timestamp>\w+\s+\d+\s+\d+:\d+:\d+)\s+(?P<hostname>\S+)\s+(?P<service>\S+).*?:\s+(?P<message>.*)
       - labels:
           hostname:
           service:
+          log_type:

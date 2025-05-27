@@ -1,0 +1,103 @@
+{
+  "dashboard":
+    {
+      "id": null,
+      "title": "Мониторинг Сервисов AAF-BET",
+      "tags": ["aaf-bet", "services", "logs"],
+      "timezone": "browser",
+      "panels":
+        [
+          {
+            "id": 1,
+            "title": "Обзор Сервисов",
+            "type": "stat",
+            "targets":
+              [
+                {
+                  "expr": 'count by (service_name) (count_over_time({job="docker-containers"}[5m]))',
+                  "refId": "A",
+                },
+              ],
+            "fieldConfig":
+              {
+                "defaults":
+                  {
+                    "color": { "mode": "palette-classic" },
+                    "mappings": [],
+                    "thresholds":
+                      {
+                        "steps":
+                          [
+                            { "color": "green", "value": null },
+                            { "color": "red", "value": 80 },
+                          ],
+                      },
+                  },
+              },
+            "options":
+              {
+                "reduceOptions":
+                  { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+                "orientation": "auto",
+                "textMode": "auto",
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+              },
+            "pluginVersion": "10.1.0",
+            "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
+          },
+          {
+            "id": 2,
+            "title": "Логи FastAPI",
+            "type": "logs",
+            "targets": [{ "expr": '{service_name="web"}', "refId": "A" }],
+            "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+          },
+          {
+            "id": 3,
+            "title": "Логи Telegram Bot",
+            "type": "logs",
+            "targets":
+              [{ "expr": '{service_name="telegram-bot"}', "refId": "A" }],
+            "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+          },
+          {
+            "id": 4,
+            "title": "Ошибки во всех сервисах",
+            "type": "logs",
+            "targets":
+              [
+                {
+                  "expr": '{service_name=~"web|telegram-bot|celery|postgres", level="ERROR"}',
+                  "refId": "A",
+                },
+              ],
+            "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+          },
+          {
+            "id": 5,
+            "title": "Активность Celery",
+            "type": "logs",
+            "targets":
+              [{ "expr": '{service_name="celery"} |= "task"', "refId": "A" }],
+            "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+          },
+          {
+            "id": 6,
+            "title": "База данных PostgreSQL",
+            "type": "logs",
+            "targets": [{ "expr": '{service_name="postgres"}', "refId": "A" }],
+            "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+          },
+        ],
+      "time": { "from": "now-1h", "to": "now" },
+      "timepicker": {},
+      "templating": { "list": [] },
+      "annotations": { "list": [] },
+      "refresh": "30s",
+      "schemaVersion": 39,
+      "version": 0,
+      "links": [],
+    },
+}
