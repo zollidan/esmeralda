@@ -6,13 +6,12 @@ services:
       - "6379:6379"
     networks:
       - proxy
-    # Добавляем логирование для Redis
+    # Простое логирование через Docker driver
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-        labels: "service=redis,environment=production"
 
   web:
     build: .
@@ -37,15 +36,12 @@ services:
       - postgres
     networks:
       - proxy
-    # Логирование для FastAPI
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-        labels: "service=fastapi,environment=production"
 
-  # НОВЫЙ СЕРВИС - Telegram Bot
   telegram-bot:
     build: .
     container_name: telegram_bot
@@ -59,13 +55,11 @@ services:
       - minio
     networks:
       - proxy
-    # Логирование для мониторинга
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-        labels: "service=telegram-bot,environment=production"
 
   celery:
     build: .
@@ -77,13 +71,11 @@ services:
       - redis
     networks:
       - proxy
-    # Логирование для Celery
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-        labels: "service=celery,environment=production"
 
   flower:
     image: mher/flower
@@ -108,13 +100,11 @@ services:
       - "traefik.docker.network=proxy"
     networks:
       - proxy
-    # Логирование для Flower
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-        labels: "service=flower,environment=production"
 
   minio:
     image: minio/minio:latest
@@ -138,13 +128,11 @@ services:
     command: server /data --console-address ":9001"
     networks:
       - proxy
-    # Логирование для MinIO
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-        labels: "service=minio,environment=production"
 
   traefik:
     image: traefik:latest
@@ -182,13 +170,11 @@ services:
       - "traefik.http.routers.traefik-secure.tls.domains[0].main=aaf-bet.ru"
       - "traefik.http.routers.traefik-secure.tls.domains[0].sans=*.aaf-bet.ru"
       - "traefik.http.routers.traefik-secure.service=api@internal"
-    # Логирование для Traefik
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-        labels: "service=traefik,environment=production"
 
   postgres:
     image: postgres:latest
@@ -201,37 +187,88 @@ services:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - proxy
-    # Логирование для PostgreSQL
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-        labels: "service=postgres,environment=production"
 
-  # ============= МОНИТОРИНГ И ЛОГИРОВАНИЕ =============
+  # ============= LOKI STACK ДЛЯ ЛОГИРОВАНИЯ =============
 
-#   loki:
-#     hostname: loki
-#     image: grafana/loki:latest
-#     environment:
-#       TZ: ${SYSTEM_TIMEZONE:-Europe/Moscow}
-#     ports:
-#       - "3100:3100"
-#     command: -config.file=/etc/loki/local-config.yaml
+  # Loki - база данных для логов
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - proxy
+    volumes:
+      - loki-data:/loki
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
 
-# grafana:
-#   hostname: grafana
-#   environment:
-#     - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
-#     - GF_AUTH_ANONYMOUS_ENABLED=true
-#     - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-#     - TZ=${SYSTEM_TIMEZONE:-Europe/Moscow}
-#   volumes:
-#     - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
-#   image: grafana/grafana:latest
-#   ports:
-#     - "3000:3000"
+  # Promtail - агент сбора логов
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: promtail
+    volumes:
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - proxy
+    depends_on:
+      - loki
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+  # Grafana - визуализация
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+    networks:
+      - proxy
+    depends_on:
+      - loki
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.entrypoints=http"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.aaf-bet.ru`)"
+      - "traefik.http.middlewares.grafana-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.grafana.middlewares=grafana-https-redirect"
+      - "traefik.http.routers.grafana-secure.entrypoints=https"
+      - "traefik.http.routers.grafana-secure.rule=Host(`grafana.aaf-bet.ru`)"
+      - "traefik.http.routers.grafana-secure.tls=true"
+      - "traefik.http.routers.grafana-secure.service=grafana"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+      - "traefik.docker.network=proxy"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
 
 networks:
   proxy:
@@ -240,3 +277,5 @@ networks:
 volumes:
   minio-data:
   postgres-data:
+  loki-data:
+  grafana-data:
