@@ -1,7 +1,0 @@
-bs4
-lxml
-pyinstaller
-requests
-tqdm
-xlwt
-art

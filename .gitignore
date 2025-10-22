@@ -1,16 +1,1 @@
-/venv
-__pycache__
-/**.xlsx
-.env
-
-db.sqlite3
-database.db
-.venv
-
-.idea
-
-.vs
-frontend/package-lock.json
-grafana_data/*
-.env.dev
-.env.dev
+test.db
