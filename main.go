@@ -13,6 +13,7 @@ import (
 	"github.com/zollidan/esmeralda/models"
 	"github.com/zollidan/esmeralda/mq"
 	"github.com/zollidan/esmeralda/scheduler"
+	"github.com/zollidan/esmeralda/schemas"
 	"gorm.io/gorm"
 )
 
@@ -57,16 +58,16 @@ func main() {
 			})
 			r.Post("/", func(w http.ResponseWriter, r *http.Request) {
 
-				var file models.Files
+				var req schemas.CreateFileRequest
 
 				defer r.Body.Close()
 
-				if err := json.NewDecoder(r.Body).Decode(&file); err != nil {
+				if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 					http.Error(w, "invalid JSON", http.StatusBadRequest)
 					return
 				}
 
-				err := gorm.G[models.Files](db).Create(context.Background(), &models.Files{Filename: file.Filename, FileURL: file.FileURL})
+				err := gorm.G[models.Files](db).Create(context.Background(), &models.Files{Filename: req.Filename, FileURL: req.FileURL})
 				if err != nil {
 					http.Error(w, fmt.Sprintf("failed to create file: %v", err), http.StatusInternalServerError)
 					return
@@ -74,7 +75,7 @@ func main() {
 
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusCreated)
-				json.NewEncoder(w).Encode(file)
+				json.NewEncoder(w).Encode(req)
 			})
 		})
 		r.Route("/tasks", func(r chi.Router) {
@@ -91,36 +92,35 @@ func main() {
 				json.NewEncoder(w).Encode(tasks)
 			})
 			r.Post("/", func(w http.ResponseWriter, r *http.Request) {
-				var task models.Tasks
+				var req schemas.CreateTaskRequest
 				defer r.Body.Close()
 
-				if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
+				if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 					http.Error(w, "invalid JSON", http.StatusBadRequest)
 					return
 				}
 
-				err := mq.SendMessage(mqCh, "test hello rabbitMQ", "Hello World RabbitMQ!!!")
+				// Create separate queue function
+				err := mq.SendMessage(mqCh, "tasks_queue", "Hello World RabbitMQ!!!")
 				if err != nil {
 					http.Error(w, fmt.Sprintf("failed to send message: %v", err), http.StatusInternalServerError)
 					return
 				}
 
-				jobID, err := sched.NewJob()
-				if err != nil {
-					http.Error(w, fmt.Sprintf("failed to create job: %v", err), http.StatusInternalServerError)
-					return
-				}
+				// jobID, err := sched.NewJob()
+				// if err != nil {
+				// 	http.Error(w, fmt.Sprintf("failed to create job: %v", err), http.StatusInternalServerError)
+				// 	return
+				// }
 
-				err = gorm.G[models.Tasks](db).Create(context.Background(), &models.Tasks{TaskID: task.TaskID, TaskName: task.TaskName, TaskComment: task.TaskComment})
+				err = gorm.G[models.Tasks](db).Create(context.Background(), &models.Tasks{TaskID: req.TaskID, TaskName: req.TaskName, TaskComment: req.TaskComment})
 				if err != nil {
 					http.Error(w, fmt.Sprintf("failed to create task: %v", err), http.StatusInternalServerError)
 					return
 				}
 
 				w.Header().Set("Content-Type", "application/json")
-				json.NewEncoder(w).Encode(map[string]string{
-					"job_id": jobID.String(),
-				})
+				json.NewEncoder(w).Encode(req)
 			})
 		})
 	})
