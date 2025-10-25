@@ -1,7 +1,5 @@
 package schemas
 
-import "github.com/google/uuid"
-
 // CreateFileRequest represents the JSON schema for creating a file
 type CreateFileRequest struct {
 	Filename string `json:"filename" validate:"required"`
@@ -10,7 +8,16 @@ type CreateFileRequest struct {
 
 // CreateTaskRequest represents the JSON schema for creating a task
 type CreateTaskRequest struct {
-	TaskID      uuid.UUID `json:"task_id"`
-	TaskName    string    `json:"task_name" validate:"required"`
-	TaskComment string    `json:"task_comment"`
+	Name           string `json:"name" validate:"required"`
+	Description    string `json:"description"`
+	ParserID       uint   `json:"parser_id" validate:"required"`
+	CronExpression string `json:"cron_expression"`
+	IsRecurring    bool   `json:"is_recurring"`
+	IsActive       bool   `json:"is_active"`
+}
+
+// CreateParserRequest represents the JSON schema for creating a parser
+type CreateParserRequest struct {
+	ParserName        string `json:"parser_name" validate:"required"`
+	ParserDescription string `json:"parser_description"`
 }

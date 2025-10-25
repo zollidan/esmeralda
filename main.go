@@ -57,7 +57,6 @@ func main() {
 				json.NewEncoder(w).Encode(files)
 			})
 			r.Post("/", func(w http.ResponseWriter, r *http.Request) {
-
 				var req schemas.CreateFileRequest
 
 				defer r.Body.Close()
@@ -80,8 +79,7 @@ func main() {
 		})
 		r.Route("/tasks", func(r chi.Router) {
 			r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-
-				tasks, err := gorm.G[models.Tasks](db).Find(context.Background())
+				tasks, err := gorm.G[models.Task](db).Find(context.Background())
 				if err != nil {
 					json.NewEncoder(w).Encode(map[string]string{
 						"error": "Error reading tasks.",
@@ -113,18 +111,60 @@ func main() {
 				// 	return
 				// }
 
-				err = gorm.G[models.Tasks](db).Create(context.Background(), &models.Tasks{TaskID: req.TaskID, TaskName: req.TaskName, TaskComment: req.TaskComment})
+				err = gorm.G[models.Task](db).Create(context.Background(), &models.Task{
+					Name:           req.Name,
+					Description:    req.Description,
+					ParserID:       req.ParserID,
+					CronExpression: req.CronExpression,
+					IsRecurring:    req.IsRecurring,
+					IsActive:       req.IsActive,
+					LastStatus:     "pending",
+				})
 				if err != nil {
 					http.Error(w, fmt.Sprintf("failed to create task: %v", err), http.StatusInternalServerError)
 					return
 				}
 
 				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusCreated)
+				json.NewEncoder(w).Encode(req)
+			})
+		})
+		r.Route("/parsers", func(r chi.Router) {
+			r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+				parsers, err := gorm.G[models.Parser](db).Find(context.Background())
+				if err != nil {
+					json.NewEncoder(w).Encode(map[string]string{
+						"error": "Error reading parsers.",
+					})
+					return
+				}
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(parsers)
+			})
+			r.Post("/", func(w http.ResponseWriter, r *http.Request) {
+				var req schemas.CreateParserRequest
+
+				defer r.Body.Close()
+
+				if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+					http.Error(w, "invalid JSON", http.StatusBadRequest)
+					return
+				}
+
+				err := gorm.G[models.Parser](db).Create(context.Background(), &models.Parser{Name: req.ParserName, Description: req.ParserDescription})
+				if err != nil {
+					http.Error(w, fmt.Sprintf("failed to create parser: %v", err), http.StatusInternalServerError)
+					return
+				}
+
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusCreated)
 				json.NewEncoder(w).Encode(req)
 			})
 		})
 	})
 
-	fmt.Printf("Server is running on %s", cfg.ServerAddress)
+	fmt.Printf("Server is running on http://%s", cfg.ServerAddress)
 	http.ListenAndServe(cfg.ServerAddress, r)
 }
