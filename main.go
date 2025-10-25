@@ -36,6 +36,11 @@ func main() {
 	mqCh := mq.GetChannel()
 	defer mqCh.Close()
 
+	queueName, err := mq.DeclareQueue(mqCh, "test_queue")
+	if err != nil {
+		panic(fmt.Sprintf("Failed to declare queue: %v", err))
+	}
+
 	// HTTP router setup
 	r := chi.NewRouter()
 
@@ -79,7 +84,7 @@ func main() {
 		})
 		r.Route("/tasks", func(r chi.Router) {
 			r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-				tasks, err := gorm.G[models.Task](db).Find(context.Background())
+				tasks, err := gorm.G[models.Task](db).Preload("Parser", nil).Find(context.Background())
 				if err != nil {
 					json.NewEncoder(w).Encode(map[string]string{
 						"error": "Error reading tasks.",
@@ -98,36 +103,42 @@ func main() {
 					return
 				}
 
-				// Create separate queue function
-				err := mq.SendMessage(mqCh, "tasks_queue", "Hello World RabbitMQ!!!")
+				// Find parser to ensure it exists
+				_, err := gorm.G[models.Parser](db).Where("id = ?", req.ParserID).First(context.Background())
 				if err != nil {
-					http.Error(w, fmt.Sprintf("failed to send message: %v", err), http.StatusInternalServerError)
+					if err == gorm.ErrRecordNotFound {
+						http.Error(w, "parser not found", http.StatusNotFound)
+					} else {
+						http.Error(w, fmt.Sprintf("failed to find parser: %v", err), http.StatusInternalServerError)
+					}
 					return
 				}
 
-				// jobID, err := sched.NewJob()
-				// if err != nil {
-				// 	http.Error(w, fmt.Sprintf("failed to create job: %v", err), http.StatusInternalServerError)
-				// 	return
-				// }
+				task := &models.Task{
+					Name:        req.Name,
+					Description: req.Description,
+					ParserID:    req.ParserID,
+					LastStatus:  models.StatusPending,
+				}
 
-				err = gorm.G[models.Task](db).Create(context.Background(), &models.Task{
-					Name:           req.Name,
-					Description:    req.Description,
-					ParserID:       req.ParserID,
-					CronExpression: req.CronExpression,
-					IsRecurring:    req.IsRecurring,
-					IsActive:       req.IsActive,
-					LastStatus:     "pending",
-				})
+				err = gorm.G[models.Task](db).Create(context.Background(), task)
 				if err != nil {
 					http.Error(w, fmt.Sprintf("failed to create task: %v", err), http.StatusInternalServerError)
 					return
 				}
 
+				// Send task ID to queue for processing
+				taskMessage := fmt.Sprintf(`{"task_id": %d}`, task.ID)
+				if err := mq.SendMessage(mqCh, queueName, taskMessage); err != nil {
+					http.Error(w, fmt.Sprintf("failed to send message to queue: %v", err), http.StatusInternalServerError)
+					return
+				}
+
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusCreated)
-				json.NewEncoder(w).Encode(req)
+				json.NewEncoder(w).Encode(map[string]interface{}{
+					"task_id": task.ID,
+				})
 			})
 		})
 		r.Route("/parsers", func(r chi.Router) {

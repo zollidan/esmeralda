@@ -12,7 +12,6 @@ type Files struct {
 	FileURL  string `json:"file_url"`
 }
 
-
 // Parser представляет тип парсера
 type Parser struct {
 	gorm.Model

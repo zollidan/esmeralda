@@ -27,7 +27,7 @@ func (s *Scheduler) NewJob() (uuid.UUID, error) {
 	// add a job to the scheduler
 	j, err := s.Scheduler.NewJob(
 		gocron.DurationJob(
-			10*time.Second,
+			20*time.Second,
 		),
 		gocron.NewTask(
 			func(a string, b int) {
@@ -36,6 +36,7 @@ func (s *Scheduler) NewJob() (uuid.UUID, error) {
 			"hello",
 			1,
 		),
+		gocron.WithStartAt(gocron.WithStartImmediately()),
 	)
 
 	if err != nil {

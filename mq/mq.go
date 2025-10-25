@@ -39,34 +39,40 @@ func (mq *MQ) GetChannel() *amqp.Channel {
 	return ch
 }
 
-// SendMessage declares the given queue (durable) and publishes body to it.
-// It uses a short context timeout for the publish call and makes the message persistent.
-// The function panics on error.
-func (mq *MQ) SendMessage(ch *amqp.Channel, queueName string, body string) error {
+// DeclareQueue declares the given queue as durable.
+// The function returns an error if the declaration fails.
+func (mq *MQ) DeclareQueue(ch *amqp.Channel, queueName string) (string, error) {
 	if ch == nil {
-		log.Panic("SendMessage: channel is nil")
+		log.Panic("DeclareQueue: channel is nil")
 	}
 
-	q, err := ch.QueueDeclare(
+	_, err := ch.QueueDeclare(
 		queueName, // name
-		true,      // durable -> changed to true for durability
+		true,      // durable
 		false,     // delete when unused
 		false,     // exclusive
 		false,     // no-wait
 		nil,       // arguments
 	)
-	if err != nil {
-		return err
+	return queueName, err
+}
+
+// SendMessage publishes body to the given queue.
+// It uses a short context timeout for the publish call and makes the message persistent.
+// The function returns an error if the publish fails.
+func (mq *MQ) SendMessage(ch *amqp.Channel, queueName string, body string) error {
+	if ch == nil {
+		log.Panic("SendMessage: channel is nil")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err = ch.PublishWithContext(ctx,
-		"",     // exchange
-		q.Name, // routing key
-		false,  // mandatory
-		false,  // immediate
+	err := ch.PublishWithContext(ctx,
+		"",        // exchange
+		queueName, // routing key
+		false,     // mandatory
+		false,     // immediate
 		amqp.Publishing{
 			ContentType:  "text/plain",
 			Body:         []byte(body),
@@ -75,7 +81,6 @@ func (mq *MQ) SendMessage(ch *amqp.Channel, queueName string, body string) error
 	if err != nil {
 		return err
 	}
-	log.Printf(" [x] Sent %s\n", body)
 	return nil
 }
 
