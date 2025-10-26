@@ -6,6 +6,7 @@ import (
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/zollidan/esmeralda/utils"
 )
 
 // MQ represents a minimal RabbitMQ client that holds a single connection.
@@ -14,19 +15,11 @@ type MQ struct {
 	conn *amqp.Connection
 }
 
-// failOnError logs the provided message and panics if err is non-nil.
-// This is a helper used in this package for simplicity.
-func failOnError(err error, msg string) {
-	if err != nil {
-		log.Panicf("%s: %s", msg, err)
-	}
-}
-
 // NewMQ dials the RabbitMQ server at the default URL and returns an MQ.
 // It panics on failure (via failOnError). Caller should call CloseMQ when finished.
 func NewMQ() *MQ {
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
-	failOnError(err, "Failed to connect to RabbitMQ")
+	utils.FailOnError(err, "Failed to connect to RabbitMQ")
 
 	return &MQ{conn: conn}
 }
@@ -35,7 +28,7 @@ func NewMQ() *MQ {
 // The caller is responsible for closing the returned channel.
 func (mq *MQ) GetChannel() *amqp.Channel {
 	ch, err := mq.conn.Channel()
-	failOnError(err, "Failed to open a channel")
+	utils.FailOnError(err, "Failed to open a channel")
 	return ch
 }
 

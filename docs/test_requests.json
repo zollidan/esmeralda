@@ -1,0 +1,68 @@
+{
+  "create_file_requests": [
+    {
+      "filename": "example_data.csv",
+      "file_url": "https://example.com/files/data.csv"
+    },
+    {
+      "filename": "test_document.pdf",
+      "file_url": "https://storage.example.com/documents/test.pdf"
+    },
+    {
+      "filename": "sample_image.jpg",
+      "file_url": "https://cdn.example.com/images/sample.jpg"
+    }
+  ],
+  "create_task_requests": [
+    {
+      "name": "Daily Report Generation",
+      "description": "Generate daily sales report",
+      "parser_id": 1,
+      "cron_expression": "0 9 * * *",
+      "is_recurring": true,
+      "is_active": true
+    },
+    {
+      "name": "One-time Data Import",
+      "description": "Import customer data from CSV",
+      "parser_id": 2,
+      "cron_expression": "",
+      "is_recurring": false,
+      "is_active": true
+    },
+    {
+      "name": "Weekly Cleanup",
+      "description": "Clean up old temporary files",
+      "parser_id": 3,
+      "cron_expression": "0 0 * * 0",
+      "is_recurring": true,
+      "is_active": false
+    },
+    {
+      "name": "Hourly Sync",
+      "description": "Sync data with external API",
+      "parser_id": 1,
+      "cron_expression": "0 * * * *",
+      "is_recurring": true,
+      "is_active": true
+    }
+  ],
+  "create_parser_requests": [
+    {
+      "parser_name": "CSV Parser",
+      "parser_description": "Parse CSV files with comma-separated values"
+    },
+    {
+      "parser_name": "JSON Parser",
+      "parser_description": "Parse and validate JSON documents"
+    },
+    {
+      "parser_name": "XML Parser",
+      "parser_description": "Parse XML data structures"
+    },
+    {
+      "parser_name": "Excel Parser",
+      "parser_description": ""
+    }
+  ]
+}

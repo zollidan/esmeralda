@@ -13,7 +13,7 @@ type Scheduler struct {
 	Scheduler gocron.Scheduler
 }
 
-func InitScheduler() *Scheduler {
+func NewScheduler() *Scheduler {
 	s, err := gocron.NewScheduler()
 	if err != nil {
 		log.Fatalf("failed to create scheduler: %v", err)
@@ -23,25 +23,29 @@ func InitScheduler() *Scheduler {
 	return &Scheduler{Scheduler: s}
 }
 
-func (s *Scheduler) NewJob() (uuid.UUID, error) {
+func (s *Scheduler) NewJob(cronExpr string, taskID uint) (uuid.UUID, error) {
 	// add a job to the scheduler
 	j, err := s.Scheduler.NewJob(
-		gocron.DurationJob(
-			20*time.Second,
+		gocron.CronJob(
+			cronExpr,
+			false,
 		),
 		gocron.NewTask(
-			func(a string, b int) {
-				fmt.Println("Hello from gocron")
+			func() {
+				fmt.Printf("Hello from gocron %s %d\n", time.Now().Format(time.RFC3339), taskID)
 			},
-			"hello",
-			1,
 		),
-		gocron.WithStartAt(gocron.WithStartImmediately()),
+		gocron.WithName(fmt.Sprintf("task-%d", taskID)),
+		gocron.WithStartAt(
+			gocron.WithStartImmediately(),
+		),
 	)
 
 	if err != nil {
 		return uuid.Nil, err
 	}
+
+	s.Start()
 
 	return j.ID(), nil
 }
