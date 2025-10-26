@@ -5,7 +5,7 @@ from time import sleep
 
 def parser(task_data):
     """Ваш парсер"""
-    print(f"Начинаю парсинг для задачи: {task_data.get('task_name')}")
+    print(f"Начинаю парсинг для задачи: {task_data.get('task_id')}")
 
     for i in range(10):
         print(f"Парсинг... шаг {i+1}/10")
@@ -58,7 +58,7 @@ def main():
 
     # Подписываемся на очередь
     channel.basic_consume(
-        queue='tasks_queue',
+        queue='test_queue',
         on_message_callback=callback,
         auto_ack=False  # ручное подтверждение
     )
