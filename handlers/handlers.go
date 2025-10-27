@@ -27,4 +27,5 @@ func (h *Handlers) RegisterRoutes(r chi.Router) {
 	r.Route("/files", h.FilesRoutes)
 	// r.Route("/tasks", h.TasksRoutes)
 	r.Route("/parsers", h.ParsersRoutes)
+	r.Route("/auth", h.AuthRoutes)
 }

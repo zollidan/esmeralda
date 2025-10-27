@@ -1,6 +1,16 @@
 package utils
 
-import "log"
+import (
+	"encoding/json"
+	"log"
+	"net/http"
+)
+
+func ResponseJSON(w http.ResponseWriter, statusCode int, payload interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	json.NewEncoder(w).Encode(payload)
+}
 
 // failOnError logs the provided message and panics if err is non-nil.
 // This is a helper used in this package for simplicity.

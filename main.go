@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/zollidan/esmeralda/config"
 	"github.com/zollidan/esmeralda/database"
-	handlers "github.com/zollidan/esmeralda/hadlers"
+	handlers "github.com/zollidan/esmeralda/handlers"
 	"github.com/zollidan/esmeralda/models"
 	"github.com/zollidan/esmeralda/schemas"
 	"github.com/zollidan/esmeralda/tasks"
