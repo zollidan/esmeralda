@@ -10,16 +10,24 @@ import (
 type Config struct {
 	ServerAddress string
 	DBURL         string
+	S3URL 		  string
+	BucketName    string
+	S3AccessKey   string
+	S3SecretKey   string
 }
 
 func New() Config {
 	if err := godotenv.Load(); err != nil {
-		log.Println("⚠️ Warning: .env file not found, using system environment variables")
+		log.Println("\n⚠️ Warning: .env file not found, using system environment variables")
 	}
 
 	return Config{
 		ServerAddress: getEnv("SERVER_ADDRESS", "localhost:3333"),
 		DBURL:         getEnv("DB_URL", "test.db"),
+		S3URL:         getEnv("S3URL", ""),
+		BucketName:    getEnv("BUCKET_NAME", "my-bucket"),
+		S3AccessKey:   getEnv("S3_ACCESS_KEY", ""),
+		S3SecretKey:   getEnv("S3_SECRET_KEY", ""),
 	}
 }
 

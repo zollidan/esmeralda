@@ -24,8 +24,8 @@ func New(db *gorm.DB, cfg *config.Config, tm *tasks.Manager) *Handlers {
 
 // Метод для регистрации всех роутов
 func (h *Handlers) RegisterRoutes(r chi.Router) {
-	r.Route("/files", h.FilesRoutes)
-	// r.Route("/tasks", h.TasksRoutes)
-	r.Route("/parsers", h.ParsersRoutes)
 	r.Route("/auth", h.AuthRoutes)
+	r.Route("/files", h.FilesRoutes)
+	r.Route("/tasks", h.TasksRoutes)
+	r.Route("/parsers", h.ParsersRoutes)
 }
