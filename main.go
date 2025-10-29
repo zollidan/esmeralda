@@ -9,6 +9,7 @@ import (
 	"github.com/zollidan/esmeralda/config"
 	"github.com/zollidan/esmeralda/database"
 	handlers "github.com/zollidan/esmeralda/handlers"
+	"github.com/zollidan/esmeralda/s3storage"
 	"github.com/zollidan/esmeralda/tasks"
 )
 
@@ -20,6 +21,9 @@ func main() {
 	// Database setup
 	db := database.InitDatabase(cfg)
 
+	// S3Storage setup
+	s3Client := s3storage.New(&cfg)
+
 	// Task manager setup
 	taskManager := tasks.NewManager()
 	defer taskManager.Shutdown()
@@ -28,7 +32,7 @@ func main() {
 	r := chi.NewRouter()
 
 	// Register handlers
-	h := handlers.New(db, &cfg, taskManager)
+	h := handlers.New(db, &cfg, taskManager, s3Client)
 
 	// Middleware
 	r.Use(middleware.Heartbeat("/ping"))

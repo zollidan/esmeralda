@@ -1,6 +1,7 @@
 package s3storage
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 
@@ -12,10 +13,10 @@ import (
 
 type S3Storage struct {
 	client *s3.Client
+	Bucket string
 }
 
-
-func New(cfg *config.Config) (*S3Storage, error) {
+func New(cfg *config.Config) *S3Storage {
 	sdkConfig, err := awsConfig.LoadDefaultConfig(
 		context.Background(),
 		awsConfig.WithCredentialsProvider(
@@ -28,20 +29,56 @@ func New(cfg *config.Config) (*S3Storage, error) {
 		awsConfig.WithBaseEndpoint(cfg.S3URL),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load S3 config: %w", err)
+		panic(fmt.Sprintf("Failed to load S3 config: %s", err.Error()))
 	}
 
 	return &S3Storage{
 		client: s3.NewFromConfig(sdkConfig),
-	}, nil
+		Bucket: cfg.BucketName,
+	}
 }
 
-func (c *S3Storage) ListItems(ctx context.Context, cfg *config.Config) (*s3.ListObjectsV2Output, error) {
-	result, err := c.client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
-		Bucket: &cfg.BucketName,
+func (c *S3Storage) UploadItem(ctx context.Context, key string, body []byte) error {
+	_, err := c.client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket: &c.Bucket,
+		Key:    &key,
+		Body:   bytes.NewReader(body),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to list objects in bucket %s: %w", cfg.BucketName, err)
+		return fmt.Errorf("failed to upload object %s: %w", key, err)
+	}
+
+	return nil
+}
+
+func (c *S3Storage) ListItems(ctx context.Context) (*s3.ListObjectsV2Output, error) {
+	result, err := c.client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
+		Bucket: &c.Bucket,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list objects in bucket %s: %w", c.Bucket, err)
+	}
+	return result, nil
+}
+
+func (c *S3Storage) DeleteItem(ctx context.Context, key string) error {
+	_, err := c.client.DeleteObject(ctx, &s3.DeleteObjectInput{
+		Bucket: &c.Bucket,
+		Key:    &key,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to delete object %s: %w", key, err)
+	}
+	return nil
+}
+
+func (c *S3Storage) GetItem(ctx context.Context, key string) (*s3.GetObjectOutput, error) {
+	result, err := c.client.GetObject(ctx, &s3.GetObjectInput{
+		Bucket: &c.Bucket,
+		Key:    &key,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get object %s: %w", key, err)
 	}
 	return result, nil
 }

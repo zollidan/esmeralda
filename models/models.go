@@ -14,6 +14,8 @@ type Files struct {
 	gorm.Model
 	Filename string `json:"filename"`
 	FileURL  string `json:"file_url"`
+	S3Key    string `json:"s3_key"`    // S3 object key for easier deletion
+	FileSize int64  `json:"file_size"` // File size in bytes
 }
 
 // Parser представляет тип парсера
