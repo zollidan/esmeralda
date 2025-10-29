@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+
 	"github.com/zollidan/esmeralda/models"
 	"github.com/zollidan/esmeralda/schemas"
 	"github.com/zollidan/esmeralda/utils"
@@ -29,7 +30,25 @@ func (h *Handlers) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.ResponseJSON(w, http.StatusOK, map[string]string{"message": "login endpoint"})
+	result, err := gorm.G[models.User](h.DB).Where("username = ?", req.Username).First(context.Background())
+	if err != nil {
+		http.Error(w, "Invalid username or password.", http.StatusUnauthorized)
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(result.Password), []byte(req.Password))
+	if err != nil {
+		http.Error(w, "Invalid username or password.", http.StatusUnauthorized)
+		return
+	}
+
+	jwtToken, err := utils.GenerateJWT(h.Cfg, result.Username)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error generating JWT: %s", err.Error()), http.StatusInternalServerError)
+		return
+	}
+
+	utils.ResponseJSON(w, http.StatusOK, map[string]string{"token": jwtToken})
 
 }
 
@@ -70,5 +89,5 @@ func (h *Handlers) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{"message": "user created"})
+	json.NewEncoder(w).Encode(map[string]string{"message": "User created."})
 }

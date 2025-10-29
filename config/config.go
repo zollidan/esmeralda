@@ -10,10 +10,11 @@ import (
 type Config struct {
 	ServerAddress string
 	DBURL         string
-	S3URL 		  string
+	S3URL         string
 	BucketName    string
 	S3AccessKey   string
 	S3SecretKey   string
+	JWTSecret     string
 }
 
 func New() Config {
@@ -28,6 +29,7 @@ func New() Config {
 		BucketName:    getEnv("BUCKET_NAME", "my-bucket"),
 		S3AccessKey:   getEnv("S3_ACCESS_KEY", ""),
 		S3SecretKey:   getEnv("S3_SECRET_KEY", ""),
+		JWTSecret:     getEnv("JWT_SECRET", "dev-secret"),
 	}
 }
 
