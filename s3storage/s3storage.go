@@ -27,6 +27,7 @@ func New(cfg *config.Config) *S3Storage {
 			),
 		),
 		awsConfig.WithBaseEndpoint(cfg.S3URL),
+		awsConfig.WithRegion(cfg.S3Region),
 	)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to load S3 config: %s", err.Error()))

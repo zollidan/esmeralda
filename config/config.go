@@ -15,6 +15,7 @@ type Config struct {
 	S3AccessKey   string
 	S3SecretKey   string
 	JWTSecret     string
+	S3Region      string
 }
 
 func New() Config {
@@ -30,6 +31,7 @@ func New() Config {
 		S3AccessKey:   getEnv("S3_ACCESS_KEY", ""),
 		S3SecretKey:   getEnv("S3_SECRET_KEY", ""),
 		JWTSecret:     getEnv("JWT_SECRET", "dev-secret"),
+		S3Region:      getEnv("S3_REGION", "ru-central1"),
 	}
 }
 
