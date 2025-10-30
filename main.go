@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -42,6 +43,9 @@ func main() {
 		h.RegisterRoutes(r)
 	})
 
-	log.Printf("Server is running on http://%s\n", cfg.ServerAddress)
-	http.ListenAndServe(cfg.ServerAddress, r)
+	fmt.Printf("Server is running on http://%s\n", cfg.ServerAddress)
+	log.Printf("Server started on http://%s\nMode: %s\n", cfg.ServerAddress, cfg.AppMode)
+	if err := http.ListenAndServe(cfg.ServerAddress, r); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 }
