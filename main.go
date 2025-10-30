@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -42,6 +42,6 @@ func main() {
 		h.RegisterRoutes(r)
 	})
 
-	fmt.Printf("Server is running on http://%s\n", cfg.ServerAddress)
+	log.Printf("Server is running on http://%s\n", cfg.ServerAddress)
 	http.ListenAndServe(cfg.ServerAddress, r)
 }

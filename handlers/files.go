@@ -5,17 +5,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/zollidan/esmeralda/models"
+	"github.com/zollidan/esmeralda/utils"
 	"gorm.io/gorm"
 )
 
 func (h *Handlers) FilesRoutes(r chi.Router) {
 	r.Get("/", h.GetFiles)
 	r.Post("/", h.CreateFile)
-	// r.Delete("/{id}", h.DeleteFile)
+	r.Get("/{id}", h.GetFile)
+	r.Get("/{id}/download", h.DownloadFile)
+	r.Delete("/{id}", h.DeleteFile)
 }
 
 func (h *Handlers) GetFiles(w http.ResponseWriter, r *http.Request) {
@@ -90,38 +94,77 @@ func (h *Handlers) CreateFile(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// func (h *Handlers) DeleteFile(w http.ResponseWriter, r *http.Request) {
-// 	ctx := r.Context()
+func (h *Handlers) GetFile(w http.ResponseWriter, r *http.Request) {
+	fileID := chi.URLParam(r, "id")
 
-// 	// Get file ID from URL
-// 	idStr := chi.URLParam(r, "id")
-// 	id, err := strconv.ParseUint(idStr, 10, 64)
-// 	if err != nil {
-// 		http.Error(w, "invalid file id", http.StatusBadRequest)
-// 		return
-// 	}
+	result, err := gorm.G[models.Files](h.DB).Where("id = ?", fileID).First(context.Background())
+	if err != nil {
+		http.Error(w, "File not found", http.StatusNotFound)
+		return
+	}
+	utils.ResponseJSON(w, http.StatusOK, result)
+}
 
-// 	// Get file from database
-// 	file, err := gorm.G[models.Files](h.DB).First(ctx, uint(id))
-// 	if err != nil {
-// 		http.Error(w, "file not found", http.StatusNotFound)
-// 		return
-// 	}
+func (h *Handlers) DownloadFile(w http.ResponseWriter, r *http.Request) {
+	fileID := chi.URLParam(r, "id")
 
-// 	// Delete from S3 using stored S3Key
-// 	if err := h.S3Client.DeleteItem(ctx, file.S3Key); err != nil {
-// 		http.Error(w, fmt.Sprintf("failed to delete file from storage: %v", err), http.StatusInternalServerError)
-// 		return
-// 	}
+	result, err := gorm.G[models.Files](h.DB).Where("id = ?", fileID).First(context.Background())
+	if err != nil {
+		http.Error(w, "File not found", http.StatusNotFound)
+		return
+	}
 
-// 	// Delete from database
-// 	if err := gorm.G[models.Files](h.DB).Delete(ctx, file); err != nil {
-// 		http.Error(w, fmt.Sprintf("failed to delete file record: %v", err), http.StatusInternalServerError)
-// 		return
-// 	}
+	// Stream file content to response
+	obj, err := h.S3Client.GetItem(context.Background(), result.S3Key)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to get file from storage: %v", err), http.StatusInternalServerError)
+		return
+	}
 
-// 	w.Header().Set("Content-Type", "application/json")
-// 	json.NewEncoder(w).Encode(map[string]string{
-// 		"message": "file deleted successfully",
-// 	})
-// }
+	defer obj.Body.Close()
+
+	if obj.ContentType != nil {
+		w.Header().Set("Content-Type", *obj.ContentType)
+	} else {
+		w.Header().Set("Content-Type", "application/octet-stream")
+	}
+
+	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=\"%s\"", result.Filename))
+
+	if obj.ContentLength != nil {
+		w.Header().Set("Content-Length", fmt.Sprintf("%d", *obj.ContentLength))
+	}
+
+	_, err = io.Copy(w, obj.Body)
+	if err != nil {
+		log.Printf("Error streaming file: %v\n", err)
+		return
+	}
+}
+
+func (h *Handlers) DeleteFile(w http.ResponseWriter, r *http.Request) {
+	fileID := chi.URLParam(r, "id")
+
+	result, err := gorm.G[models.Files](h.DB).Where("id = ?", fileID).First(context.Background())
+	if err != nil {
+		http.Error(w, "File not found", http.StatusNotFound)
+		return
+	}
+
+	// Delete file from S3
+	if err := h.S3Client.DeleteItem(context.Background(), result.S3Key); err != nil {
+		http.Error(w, fmt.Sprintf("failed to delete file from storage: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Delete file record from database
+	_, err = gorm.G[models.Files](h.DB).Where("id = ?", fileID).Delete(context.Background())
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to delete file record: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	utils.ResponseJSON(w, http.StatusNoContent, map[string]string{
+		"message": "file deleted successfully",
+	})
+}
