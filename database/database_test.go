@@ -18,7 +18,7 @@ func TestInitDatabase(t *testing.T) {
 		}
 	}()
 
-	database := InitDatabase(cfg)
+	database := InitDatabase(&cfg)
 	if database == nil {
 		t.Fatal("database is nil after initialization")
 	}

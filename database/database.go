@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func InitDatabase(cfg config.Config) *gorm.DB {
+func InitDatabase(cfg *config.Config) *gorm.DB {
 
 	db, err := gorm.Open(sqlite.Open(cfg.DBURL), &gorm.Config{})
 	if err != nil {

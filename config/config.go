@@ -19,7 +19,7 @@ type Config struct {
 	AppMode       string
 }
 
-func New() Config {
+func New() *Config {
 	// Set up logging to a file
 	file, err := os.OpenFile("app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
@@ -30,7 +30,7 @@ func New() Config {
 		log.Println("\n⚠️ Warning: .env file not found, using system environment variables")
 	}
 
-	return Config{
+	return &Config{
 		ServerAddress: getEnv("SERVER_ADDRESS", "localhost:3333"),
 		DBURL:         getEnv("DB_URL", "test.db"),
 		S3URL:         getEnv("S3URL", ""),

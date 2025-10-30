@@ -23,7 +23,7 @@ func main() {
 	db := database.InitDatabase(cfg)
 
 	// S3Storage setup
-	s3Client := s3storage.New(&cfg)
+	s3Client := s3storage.New(cfg)
 
 	// Task manager setup
 	taskManager := tasks.NewManager()
@@ -33,7 +33,7 @@ func main() {
 	r := chi.NewRouter()
 
 	// Register handlers
-	h := handlers.New(db, &cfg, taskManager, s3Client)
+	h := handlers.New(db, cfg, taskManager, s3Client)
 
 	// Middleware
 	r.Use(middleware.Heartbeat("/ping"))

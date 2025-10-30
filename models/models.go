@@ -27,6 +27,7 @@ type Parser struct {
 }
 
 // Task представляет задачу для выполнения парсера
+// TODO: add task status tracking
 type Task struct {
 	gorm.Model
 	Name        string `gorm:"not null"`
@@ -42,9 +43,6 @@ type Task struct {
 	IsActive       bool   `gorm:"default:true;index"`
 
 	// Метаданные выполнения
-	JobID string `gorm:"size:100;index"` // ID job'а в scheduler
-	// RunCount   int    `gorm:"default:0"`
-	// FailCount  int    `gorm:"default:0"`
-	// LastStatus string `gorm:"size:50"` // success, failed, running, pending
-	// LastError  string `gorm:"type:text"`
+	JobID      string `gorm:"size:100;index"`            // ID job'а в scheduler
+	TaskStatus string `gorm:"size:50;default:'pending'"` // pending, running, completed, failed
 }
