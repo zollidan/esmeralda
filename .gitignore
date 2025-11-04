@@ -3,3 +3,4 @@ test.db
 app.log
 tmp/
 **/__pycache__/
+postgresus-data/
