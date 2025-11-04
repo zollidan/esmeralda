@@ -26,7 +26,7 @@ func New() *Config {
 		log.Fatal("Failed to open log file:", err)
 	}
 	log.SetOutput(file)
-	if err := godotenv.Load(); err != nil {
+	if err := godotenv.Load("../.env"); err != nil {
 		log.Println("\n⚠️ Warning: .env file not found, using system environment variables")
 	}
 
