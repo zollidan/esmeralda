@@ -55,7 +55,7 @@ func (h *Handlers) CreateTask(w http.ResponseWriter, r *http.Request) {
 		ParserID:    req.ParserID,
 	}
 
-	err = h.TaskManager.StartTask(task.ID)
+	err = h.TaskManager.StartTask(task.ID, req.ParserID)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to start task: %v", err), http.StatusInternalServerError)
 		return
@@ -65,6 +65,7 @@ func (h *Handlers) CreateTask(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to create task in database: %v", err), http.StatusInternalServerError)
 		return
+		// add cancel it error with database handling
 	}
 
 	w.Header().Set("Content-Type", "application/json")

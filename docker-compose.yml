@@ -1,6 +1,42 @@
 version: "3.8"
 
 services:
+  # nginx:
+  #   image: nginx
+  #   hostname: nginx-entrypoint
+  #   container_name: nginx-entrypoint
+  #   restart: unless-stopped
+  #   environment:
+  #     TZ: "Europe/Moscow"
+  #   ports:
+  #     - 80:80
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost"]
+  #     interval: 10s
+  #     timeout: 10s
+  #     retries: 20
+  # loki:
+  #   hostname: loki
+  #   image: grafana/loki:latest
+  #   environment:
+  #     TZ: ${SYSTEM_TIMEZONE:-Europe/Moscow}
+  #   ports:
+  #     - "3100:3100"
+  #   command: -config.file=/etc/loki/local-config.yaml
+
+  # grafana:
+  #   hostname: grafana
+  #   environment:
+  #     - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+  #     # Включим доступ без авторизации
+  #     - GF_AUTH_ANONYMOUS_ENABLED=true # Не используйте **ANONYMOUS** настройки в проде
+  #     # Дадим права администратора при анонимном входе
+  #     - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+  #     - TZ=${SYSTEM_TIMEZONE:-Europe/Moscow}
+  #   image: grafana/grafana:latest
+  #   ports:
+  #     - "3000:3000"
+
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
     container_name: esmeralda-rabbitmq

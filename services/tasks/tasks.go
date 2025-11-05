@@ -69,9 +69,9 @@ func NewManager() *Manager {
 	}
 }
 
-func (tm *Manager) StartTask(taskID uint) error {
+func (tm *Manager) StartTask(taskID uint, parserID uint) error {
 	// Send task ID to queue for processing
-	taskMessage := fmt.Sprintf(`{"task_id": %d}`, taskID)
+	taskMessage := fmt.Sprintf(`{"task_id": %d, "parser_id": %d}`, taskID, parserID)
 	err := tm.mq.SendMessage(tm.ch, tm.TaskQueue.Name, taskMessage)
 	utils.FailOnError(err, "Error starting task.")
 	return err

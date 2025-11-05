@@ -6,7 +6,7 @@ from typing import Dict, Any
 from config import get_settings
 from parser.s3_uploader import S3Uploader
 from parser.result_publisher import ResultPublisher
-from parser.temp_parser import parse_soccerway, parse_another_site
+from worker.src.parser.core.temp_parser import parse_soccerway, parse_another_site
 
 # Инициализируем настройки
 settings = get_settings()
@@ -35,15 +35,15 @@ def process_task(task_data: Dict[str, Any], s3_uploader: S3Uploader, publisher: 
         publisher: Экземпляр ResultPublisher
     """
     task_id = task_data.get('task_id', 'unknown')
-    parser_type = task_data.get('parser_type', 'soccerway')
+    parser_id = task_data.get('parser_id', 'default')
 
-    logger.info(f"Обработка задачи {task_id}, парсер: {parser_type}")
+    logger.info(f"Обработка задачи {task_id}, парсер: {parser_id}")
 
     try:
         # 1. Получаем нужный парсер
-        parser_func = PARSERS.get(parser_type)
+        parser_func = PARSERS.get(parser_id)
         if not parser_func:
-            raise ValueError(f"Неизвестный тип парсера: {parser_type}")
+            raise ValueError(f"Неизвестный тип парсера: {parser_id}")
 
         # 2. Выполняем парсинг
         df = parser_func(task_data)
@@ -52,7 +52,7 @@ def process_task(task_data: Dict[str, Any], s3_uploader: S3Uploader, publisher: 
             raise ValueError("Парсер вернул пустой результат")
 
         # 3. Генерируем имя файла
-        filename = f"{parser_type}-{task_id}-{uuid.uuid4()}.xlsx"
+        filename = f"{parser_id}-{task_id}-{uuid.uuid4()}.xlsx"
 
         # 4. Загружаем в S3
         upload_result = s3_uploader.upload_dataframe(df, filename)
@@ -63,7 +63,7 @@ def process_task(task_data: Dict[str, Any], s3_uploader: S3Uploader, publisher: 
                 task_id=task_id,
                 file_path=upload_result['path'],
                 metadata={
-                    'parser_type': parser_type,
+                    'parser_id': parser_id,
                     'rows_count': len(df),
                     'columns': list(df.columns)
                 }
@@ -76,7 +76,7 @@ def process_task(task_data: Dict[str, Any], s3_uploader: S3Uploader, publisher: 
             publisher.publish_failure(
                 task_id=task_id,
                 error=error_msg,
-                metadata={'parser_type': parser_type}
+                metadata={'parser_id': parser_id}
             )
             logger.error(f"❌ Задача {task_id} провалена: {error_msg}")
 
@@ -88,7 +88,7 @@ def process_task(task_data: Dict[str, Any], s3_uploader: S3Uploader, publisher: 
         publisher.publish_failure(
             task_id=task_id,
             error=error_msg,
-            metadata={'parser_type': parser_type}
+            metadata={'parser_id': parser_id}
         )
 
 
