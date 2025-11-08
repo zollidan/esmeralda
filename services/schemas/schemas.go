@@ -28,6 +28,6 @@ type CreateTaskRequest struct {
 
 // CreateParserRequest represents the JSON schema for creating a parser
 type CreateParserRequest struct {
-	ParserName        string `json:"parser_name" validate:"required"`
-	ParserDescription string `json:"parser_description"`
+	Name        string `json:"name" validate:"required"`
+	Description string `json:"description"`
 }

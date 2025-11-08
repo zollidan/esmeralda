@@ -39,7 +39,7 @@ func (h *Handlers) CreateParser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := gorm.G[models.Parser](h.DB).Create(context.Background(), &models.Parser{Name: req.ParserName, Description: req.ParserDescription})
+	err := gorm.G[models.Parser](h.DB).Create(context.Background(), &models.Parser{Name: req.Name, Description: req.Description})
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to create parser: %v", err), http.StatusInternalServerError)
 		return

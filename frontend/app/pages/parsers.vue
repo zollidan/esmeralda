@@ -13,15 +13,16 @@ const { data } = await useFetch("/api/parsers", {
 </script>
 
 <template>
-  <div v-if="data == undefined">No data</div>
+  <div v-if="data == undefined || data.length === 0">No data</div>
   <div v-else>
     <ul>
-      <li v-for="parser in data" :key="parser.id">
+      <li v-for="parser in data" :key="parser.ID">
         <h3>
-          {{ parser.name }} <span v-if="parser.isActive">(Active)</span
-          ><span v-else>(Inactive)</span>
+          {{ parser.Name }}
+          <span v-if="parser.IsActive">(Active)</span>
+          <span v-else>(Inactive)</span>
         </h3>
-        <p>{{ parser.description }}</p>
+        <p>{{ parser.Description }}</p>
       </li>
     </ul>
   </div>
@@ -29,10 +30,6 @@ const { data } = await useFetch("/api/parsers", {
     <button @click="toggleAddNewParser">Add new parser</button>
   </div>
   <div v-if="showAddParserForm">
-    <form action="">
-      <input type="text" placeholder="Parser Name" />
-      <input type="text" placeholder="Parser Description" />
-      <button type="submit">Submit</button>
-    </form>
+    <AddParserForm />
   </div>
 </template>
