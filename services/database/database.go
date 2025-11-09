@@ -3,13 +3,13 @@ package database
 import (
 	"github.com/zollidan/esmeralda/config"
 	"github.com/zollidan/esmeralda/models"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 func InitDatabase(cfg *config.Config) *gorm.DB {
 
-	db, err := gorm.Open(sqlite.Open(cfg.DBURL), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(cfg.DBURL), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}

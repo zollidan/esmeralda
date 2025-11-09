@@ -9,6 +9,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const data = await response.json();
+    return data;
   } catch (error) {
     return { error: "An error occurred while fetching parsers" };
   }

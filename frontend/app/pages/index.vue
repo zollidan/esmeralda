@@ -1,3 +1,7 @@
+<script setup>
+const cookie = useCookie("auth_token");
+</script>
+
 <template>
-  <h1>Welcome to basic Susanna App admin panel!</h1>
+  <Parsers />
 </template>
