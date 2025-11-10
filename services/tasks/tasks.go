@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/rabbitmq/amqp091-go"
+	"github.com/zollidan/esmeralda/config"
 	"github.com/zollidan/esmeralda/mq"
 	"github.com/zollidan/esmeralda/scheduler"
 	"github.com/zollidan/esmeralda/utils"
@@ -29,31 +30,17 @@ type Manager struct {
 	cancel      context.CancelFunc
 }
 
-func NewManager() *Manager {
+func NewManager(cfg *config.Config) *Manager {
 
 	rabbitMQ := mq.NewMQ()
 	sched := scheduler.NewScheduler()
 
 	ch := rabbitMQ.GetChannel()
 
-	taskQueue, err := ch.QueueDeclare(
-		"test_queue", // name
-		false,        // durable
-		false,        // delete when unused
-		false,        // exclusive
-		false,        // no-wait
-		nil,          // arguments
-	)
+	taskQueue, err := rabbitMQ.DeclareQueue(ch, cfg.RabbitMQTasksQueue)
 	utils.FailOnError(err, "Failed to declare a queue")
 
-	resultQueue, err := ch.QueueDeclare(
-		"test_result_queue", // name
-		false,               // durable
-		false,               // delete when unused
-		false,               // exclusive
-		false,               // no-wait
-		nil,                 // arguments
-	)
+	resultQueue, err := rabbitMQ.DeclareQueue(ch, cfg.RabbitMQResultsQueue)
 	utils.FailOnError(err, "Failed to declare a result queue")
 
 	ctx, cancel := context.WithCancel(context.Background())

@@ -26,7 +26,7 @@ func main() {
 	s3Client := s3storage.New(cfg)
 
 	// Task manager setup
-	taskManager := tasks.NewManager()
+	taskManager := tasks.NewManager(cfg)
 	defer taskManager.Shutdown()
 
 	// HTTP router setup
@@ -43,8 +43,17 @@ func main() {
 		h.RegisterRoutes(r)
 	})
 
-	fmt.Printf("Server is running on http://%s\n", cfg.ServerAddress)
-	log.Printf("Server started on http://%s Mode: %s\n", cfg.ServerAddress, cfg.AppMode)
+	fmt.Println()
+	fmt.Println("Esemeralda - aaf-bet.ru big data and parsing service")
+	fmt.Println("==============================================")
+	fmt.Printf("  Server is running on: \033[1;36mhttp://%s\033[0m\n", cfg.ServerAddress)
+	fmt.Printf("  Mode: \033[1;33m%s\033[0m\n", cfg.AppMode)
+	fmt.Println("  Press CTRL+C to stop the server")
+	fmt.Println("==============================================")
+	fmt.Println()
+
+	log.Printf("Server started on http://%s | Mode: %s\n", cfg.ServerAddress, cfg.AppMode)
+
 	if err := http.ListenAndServe(cfg.ServerAddress, r); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}

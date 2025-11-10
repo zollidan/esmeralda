@@ -1,8 +1,18 @@
+import z from "zod";
+
+const bodySchema = z.object({
+  username: z.string(),
+  password: z.string(),
+});
+
 export default defineEventHandler(async (event) => {
   const runtimeConfig = useRuntimeConfig();
 
-  const body = await readBody(event);
-  const { username, password } = body;
+  // Валидируем тело запроса
+  const { username, password } = await readValidatedBody(
+    event,
+    bodySchema.parse
+  );
 
   try {
     const response = await fetch(
@@ -16,14 +26,44 @@ export default defineEventHandler(async (event) => {
       }
     );
 
-    if (!response.ok) {
-      return { error: "Failed to fetch parsers" };
+    // 💡 Обработка разных кодов ответа
+    if (response.status === 401) {
+      return sendError(
+        event,
+        createError({
+          statusCode: 401,
+          statusMessage: "Unauthorized: Invalid username or password",
+        })
+      );
     }
 
-    const data = await response.json();
+    if (response.ok) {
+      const data = await response.json();
+      await setUserSession(event, {
+        user: {
+          name: username,
+          token: data.token,
+        },
+      });
+    }
 
-    return data;
+    // Если код ответа не 200 и не 401
+    return sendError(
+      event,
+      createError({
+        statusCode: response.status,
+        statusMessage: `Login failed with status ${response.status}`,
+      })
+    );
   } catch (error) {
-    return { error: "An error occurred while fetching parsers" };
+    // Обработка сетевых ошибок или неожиданных исключений
+    console.error("Login error:", error);
+    return sendError(
+      event,
+      createError({
+        statusCode: 500,
+        statusMessage: "Internal server error during login request",
+      })
+    );
   }
 });

@@ -17,6 +17,8 @@ type Config struct {
 	JWTSecret     string
 	S3Region      string
 	AppMode       string
+	RabbitMQTasksQueue string
+	RabbitMQResultsQueue string
 }
 
 func New() *Config {
@@ -40,6 +42,8 @@ func New() *Config {
 		JWTSecret:     getEnv("JWT_SECRET", "dev-secret"),
 		S3Region:      getEnv("S3_REGION", "ru-central1"),
 		AppMode:       getEnv("APP_MODE", "development"),
+		RabbitMQTasksQueue: getEnv("RABBITMQ_TASKS_QUEUE", "test_task_queue"),
+		RabbitMQResultsQueue: getEnv("RABBITMQ_RESULTS_QUEUE", "test_result_queue"),
 	}
 }
 

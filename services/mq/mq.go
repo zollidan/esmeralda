@@ -34,12 +34,12 @@ func (mq *MQ) GetChannel() *amqp.Channel {
 
 // DeclareQueue declares the given queue as durable.
 // The function returns an error if the declaration fails.
-func (mq *MQ) DeclareQueue(ch *amqp.Channel, queueName string) (string, error) {
+func (mq *MQ) DeclareQueue(ch *amqp.Channel, queueName string) (amqp.Queue, error) {
 	if ch == nil {
 		log.Panic("DeclareQueue: channel is nil")
 	}
 
-	_, err := ch.QueueDeclare(
+	queue, err := ch.QueueDeclare(
 		queueName, // name
 		true,      // durable
 		false,     // delete when unused
@@ -47,7 +47,7 @@ func (mq *MQ) DeclareQueue(ch *amqp.Channel, queueName string) (string, error) {
 		false,     // no-wait
 		nil,       // arguments
 	)
-	return queueName, err
+	return queue, err
 }
 
 // SendMessage publishes body to the given queue.

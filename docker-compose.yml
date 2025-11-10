@@ -80,14 +80,14 @@ services:
     networks:
       - esmeralda-network
 
-  postgresus:
-    container_name: postgresus
-    image: rostislavdugin/postgresus:latest
-    ports:
-      - "4005:4005"
-    volumes:
-      - ./postgresus-data:/postgresus-data
-    restart: unless-stopped
+  # postgresus:
+  #   container_name: postgresus
+  #   image: rostislavdugin/postgresus:latest
+  #   ports:
+  #     - "4005:4005"
+  #   volumes:
+  #     - ./postgresus-data:/postgresus-data
+  #   restart: unless-stopped
 volumes:
   rabbitmq_data:
     driver: local
