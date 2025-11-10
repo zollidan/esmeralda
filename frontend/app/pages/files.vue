@@ -1,3 +1,11 @@
+<script setup lang="ts">
+definePageMeta({
+  middleware: ["authenticated"],
+});
+
+const { user, clear: clearSession } = useUserSession();
+</script>
+
 <template>
-  <p>files list</p>
+  <Files />
 </template>

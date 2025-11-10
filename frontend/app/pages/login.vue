@@ -1,4 +1,7 @@
 <script setup lang="ts">
+definePageMeta({
+  layout: "auth",
+});
 const { loggedIn, user, fetch: refreshSession } = useUserSession();
 const credentials = reactive({
   username: "",
