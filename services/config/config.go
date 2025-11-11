@@ -9,6 +9,7 @@ import (
 
 type Config struct {
 	ServerAddress string
+	RedisURL     string
 	DBURL         string
 	S3URL         string
 	BucketName    string
@@ -34,6 +35,7 @@ func New() *Config {
 
 	return &Config{
 		ServerAddress: getEnv("SERVER_ADDRESS", "localhost:3333"),
+		RedisURL: getEnv("REDIS_URL", ""),
 		DBURL:         getEnv("DB_URL", "test.db"),
 		S3URL:         getEnv("S3URL", ""),
 		BucketName:    getEnv("BUCKET_NAME", "my-bucket"),

@@ -1,52 +1,23 @@
 package handlers
 
 import (
-	"sync"
-
 	"github.com/go-chi/chi/v5"
+	"github.com/go-redis/redis"
 	"github.com/zollidan/esmeralda/config"
 	"github.com/zollidan/esmeralda/mq"
 	"github.com/zollidan/esmeralda/s3storage"
 	"gorm.io/gorm"
 )
-
-// Parser - структура парсера (адаптируйте под ваши нужды)
-type Parser struct {
-    ID   string `json:"id"`
-    Name string `json:"name"`
-    // добавьте другие поля
-}
-
-// ParserCache - in-memory кэш для парсеров
-type ParserCache struct {
-    mu      sync.RWMutex
-    parsers []Parser
-}
-
-// NewParserCache - создание нового кэша
-func NewParserCache() *ParserCache {
-    return &ParserCache{
-        parsers: make([]Parser, 0),
-    }
-}
-
-// Add - добавление парсера в кэш
-func (pc *ParserCache) Add(parser Parser) {
-    pc.mu.Lock()
-    defer pc.mu.Unlock()
-    pc.parsers = append(pc.parsers, parser)
-}
-
 type Handlers struct {
 	DB          *gorm.DB
 	Cfg         *config.Config
 	MQ          *mq.MQ
 	S3Client    *s3storage.S3Storage
-	parserCache *ParserCache
+	RedisClient *redis.Client
 }
 
 // Constructor
-func New(db *gorm.DB, cfg *config.Config, mqClient *mq.MQ, s3Client *s3storage.S3Storage) *Handlers {
+func New(db *gorm.DB, cfg *config.Config, mqClient *mq.MQ, s3Client *s3storage.S3Storage, redisClient *redis.Client) *Handlers {
 
 	// cache := NewParserCache()
 
@@ -56,6 +27,7 @@ func New(db *gorm.DB, cfg *config.Config, mqClient *mq.MQ, s3Client *s3storage.S
 		Cfg:         cfg,
 		MQ:          mqClient,
 		S3Client:    s3Client,
+		RedisClient: redisClient,
 		// parserCache: cache,
 	}
 }

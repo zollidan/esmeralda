@@ -5,3 +5,4 @@ tmp/
 **/__pycache__/
 postgresus-data/
 worker/worker.log
+redisdata/
