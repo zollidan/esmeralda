@@ -12,14 +12,6 @@ import (
 	"github.com/zollidan/esmeralda/utils"
 )
 
-type TaskManager interface {
-	StartTask(taskID uint) error
-	StartTaskWithScheduler(taskID uint, cronExpr string)
-	GetResult() error
-	CancelTask(taskID uint) error
-	Shutdown()
-}
-
 type Manager struct {
 	TaskQueue   *amqp091.Queue
 	ResultQueue *amqp091.Queue
@@ -33,7 +25,6 @@ type Manager struct {
 func NewManager(cfg *config.Config) *Manager {
 
 	rabbitMQ := mq.NewMQ()
-	sched := scheduler.NewScheduler()
 
 	ch := rabbitMQ.GetChannel()
 
@@ -48,7 +39,6 @@ func NewManager(cfg *config.Config) *Manager {
 	return &Manager{
 		TaskQueue:   &taskQueue,
 		ResultQueue: &resultQueue,
-		Scheduler:   sched,
 		mq:          rabbitMQ,
 		ch:          ch,
 		ctx:         ctx,
@@ -62,15 +52,6 @@ func (tm *Manager) StartTask(taskID uint, parserID uint) error {
 	err := tm.mq.SendMessage(tm.ch, tm.TaskQueue.Name, taskMessage)
 	utils.FailOnError(err, "Error starting task.")
 	return err
-}
-
-func (tm *Manager) StartTaskWithScheduler(taskID uint, cronExpr string) {
-	// Implementation for starting a task with the scheduler can be added here
-	_, err := tm.Scheduler.NewJob(cronExpr, taskID)
-	utils.FailOnError(err, "Error creating cron task")
-	taskMessage := fmt.Sprintf(`{"task_id": %d}`, taskID)
-	err = tm.mq.SendMessage(tm.ch, tm.TaskQueue.Name, taskMessage)
-	utils.FailOnError(err, "Error starting task.")
 }
 
 // GetResult получает сообщения из очереди результатов и выводит в консоль

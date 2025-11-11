@@ -10,12 +10,11 @@ import (
 	"github.com/zollidan/esmeralda/config"
 	"github.com/zollidan/esmeralda/database"
 	handlers "github.com/zollidan/esmeralda/handlers"
+	"github.com/zollidan/esmeralda/mq"
 	"github.com/zollidan/esmeralda/s3storage"
-	"github.com/zollidan/esmeralda/tasks"
 )
 
 func main() {
-
 	// Configuration setup
 	cfg := config.New()
 
@@ -25,15 +24,15 @@ func main() {
 	// S3Storage setup
 	s3Client := s3storage.New(cfg)
 
-	// Task manager setup
-	taskManager := tasks.NewManager(cfg)
-	defer taskManager.Shutdown()
+	// RabbitMQ setup
+	mqClient := mq.NewMQ()
+	defer mqClient.CloseMQ()
 
 	// HTTP router setup
 	r := chi.NewRouter()
 
 	// Register handlers
-	h := handlers.New(db, cfg, taskManager, s3Client)
+	h := handlers.New(db, cfg, mqClient, s3Client)
 
 	// Middleware
 	r.Use(middleware.Heartbeat("/ping"))

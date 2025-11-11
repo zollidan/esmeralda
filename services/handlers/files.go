@@ -1,16 +1,14 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/zollidan/esmeralda/database"
 	"github.com/zollidan/esmeralda/models"
-	"github.com/zollidan/esmeralda/utils"
 	"gorm.io/gorm"
 )
 
@@ -23,15 +21,7 @@ func (h *Handlers) FilesRoutes(r chi.Router) {
 }
 
 func (h *Handlers) GetFiles(w http.ResponseWriter, r *http.Request) {
-	files, err := gorm.G[models.Files](h.DB).Find(context.Background())
-	if err != nil {
-		json.NewEncoder(w).Encode(map[string]string{
-			"error": "Error reading files.",
-		})
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(files)
+	database.Get[models.Files](w, r, h.DB)
 }
 
 func (h *Handlers) CreateFile(w http.ResponseWriter, r *http.Request) {
@@ -96,75 +86,69 @@ func (h *Handlers) CreateFile(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handlers) GetFile(w http.ResponseWriter, r *http.Request) {
 	fileID := chi.URLParam(r, "id")
-
-	result, err := gorm.G[models.Files](h.DB).Where("id = ?", fileID).First(context.Background())
-	if err != nil {
-		http.Error(w, "File not found", http.StatusNotFound)
-		return
-	}
-	utils.ResponseJSON(w, http.StatusOK, result)
+	database.GetByID[models.Files](w, r, h.DB, fileID)
 }
 
 func (h *Handlers) DownloadFile(w http.ResponseWriter, r *http.Request) {
-	fileID := chi.URLParam(r, "id")
+// 	fileID := chi.URLParam(r, "id")
 
-	result, err := gorm.G[models.Files](h.DB).Where("id = ?", fileID).First(context.Background())
-	if err != nil {
-		http.Error(w, "File not found", http.StatusNotFound)
-		return
-	}
+// 	result, err := gorm.G[models.Files](h.DB).Where("id = ?", fileID).First(context.Background())
+// 	if err != nil {
+// 		http.Error(w, "File not found", http.StatusNotFound)
+// 		return
+// 	}
 
-	// Stream file content to response
-	obj, err := h.S3Client.GetItem(context.Background(), result.S3Key)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to get file from storage: %v", err), http.StatusInternalServerError)
-		return
-	}
+// 	// Stream file content to response
+// 	obj, err := h.S3Client.GetItem(context.Background(), result.S3Key)
+// 	if err != nil {
+// 		http.Error(w, fmt.Sprintf("failed to get file from storage: %v", err), http.StatusInternalServerError)
+// 		return
+// 	}
 
-	defer obj.Body.Close()
+// 	defer obj.Body.Close()
 
-	if obj.ContentType != nil {
-		w.Header().Set("Content-Type", *obj.ContentType)
-	} else {
-		w.Header().Set("Content-Type", "application/octet-stream")
-	}
+// 	if obj.ContentType != nil {
+// 		w.Header().Set("Content-Type", *obj.ContentType)
+// 	} else {
+// 		w.Header().Set("Content-Type", "application/octet-stream")
+// 	}
 
-	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=\"%s\"", result.Filename))
+// 	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=\"%s\"", result.Filename))
 
-	if obj.ContentLength != nil {
-		w.Header().Set("Content-Length", fmt.Sprintf("%d", *obj.ContentLength))
-	}
+// 	if obj.ContentLength != nil {
+// 		w.Header().Set("Content-Length", fmt.Sprintf("%d", *obj.ContentLength))
+// 	}
 
-	_, err = io.Copy(w, obj.Body)
-	if err != nil {
-		log.Printf("Error streaming file: %v\n", err)
-		return
-	}
+// 	_, err = io.Copy(w, obj.Body)
+// 	if err != nil {
+// 		log.Printf("Error streaming file: %v\n", err)
+// 		return
+// 	}
 }
 
 func (h *Handlers) DeleteFile(w http.ResponseWriter, r *http.Request) {
-	fileID := chi.URLParam(r, "id")
+	// fileID := chi.URLParam(r, "id")
 
-	result, err := gorm.G[models.Files](h.DB).Where("id = ?", fileID).First(context.Background())
-	if err != nil {
-		http.Error(w, "File not found", http.StatusNotFound)
-		return
-	}
+	// result, err := gorm.G[models.Files](h.DB).Where("id = ?", fileID).First(context.Background())
+	// if err != nil {
+	// 	http.Error(w, "File not found", http.StatusNotFound)
+	// 	return
+	// }
 
-	// Delete file from S3
-	if err := h.S3Client.DeleteItem(context.Background(), result.S3Key); err != nil {
-		http.Error(w, fmt.Sprintf("failed to delete file from storage: %v", err), http.StatusInternalServerError)
-		return
-	}
+	// // Delete file from S3
+	// if err := h.S3Client.DeleteItem(context.Background(), result.S3Key); err != nil {
+	// 	http.Error(w, fmt.Sprintf("failed to delete file from storage: %v", err), http.StatusInternalServerError)
+	// 	return
+	// }
 
-	// Delete file record from database
-	_, err = gorm.G[models.Files](h.DB).Where("id = ?", fileID).Delete(context.Background())
-	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to delete file record: %v", err), http.StatusInternalServerError)
-		return
-	}
+	// // Delete file record from database
+	// _, err = gorm.G[models.Files](h.DB).Where("id = ?", fileID).Delete(context.Background())
+	// if err != nil {
+	// 	http.Error(w, fmt.Sprintf("failed to delete file record: %v", err), http.StatusInternalServerError)
+	// 	return
+	// }
 
-	utils.ResponseJSON(w, http.StatusNoContent, map[string]string{
-		"message": "file deleted successfully",
-	})
+	// utils.ResponseJSON(w, http.StatusNoContent, map[string]string{
+	// 	"message": "file deleted successfully",
+	// })
 }

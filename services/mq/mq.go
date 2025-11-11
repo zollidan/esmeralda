@@ -2,6 +2,8 @@ package mq
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 
@@ -75,6 +77,82 @@ func (mq *MQ) SendMessage(ch *amqp.Channel, queueName string, body string) error
 		return err
 	}
 	return nil
+}
+
+func (mq *MQ) RefreshParsersRPC(queueName string) (string, error) {
+	ch := mq.GetChannel()
+	defer ch.Close()
+
+	// Создаём временную очередь для ответа
+	replyQueue, err := ch.QueueDeclare(
+		"",    // name (пустое = случайное имя)
+		false, // durable
+		true,  // delete when unused
+		true,  // exclusive
+		false, // no-wait
+		nil,   // arguments
+	)
+	if err != nil {
+		return "", fmt.Errorf("failed to declare reply queue: %w", err)
+	}
+
+	// Слушаем ответы
+	msgs, err := ch.Consume(
+		replyQueue.Name, // queue
+		"",              // consumer
+		true,            // auto-ack
+		false,           // exclusive
+		false,           // no-local
+		false,           // no-wait
+		nil,             // args
+	)
+	if err != nil {
+		return "", fmt.Errorf("failed to register consumer: %w", err)
+	}
+
+	// Генерируем correlation ID
+	corrId := generateUUID()
+
+	// Отправляем запрос
+	refreshMessage := map[string]string{
+		"action": "refresh_parsers",
+	}
+
+	body, err := json.Marshal(refreshMessage)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal message: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	err = ch.PublishWithContext(ctx,
+		"",        // exchange
+		queueName, // routing key
+		false,     // mandatory
+		false,     // immediate
+		amqp.Publishing{
+			ContentType:   "application/json",
+			CorrelationId: corrId,
+			ReplyTo:       replyQueue.Name,
+			Body:          body,
+		})
+	if err != nil {
+		return "", fmt.Errorf("failed to publish message: %w", err)
+	}
+
+	// Ждём ответ
+	for d := range msgs {
+		if corrId == d.CorrelationId {
+			return string(d.Body), nil
+		}
+	}
+
+	return "", fmt.Errorf("timeout waiting for response")
+}
+
+func generateUUID() string {
+	return fmt.Sprintf("%d", time.Now().UnixNano())
 }
 
 // CloseMQ closes the underlying RabbitMQ connection and logs any error.
