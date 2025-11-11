@@ -5,15 +5,17 @@ from typing import Optional
 from worker.src.parsers import parser
 from worker.src.settings import settings
 from worker.src.logger import logger
+from worker.src.storage import S3Storage
 
 
 class MQ:
     """Message Queue handler for RabbitMQ with proper connection management"""
 
-    def __init__(self):
+    def __init__(self, storage: S3Storage = None):
         self.connection: Optional[pika.BlockingConnection] = None
         self.channel: Optional[pika.adapters.blocking_connection.BlockingChannel] = None
         self.result_channel: Optional[pika.adapters.blocking_connection.BlockingChannel] = None
+        self.storage = storage
         self._setup_connections()
 
     def _setup_connections(self):
@@ -79,6 +81,7 @@ class MQ:
     def callback(self, ch, method, properties, body):
         """Process incoming task message"""
         task_id = None
+        output_file = None
         try:
             # Parse JSON message
             message = json.loads(body.decode())
@@ -96,16 +99,27 @@ class MQ:
             df.to_excel(output_file, index=False)
             logger.info(f"Data parsed and saved to {output_file}")
 
-            # TODO: Save to S3
-            # s3_key = storage.upload(output_file, task_id)
+            # Upload to S3 if storage is available
+            s3_key = None
+            if self.storage:
+                s3_key = self.storage.upload(output_file, task_id)
+                logger.info(f"File uploaded to S3: s3://{settings.S3_BUCKET}/{s3_key}")
+                
+                # Clean up local file after successful upload
+                self.storage.cleanup_local_file(output_file)
 
             # Send success result
-            self.send_result({
+            result_message = {
                 "task_id": task_id,
                 "status": "success",
                 "output_file": output_file,
-                # "s3_key": s3_key
-            })
+            }
+            
+            if s3_key:
+                result_message["s3_key"] = s3_key
+                result_message["output_file"] = f"s3://{settings.S3_BUCKET}/{s3_key}"  # Update to show S3 location
+
+            self.send_result(result_message)
 
             # ACK message only after successful processing
             ch.basic_ack(delivery_tag=method.delivery_tag)

@@ -5,11 +5,12 @@ import signal
 from worker.src.logger import logger
 from worker.src.mq import MQ
 from worker.src.settings import settings
-# from worker.src.storage import S3Storage
+from worker.src.storage import S3Storage
 
 
-# Global MQ instance for signal handler
+# Global instances for signal handler
 mq_instance = None
+storage_instance = None
 
 
 def signal_handler(sig, frame):
@@ -22,7 +23,7 @@ def signal_handler(sig, frame):
 
 def main():
     """Main entry point for the worker application"""
-    global mq_instance
+    global mq_instance, storage_instance
 
     try:
         logger.info("=" * 50)
@@ -35,11 +36,11 @@ def main():
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)
 
-        # Initialize storage (when ready)
-        # storage = S3Storage()
+        # Initialize storage
+        storage_instance = S3Storage()
 
         # Initialize and start MQ consumer
-        mq_instance = MQ()
+        mq_instance = MQ(storage=storage_instance)  # Передаем storage в MQ
         logger.info("Worker microservice started successfully")
 
         # Start consuming (this blocks until interrupted)
