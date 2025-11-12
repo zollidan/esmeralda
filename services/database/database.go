@@ -13,18 +13,26 @@ import (
 )
 
 type Model interface {
-	models.Files | models.Task | models.Parser
+	models.Files | models.Task
 }
 
 func Get[T Model](w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	items, err := gorm.G[T](db).Find(context.Background())
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{
+		utils.ResponseJSON(w, http.StatusInternalServerError, map[string]string{
 			"error": "Error reading data.",
 		})
+		return
 	}
 	utils.ResponseJSON(w, http.StatusOK, items)
+}
+
+func Create[T Model](w http.ResponseWriter, r *http.Request, db *gorm.DB, item *T) error {
+	err := gorm.G[T](db).Create(context.Background(), item)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func GetByID[T Model](w http.ResponseWriter, r *http.Request, db *gorm.DB, id string) {
@@ -43,7 +51,7 @@ func Delete[T Model](w http.ResponseWriter, r *http.Request, db *gorm.DB, id str
 		json.NewEncoder(w).Encode(map[string]string{
 			"error": "Error deleting data.",
 		})
-		return 
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -52,14 +60,14 @@ func Delete[T Model](w http.ResponseWriter, r *http.Request, db *gorm.DB, id str
 	})
 }
 
-func InitDatabase(cfg *config.Config) *gorm.DB {
+func Init(cfg *config.Config) *gorm.DB {
 
 	db, err := gorm.Open(postgres.Open(cfg.DBURL), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
 
-	db.AutoMigrate(&models.Files{}, &models.Task{}, &models.Parser{}, &models.User{})
+	db.AutoMigrate(&models.Files{}, &models.Task{}, &models.User{})
 
 	return db
 }

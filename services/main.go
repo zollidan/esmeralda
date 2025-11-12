@@ -10,7 +10,6 @@ import (
 	"github.com/zollidan/esmeralda/config"
 	"github.com/zollidan/esmeralda/database"
 	handlers "github.com/zollidan/esmeralda/handlers"
-	"github.com/zollidan/esmeralda/mq"
 	"github.com/zollidan/esmeralda/rediska"
 	"github.com/zollidan/esmeralda/s3storage"
 )
@@ -20,14 +19,10 @@ func main() {
 	cfg := config.New()
 
 	// Database setup
-	db := database.InitDatabase(cfg)
+	db := database.Init(cfg)
 
 	// S3Storage setup
 	s3Client := s3storage.New(cfg)
-
-	// RabbitMQ setup
-	mqClient := mq.NewMQ()
-	defer mqClient.CloseMQ()
 
 	// Redis setup
 	redisClient := rediska.Init(cfg.RedisURL)
@@ -36,7 +31,7 @@ func main() {
 	r := chi.NewRouter()
 
 	// Register handlers
-	h := handlers.New(db, cfg, mqClient, s3Client, redisClient.Client)
+	h := handlers.New(db, cfg, s3Client, redisClient)
 
 	// Middleware
 	r.Use(middleware.Heartbeat("/ping"))

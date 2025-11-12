@@ -9,7 +9,7 @@ import (
 
 type Config struct {
 	ServerAddress string
-	RedisURL     string
+	RedisURL      string
 	DBURL         string
 	S3URL         string
 	BucketName    string
@@ -18,8 +18,6 @@ type Config struct {
 	JWTSecret     string
 	S3Region      string
 	AppMode       string
-	RabbitMQTasksQueue string
-	RabbitMQResultsQueue string
 }
 
 func New() *Config {
@@ -35,7 +33,7 @@ func New() *Config {
 
 	return &Config{
 		ServerAddress: getEnv("SERVER_ADDRESS", "localhost:3333"),
-		RedisURL: getEnv("REDIS_URL", ""),
+		RedisURL:      getEnv("REDIS_URL", ""),
 		DBURL:         getEnv("DB_URL", "test.db"),
 		S3URL:         getEnv("S3URL", ""),
 		BucketName:    getEnv("BUCKET_NAME", "my-bucket"),
@@ -44,8 +42,6 @@ func New() *Config {
 		JWTSecret:     getEnv("JWT_SECRET", "dev-secret"),
 		S3Region:      getEnv("S3_REGION", "ru-central1"),
 		AppMode:       getEnv("APP_MODE", "development"),
-		RabbitMQTasksQueue: getEnv("RABBITMQ_TASKS_QUEUE", "test_task_queue"),
-		RabbitMQResultsQueue: getEnv("RABBITMQ_RESULTS_QUEUE", "test_result_queue"),
 	}
 }
 

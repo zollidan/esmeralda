@@ -2,33 +2,26 @@ package handlers
 
 import (
 	"github.com/go-chi/chi/v5"
-	"github.com/go-redis/redis"
 	"github.com/zollidan/esmeralda/config"
-	"github.com/zollidan/esmeralda/mq"
+	"github.com/zollidan/esmeralda/rediska"
 	"github.com/zollidan/esmeralda/s3storage"
 	"gorm.io/gorm"
 )
+
 type Handlers struct {
 	DB          *gorm.DB
 	Cfg         *config.Config
-	MQ          *mq.MQ
 	S3Client    *s3storage.S3Storage
-	RedisClient *redis.Client
+	RedisClient *rediska.RedisClient
 }
 
 // Constructor
-func New(db *gorm.DB, cfg *config.Config, mqClient *mq.MQ, s3Client *s3storage.S3Storage, redisClient *redis.Client) *Handlers {
-
-	// cache := NewParserCache()
-
-	// mqClient.RefreshParsersRPC("parsers", cache)
+func New(db *gorm.DB, cfg *config.Config, s3Client *s3storage.S3Storage, redisClient *rediska.RedisClient) *Handlers {
 	return &Handlers{
 		DB:          db,
 		Cfg:         cfg,
-		MQ:          mqClient,
 		S3Client:    s3Client,
 		RedisClient: redisClient,
-		// parserCache: cache,
 	}
 }
 

@@ -18,12 +18,12 @@ func TestInitDatabase(t *testing.T) {
 		}
 	}()
 
-	database := InitDatabase(&cfg)
+	database := Init(&cfg)
 	if database == nil {
 		t.Fatal("database is nil after initialization")
 	}
 
-	for _, model := range []interface{}{&models.Files{}, &models.Task{}, &models.Parser{}, &models.User{}} {
+	for _, model := range []interface{}{&models.Files{}, &models.Task{}, &models.User{}} {
 		if !database.Migrator().HasTable(model) {
 			t.Errorf("expected table for %T to exist", model)
 		}

@@ -18,24 +18,12 @@ type Files struct {
 	FileSize int64  `json:"file_size"` // File size in bytes
 }
 
-// Parser представляет тип парсера
-type Parser struct {
-	gorm.Model
-	Name        string `gorm:"uniqueIndex;not null"`
-	Description string
-	IsActive    bool `gorm:"default:true"`
-}
-
 // Task представляет задачу для выполнения парсера
 // TODO: add task status tracking
 type Task struct {
 	gorm.Model
 	Name        string `gorm:"not null"`
 	Description string
-
-	// Связь с парсером
-	ParserID uint   `gorm:"not null;index"`
-	Parser   Parser `gorm:"foreignKey:ParserID"`
 
 	// Конфигурация запуска
 	CronExpression string `gorm:"size:100"` // "*/5 * * * *" или пусто для разовой задачи

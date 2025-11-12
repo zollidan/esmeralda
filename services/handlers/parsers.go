@@ -6,9 +6,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-redis/redis"
+	"github.com/zollidan/esmeralda/utils"
 )
-
-const parsersRedisKey = "parsers"
 
 type Parser struct {
 	ID   string `json:"id"`
@@ -17,33 +16,59 @@ type Parser struct {
 
 func (h *Handlers) ParsersRoutes(r chi.Router) {
 	r.Get("/", h.GetParsers)
-	r.Post("/refresh", h.RefreshParsers)
+	r.Get("/{id}", h.GetParserByID)
 }
 
-func (h *Handlers) RefreshParsers(w http.ResponseWriter, r *http.Request) {
-	// make rabbit request to piko service to refresh parsers
+func (h *Handlers) GetParserByID(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	data, err := h.RedisClient.Client.Get("parsers:" + id).Result()
+	if err != nil {
+		if err == redis.Nil {
+			utils.ResponseJSON(w, http.StatusNotFound, map[string]string{
+				"error": "Parser not found",
+			})
+			return
+		}
+		utils.ResponseJSON(w, http.StatusInternalServerError, map[string]string{
+			"error": "Failed to get parser from Redis",
+		})
+		return
+	}
+
+	var parser Parser
+	if err := json.Unmarshal([]byte(data), &parser); err != nil {
+		utils.ResponseJSON(w, http.StatusInternalServerError, map[string]string{
+			"error": "Failed to unmarshal parser",
+		})
+		return
+	}
+
+	utils.ResponseJSON(w, http.StatusOK, parser)
 }
 
 func (h *Handlers) GetParsers(w http.ResponseWriter, r *http.Request) {
-	data, err := h.RedisClient.Get(parsersRedisKey).Result()
+	data, err := h.RedisClient.Client.Get("parsers").Result()
 	if err != nil {
 		if err == redis.Nil {
-			http.Error(w, "Parsers not found", http.StatusNotFound)
+			utils.ResponseJSON(w, http.StatusNotFound, map[string]string{
+				"error": "Parsers not found",
+			})
 			return
 		}
-		http.Error(w, "Failed to get parsers from Redis", http.StatusInternalServerError)
+		utils.ResponseJSON(w, http.StatusInternalServerError, map[string]string{
+			"error": "Failed to get parsers from Redis",
+		})
 		return
 	}
 
 	var parsers []Parser
 	if err := json.Unmarshal([]byte(data), &parsers); err != nil {
-		http.Error(w, "Failed to unmarshal parsers", http.StatusInternalServerError)
+		utils.ResponseJSON(w, http.StatusInternalServerError, map[string]string{
+			"error": "Failed to unmarshal parsers",
+		})
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(parsers); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	utils.ResponseJSON(w, http.StatusOK, parsers)
 }
