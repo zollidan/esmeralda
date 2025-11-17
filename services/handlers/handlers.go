@@ -27,7 +27,6 @@ func New(db *gorm.DB, cfg *config.Config, s3Client *s3storage.S3Storage, redisCl
 
 // Метод для регистрации всех роутов
 func (h *Handlers) RegisterRoutes(r chi.Router) {
-	r.Route("/auth", h.AuthRoutes)
 	r.Route("/files", h.FilesRoutes)
 	r.Route("/tasks", h.TasksRoutes)
 	r.Route("/parsers", h.ParsersRoutes)

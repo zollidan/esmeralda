@@ -15,7 +15,6 @@ type Config struct {
 	BucketName    string
 	S3AccessKey   string
 	S3SecretKey   string
-	JWTSecret     string
 	S3Region      string
 	AppMode       string
 }
@@ -39,7 +38,6 @@ func New() *Config {
 		BucketName:    getEnv("BUCKET_NAME", "my-bucket"),
 		S3AccessKey:   getEnv("S3_ACCESS_KEY", ""),
 		S3SecretKey:   getEnv("S3_SECRET_KEY", ""),
-		JWTSecret:     getEnv("JWT_SECRET", "dev-secret"),
 		S3Region:      getEnv("S3_REGION", "ru-central1"),
 		AppMode:       getEnv("APP_MODE", "development"),
 	}

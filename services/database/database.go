@@ -67,7 +67,7 @@ func Init(cfg *config.Config) *gorm.DB {
 		panic("failed to connect database")
 	}
 
-	db.AutoMigrate(&models.Files{}, &models.Task{}, &models.User{})
+	db.AutoMigrate(&models.Files{}, &models.Task{})
 
 	return db
 }

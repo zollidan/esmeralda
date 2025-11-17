@@ -1,15 +1,5 @@
 package schemas
 
-type LoginUserRequest struct {
-	Username string `json:"username" validate:"required"`
-	Password string `json:"password" validate:"required"`
-}
-
-type RegisterUserRequest struct {
-	Username string `json:"username" validate:"required"`
-	Password string `json:"password" validate:"required"`
-}
-
 // CreateFileRequest represents the JSON schema for creating a file
 type CreateFileRequest struct {
 	Filename string `json:"filename" validate:"required"`

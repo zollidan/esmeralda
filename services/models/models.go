@@ -4,12 +4,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type User struct {
-	gorm.Model
-	Username string `gorm:"uniqueIndex;not null"`
-	Password string `gorm:"not null"`
-}
-
 type Files struct {
 	gorm.Model
 	Filename string `json:"filename"`
