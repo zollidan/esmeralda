@@ -21,11 +21,21 @@ func Init(redisURL string) *RedisClient {
 	}
 }
 
-func (c *RedisClient) SendTask(taskID uint) (string, error) {
+func (c *RedisClient) SendTask(taskID uint, parserName string, fileName string) (string, error) {
 	result, err := c.Client.XAdd(&redis.XAddArgs{
 		Stream: "parser_tasks",
-		Values: map[string]interface{}{"task": taskID},
+		Values: map[string]interface{}{"task": taskID, "parser": parserName, "fileName": fileName},
 	}).Result()
 
 	return result, err
+}
+
+func (c *RedisClient) GetParsers() ([]string, error) {
+
+	result, err := c.Client.SMembers("available_parsers").Result()
+	if err != nil {
+		return []string{}, err
+	}
+
+	return result, nil
 }

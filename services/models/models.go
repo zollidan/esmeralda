@@ -25,10 +25,12 @@ type Task struct {
 	Name        string `gorm:"not null"`
 	Description string
 
+	ParserName string `gorm:"size:100;not null"`
+	FileName   string `gorm:"size:255"`
+
 	// Конфигурация запуска
-	CronExpression string `gorm:"size:100"` // "*/5 * * * *" или пусто для разовой задачи
-	IsRecurring    bool   `gorm:"default:false"`
-	IsActive       bool   `gorm:"default:true;index"`
+	IsRecurring bool `gorm:"default:false"`
+	IsActive    bool `gorm:"default:true;index"`
 
 	// Метаданные выполнения
 	JobID      string `gorm:"size:100;index"`            // ID job'а в scheduler

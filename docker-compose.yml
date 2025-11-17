@@ -1,42 +1,6 @@
 version: "3.8"
 
 services:
-  # nginx:
-  #   image: nginx
-  #   hostname: nginx-entrypoint
-  #   container_name: nginx-entrypoint
-  #   restart: unless-stopped
-  #   environment:
-  #     TZ: "Europe/Moscow"
-  #   ports:
-  #     - 80:80
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost"]
-  #     interval: 10s
-  #     timeout: 10s
-  #     retries: 20
-  # loki:
-  #   hostname: loki
-  #   image: grafana/loki:latest
-  #   environment:
-  #     TZ: ${SYSTEM_TIMEZONE:-Europe/Moscow}
-  #   ports:
-  #     - "3100:3100"
-  #   command: -config.file=/etc/loki/local-config.yaml
-
-  # grafana:
-  #   hostname: grafana
-  #   environment:
-  #     - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
-  #     # Включим доступ без авторизации
-  #     - GF_AUTH_ANONYMOUS_ENABLED=true # Не используйте **ANONYMOUS** настройки в проде
-  #     # Дадим права администратора при анонимном входе
-  #     - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-  #     - TZ=${SYSTEM_TIMEZONE:-Europe/Moscow}
-  #   image: grafana/grafana:latest
-  #   ports:
-  #     - "3000:3000"
-
   redis:
     image: redis:latest
     container_name: redis
@@ -53,31 +17,8 @@ services:
     tty: true
     stdin_open: true
 
-  rabbitmq:
-    image: rabbitmq:3.13-management-alpine
-    container_name: esmeralda-rabbitmq
-    hostname: rabbitmq
-    restart: unless-stopped
-    ports:
-      - "5672:5672" # AMQP protocol port
-      - "15672:15672" # Management UI
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-      - rabbitmq_logs:/var/log/rabbitmq
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 40s
-    networks:
-      - esmeralda-network
-
   postgres:
-    image: postgres:15-alpine
+    image: postgres:16-alpine
     container_name: esmeralda-postgres
     hostname: postgres
     restart: unless-stopped
@@ -106,8 +47,6 @@ services:
   #   restart: unless-stopped
 volumes:
   rabbitmq_data:
-    driver: local
-  rabbitmq_logs:
     driver: local
   pgdata:
     driver: local

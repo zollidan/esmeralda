@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/zollidan/esmeralda/database"
@@ -29,12 +30,7 @@ func (h *Handlers) CreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task := &models.Task{
-		Name:        req.Name,
-		Description: req.Description,
-	}
-
-	err := database.Create(w, r, h.DB, task)
+	parserAvailable, err := h.RedisClient.GetParsers()
 	if err != nil {
 		utils.ResponseJSON(w, http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
@@ -42,7 +38,28 @@ func (h *Handlers) CreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	streamID, err := h.RedisClient.SendTask(task.ID)
+	if !slices.Contains(parserAvailable, req.ParserName) {
+		utils.ResponseJSON(w, http.StatusBadRequest, map[string]string{
+			"error": "Invalid parser name",
+		})
+		return
+	}
+
+	task := &models.Task{
+		Name:        req.Name,
+		Description: req.Description,
+		ParserName:  req.ParserName,
+	}
+
+	err = database.Create(w, r, h.DB, task)
+	if err != nil {
+		utils.ResponseJSON(w, http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	streamID, err := h.RedisClient.SendTask(task.ID, req.ParserName, req.FileName)
 	if err != nil {
 		utils.ResponseJSON(w, http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
