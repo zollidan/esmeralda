@@ -11,7 +11,7 @@ User → nginx → front (UI)
     ↓         ↓         ↓
 RabbitMQ   postgres   redis   s3 yandex
     ↓
-piko worker → parser1, parser2
+worker → parser1, parser2
     ↓              ↓
   redis      s3 yandex
 ```
