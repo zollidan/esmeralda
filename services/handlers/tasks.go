@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-redis/redis"
 	"github.com/zollidan/esmeralda/database"
 	"github.com/zollidan/esmeralda/models"
 	"github.com/zollidan/esmeralda/schemas"
@@ -18,7 +19,23 @@ func (h *Handlers) TasksRoutes(r chi.Router) {
 }
 
 func (h *Handlers) GetTasks(w http.ResponseWriter, r *http.Request) {
-	database.Get[models.Task](w, r, h.DB)
+	// database.Get[models.Task](w, r, h.DB)
+
+	data, err := h.RedisClient.FindResults()
+	if err != nil {
+		if err == redis.Nil {
+			utils.ResponseJSON(w, http.StatusNotFound, map[string]string{
+				"error": err.Error(),
+			})
+			return
+		}
+		utils.ResponseJSON(w, http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	utils.ResponseJSON(w, http.StatusOK, data)
 }
 
 func (h *Handlers) CreateTask(w http.ResponseWriter, r *http.Request) {

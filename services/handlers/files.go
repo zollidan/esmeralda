@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/zollidan/esmeralda/database"
 	"github.com/zollidan/esmeralda/models"
+	"github.com/zollidan/esmeralda/utils"
 	"gorm.io/gorm"
 )
 
@@ -86,44 +87,50 @@ func (h *Handlers) CreateFile(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handlers) GetFile(w http.ResponseWriter, r *http.Request) {
 	fileID := chi.URLParam(r, "id")
-	database.GetByID[models.Files](w, r, h.DB, fileID)
+	result, err := database.GetBy[models.Files](h.DB, "id", fileID)
+	if err != nil {
+		utils.ResponseJSON(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.ResponseJSON(w, http.StatusOK, result)
 }
 
 func (h *Handlers) DownloadFile(w http.ResponseWriter, r *http.Request) {
-// 	fileID := chi.URLParam(r, "id")
+	// 	fileID := chi.URLParam(r, "id")
 
-// 	result, err := gorm.G[models.Files](h.DB).Where("id = ?", fileID).First(context.Background())
-// 	if err != nil {
-// 		http.Error(w, "File not found", http.StatusNotFound)
-// 		return
-// 	}
+	// 	result, err := gorm.G[models.Files](h.DB).Where("id = ?", fileID).First(context.Background())
+	// 	if err != nil {
+	// 		http.Error(w, "File not found", http.StatusNotFound)
+	// 		return
+	// 	}
 
-// 	// Stream file content to response
-// 	obj, err := h.S3Client.GetItem(context.Background(), result.S3Key)
-// 	if err != nil {
-// 		http.Error(w, fmt.Sprintf("failed to get file from storage: %v", err), http.StatusInternalServerError)
-// 		return
-// 	}
+	// 	// Stream file content to response
+	// 	obj, err := h.S3Client.GetItem(context.Background(), result.S3Key)
+	// 	if err != nil {
+	// 		http.Error(w, fmt.Sprintf("failed to get file from storage: %v", err), http.StatusInternalServerError)
+	// 		return
+	// 	}
 
-// 	defer obj.Body.Close()
+	// 	defer obj.Body.Close()
 
-// 	if obj.ContentType != nil {
-// 		w.Header().Set("Content-Type", *obj.ContentType)
-// 	} else {
-// 		w.Header().Set("Content-Type", "application/octet-stream")
-// 	}
+	// 	if obj.ContentType != nil {
+	// 		w.Header().Set("Content-Type", *obj.ContentType)
+	// 	} else {
+	// 		w.Header().Set("Content-Type", "application/octet-stream")
+	// 	}
 
-// 	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=\"%s\"", result.Filename))
+	// 	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=\"%s\"", result.Filename))
 
-// 	if obj.ContentLength != nil {
-// 		w.Header().Set("Content-Length", fmt.Sprintf("%d", *obj.ContentLength))
-// 	}
+	// 	if obj.ContentLength != nil {
+	// 		w.Header().Set("Content-Length", fmt.Sprintf("%d", *obj.ContentLength))
+	// 	}
 
-// 	_, err = io.Copy(w, obj.Body)
-// 	if err != nil {
-// 		log.Printf("Error streaming file: %v\n", err)
-// 		return
-// 	}
+	// 	_, err = io.Copy(w, obj.Body)
+	// 	if err != nil {
+	// 		log.Printf("Error streaming file: %v\n", err)
+	// 		return
+	// 	}
 }
 
 func (h *Handlers) DeleteFile(w http.ResponseWriter, r *http.Request) {

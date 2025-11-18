@@ -2,12 +2,10 @@ package database
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/zollidan/esmeralda/config"
 	"github.com/zollidan/esmeralda/models"
-	"github.com/zollidan/esmeralda/utils"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -16,15 +14,12 @@ type Model interface {
 	models.Files | models.Task
 }
 
-func Get[T Model](w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+func Get[T Model](w http.ResponseWriter, r *http.Request, db *gorm.DB) (*[]T, error) {
 	items, err := gorm.G[T](db).Find(context.Background())
 	if err != nil {
-		utils.ResponseJSON(w, http.StatusInternalServerError, map[string]string{
-			"error": "Error reading data.",
-		})
-		return
+		return nil, err
 	}
-	utils.ResponseJSON(w, http.StatusOK, items)
+	return &items, nil
 }
 
 func Create[T Model](w http.ResponseWriter, r *http.Request, db *gorm.DB, item *T) error {
@@ -35,29 +30,21 @@ func Create[T Model](w http.ResponseWriter, r *http.Request, db *gorm.DB, item *
 	return nil
 }
 
-func GetByID[T Model](w http.ResponseWriter, r *http.Request, db *gorm.DB, id string) {
-	result, err := gorm.G[models.Files](db).Where("id = ?", id).First(context.Background())
+func GetBy[T Model](db *gorm.DB, id string, searchField string) (*T, error) {
+	result, err := gorm.G[T](db).Where(searchField+" = ?", id).First(context.Background())
 	if err != nil {
-		http.Error(w, "File not found", http.StatusNotFound)
-		return
+		return nil, err
 	}
-	utils.ResponseJSON(w, http.StatusOK, result)
+	return &result, nil
 }
 
-func Delete[T Model](w http.ResponseWriter, r *http.Request, db *gorm.DB, id string) {
+func Delete[T Model](db *gorm.DB, id string) error {
 	_, err := gorm.G[T](db).Where("id = ?", id).Delete(context.Background())
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{
-			"error": "Error deleting data.",
-		})
-		return
+		return err
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "Item deleted successfully.",
-	})
+	return nil
 }
 
 func Init(cfg *config.Config) *gorm.DB {

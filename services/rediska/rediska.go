@@ -39,3 +39,13 @@ func (c *RedisClient) GetParsers() ([]string, error) {
 
 	return result, nil
 }
+
+func (c *RedisClient) FindResults() ([]string, error) {
+
+	val, err := c.Client.Keys("result:*").Result()
+	if err != nil {
+		return []string{}, err
+	}
+	return val, nil
+
+}
