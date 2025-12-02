@@ -1,0 +1,85 @@
+version: "3.8"
+
+services:
+  # 1. База данных PostgreSQL
+  db:
+    image: postgres:16-alpine
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432" # Открыт для локального подключения (DBeaver, pgAdmin)
+    networks:
+      - app_network
+
+  # 2. Брокер сообщений Redis (для Celery)
+  redis:
+    image: redis:alpine
+    restart: always
+    ports:
+      - "6379:6379" # Открыт для отладки
+    networks:
+      - app_network
+
+  # 3. Selenium с Chrome (Standalone)
+  selenium-chrome:
+    image: selenium/standalone-chrome:latest
+    shm_size: "2gb"
+    ports:
+      - "4444:4444" # Порт для драйвера
+      - "7900:7900" # Порт для VNC
+    environment:
+      SE_NODE_MAX_SESSIONS: 1
+    networks:
+      - app_network
+
+  backend:
+    build: .
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./app:/code/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://redis:6379/0
+      - SELENIUM_REMOTE_URL=http://selenium-chrome:4444/wd/hub
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+    depends_on:
+      - db
+      - redis
+    networks:
+      - app_network
+
+  # 5. Celery Worker
+  worker:
+    build: .
+    command: celery -A app.worker.celery_app worker --loglevel=info
+    volumes:
+      - ./app:/code/app
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://redis:6379/0
+      - SELENIUM_REMOTE_URL=http://selenium-chrome:4444/wd/hub
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+    depends_on:
+      - redis
+      - selenium-chrome
+      - db
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
