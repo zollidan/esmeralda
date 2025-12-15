@@ -1,34 +1,48 @@
 version: "3.8"
 
 services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx-no-ssl.conf:/etc/nginx/nginx.conf:ro
+      - static_volume:/code/staticfiles:ro
+    depends_on:
+      - web
+    restart: always
+
   web:
     build: .
-    command: uv run manage.py runserver 0.0.0.0:8000
+    command: >
+      sh -c "uv run manage.py migrate &&
+            uv run uvicorn esmeralda.asgi:application --host 0.0.0.0 --port 8000"
+    env_file:
+      - .env
     volumes:
-      - .:/app
+      - static_volume:/code/staticfiles
     ports:
       - "8000:8000"
-    env_file: .env
+    networks:
+      - default
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
 
   worker:
     build: .
-    command: uv run celery -A app worker --loglevel=info --concurrency=1
+    command: uv run celery -A esmeralda worker --loglevel=info --concurrency=1
     volumes:
-      - .:/app
+      - .:/code
     env_file: .env
     shm_size: "2gb"
     depends_on:
       - db
       - redis
 
-  # Брокер задач
   redis:
     image: redis:alpine
 
-  # База данных
   # db:
   #   image: postgres:13-alpine
   #   environment:
