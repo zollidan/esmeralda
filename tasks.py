@@ -1,3 +1,4 @@
+import datetime
 import io
 import pandas as pd
 from celery import Celery
@@ -5,8 +6,7 @@ from config import settings
 from database import SessionLocal
 from models import ParsingTask
 from boto3_utils import upload_to_s3
-from sofascore.main import main as sofascore_main
-
+from sofascore.parser import main as sofascore_parser
 celery_app = Celery('tasks', broker=settings.CELERY_BROKER_URL)
 
 @celery_app.task(bind=True)
@@ -18,7 +18,8 @@ def run_parsing_task(self, task_id):
             task.status = 'PROCESSING'
             db.commit()
             excel_buffer = io.BytesIO()
-            df = sofascore_main()        
+            time_tommorow = datetime.datetime.now() + datetime.timedelta(days=1)
+            df = sofascore_parser(time_tommorow.strftime("%Y-%m-%d"))        
             df.to_excel(excel_buffer, index=False)
             excel_buffer.seek(0)
             file_name = f"results/result_{task_id}.xlsx"

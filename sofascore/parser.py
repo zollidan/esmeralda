@@ -4,182 +4,186 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
+def main(input_date:str) -> pd.DataFrame:
 
-# Отключаем логирование
-logging.getLogger('playwright').setLevel(logging.WARNING)
-logging.getLogger('urllib3').setLevel(logging.WARNING)
+    # Отключаем логирование
+    logging.getLogger('playwright').setLevel(logging.WARNING)
+    logging.getLogger('urllib3').setLevel(logging.WARNING)
 
-input_date = input('Введите дату в формате 2025-11-27:  ')
+    # input_date = input('Введите дату в формате 2025-11-27:  ')
 
-url = f'https://m.sofascore.com/football/{input_date}'
+    # зарефакторить это кал
+    url = f'https://m.sofascore.com/football/{input_date}'
 
-date1 = url.split('/')[-1]
-date1_obj = datetime.strptime(date1, "%Y-%m-%d")
 
-def base_cleanup(page):
-    """Базовая очистка для парсинга"""
-    # print("🧹 Выполняю базовую очистку...")
-    
-    try:
-        # 1. Очищаем cookies
-        page.context.clear_cookies()
-    except:
-        pass
-    
-    try:
-        # 2. Очищаем локальное хранилище
-        page.evaluate("""
-            () => {
-                try {
-                    localStorage.clear();
-                    sessionStorage.clear();
-                } catch(e) {}
-            }
+    # зачем тут слайс
+    date1 = url.split('/')[-1]
+    date1_obj = datetime.strptime(date1, "%Y-%m-%d")
+
+    def base_cleanup(page):
+        """Базовая очистка для парсинга"""
+        # print("🧹 Выполняю базовую очистку...")
+        
+        try:
+            # 1. Очищаем cookies
+            page.context.clear_cookies()
+        except:
+            pass
+        
+        try:
+            # 2. Очищаем локальное хранилище
+            page.evaluate("""
+                () => {
+                    try {
+                        localStorage.clear();
+                        sessionStorage.clear();
+                    } catch(e) {}
+                }
+            """)
+        except:
+            pass
+        
+        # print("✓ Очистка завершена")
+        time.sleep(0.5)
+
+
+
+
+    def get_stealth_driver_chrome(opt):
+        """Полный аналог вашей функции get_stealth_driver_chrome на Playwright"""
+        playwright = sync_playwright().start()
+        
+        args = [
+            "--no-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-gpu",
+            "--ignore-certificate-errors",
+            "--enable-unsafe-swiftshader",
+            "--disable-popup-blocking",
+            "--disable-notifications",
+            "--disable-infobars",
+            "--disable-extensions",
+            "--disable-web-security",
+            "--no-first-run",
+            "--no-default-browser-check",
+            "--disable-component-extensions-with-background-pages",
+            "--log-level=3",
+            "--disable-logging",
+            "--disable-blink-features=AutomationControlled",
+            "--disable-images",
+            opt if opt else "--start-maximized"
+        ]
+        
+        browser = playwright.chromium.launch(
+            headless=False,
+            args=args
+        )
+        
+        # Создаем контекст с настройками
+        context = browser.new_context(
+            viewport={'width': 1920, 'height': 1080},
+            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            java_script_enabled=True,
+            bypass_csp=True
+        )
+        
+        # Блокируем ненужные ресурсы для ускорения
+        def block_resources(route):
+            if route.request.resource_type in ["image", "stylesheet", "font", "media"]:
+                route.abort()
+            else:
+                route.continue_()
+        
+        # context.route("**/*", block_resources)
+        
+        page = context.new_page()
+        
+        # Добавляем stealth скрипты
+        page.add_init_script("""
+            Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+            Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+            Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
         """)
-    except:
-        pass
-    
-    # print("✓ Очистка завершена")
-    time.sleep(0.5)
-
-
-
-
-def get_stealth_driver_chrome(opt):
-    """Полный аналог вашей функции get_stealth_driver_chrome на Playwright"""
-    playwright = sync_playwright().start()
-    
-    args = [
-        "--no-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--ignore-certificate-errors",
-        "--enable-unsafe-swiftshader",
-        "--disable-popup-blocking",
-        "--disable-notifications",
-        "--disable-infobars",
-        "--disable-extensions",
-        "--disable-web-security",
-        "--no-first-run",
-        "--no-default-browser-check",
-        "--disable-component-extensions-with-background-pages",
-        "--log-level=3",
-        "--disable-logging",
-        "--disable-blink-features=AutomationControlled",
-        "--disable-images",
-        opt if opt else "--start-maximized"
-    ]
-    
-    browser = playwright.chromium.launch(
-        headless=False,
-        args=args
-    )
-    
-    # Создаем контекст с настройками
-    context = browser.new_context(
-        viewport={'width': 1920, 'height': 1080},
-        user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        java_script_enabled=True,
-        bypass_csp=True
-    )
-    
-    # Блокируем ненужные ресурсы для ускорения
-    def block_resources(route):
-        if route.request.resource_type in ["image", "stylesheet", "font", "media"]:
-            route.abort()
-        else:
-            route.continue_()
-    
-    # context.route("**/*", block_resources)
-    
-    page = context.new_page()
-    
-    # Добавляем stealth скрипты
-    page.add_init_script("""
-        Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-        Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
-        Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
-    """)
-    
-    
-
-    # Возвращаем и playwright объект тоже, чтобы потом закрыть
-    return page, browser, playwright
-
-def get_stealth_driver_firefox(opt=""):
-    """Полный аналог вашей функции get_stealth_driver_firefox на Playwright"""
-    playwright = sync_playwright().start()
-    
-    args = [
-        "--no-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu"
-    ]
-    
-    if opt:
-        args.append(opt)
-    
-    browser = playwright.firefox.launch(
-        headless=False,
-        args=args
-    )
-    
-    context = browser.new_context(
-        viewport={'width': 1920, 'height': 1080},
-        user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0',
-        java_script_enabled=True,
-        bypass_csp=True
-    )
-    
-    # Блокируем ресурсы
-    def block_resources(route):
-        if route.request.resource_type in ["image", "stylesheet", "font", "media"]:
-            route.abort()
-        else:
-            route.continue_()
-    
-    context.route("**/*", block_resources)
-    
-    page = context.new_page()
-    
-    # Добавляем stealth скрипты
-    page.add_init_script("""
-        Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-        Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
-    """)
-    
-    return page, browser, playwright
-
-def check_and_refresh_full_text(page):
-    """Проверяет наличие текста про Favourites и обновляет страницу"""
-    try:
-        full_text = "Add to Favourites to keep track of upcoming events. You can adjust this and notifications later in the Favourites tab."
         
-        # Ищем элемент с текстом
-        element = page.query_selector(f"text={full_text}")
         
-        if element:
-            print("Найден span с текстом про Favourites, делаю refresh...")
-            page.reload(wait_until="domcontentloaded", timeout=5000)
-            return True
-    except Exception as e:
+
+        # Возвращаем и playwright объект тоже, чтобы потом закрыть
+        return page, browser, playwright
+
+    def get_stealth_driver_firefox(opt=""):
+        """Полный аналог вашей функции get_stealth_driver_firefox на Playwright"""
+        playwright = sync_playwright().start()
+        
+        args = [
+            "--no-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-gpu"
+        ]
+        
+        if opt:
+            args.append(opt)
+        
+        browser = playwright.firefox.launch(
+            headless=False,
+            args=args
+        )
+        
+        context = browser.new_context(
+            viewport={'width': 1920, 'height': 1080},
+            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0',
+            java_script_enabled=True,
+            bypass_csp=True
+        )
+        
+        # Блокируем ресурсы
+        def block_resources(route):
+            if route.request.resource_type in ["image", "stylesheet", "font", "media"]:
+                route.abort()
+            else:
+                route.continue_()
+        
+        context.route("**/*", block_resources)
+        
+        page = context.new_page()
+        
+        # Добавляем stealth скрипты
+        page.add_init_script("""
+            Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+            Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+        """)
+        
+        return page, browser, playwright
+
+    def check_and_refresh_full_text(page):
+        """Проверяет наличие текста про Favourites и обновляет страницу"""
+        try:
+            full_text = "Add to Favourites to keep track of upcoming events. You can adjust this and notifications later in the Favourites tab."
+            
+            # Ищем элемент с текстом
+            element = page.query_selector(f"text={full_text}")
+            
+            if element:
+                print("Найден span с текстом про Favourites, делаю refresh...")
+                page.reload(wait_until="domcontentloaded", timeout=5000)
+                return True
+        except Exception as e:
+            return False
         return False
-    return False
 
-def get_file_path():
-    """Получает путь к data.xlsx"""
-    if getattr(sys, 'frozen', False):
-        exe_dir = os.path.dirname(sys.executable)
-        parent_dir = os.path.dirname(exe_dir)
-        data_path = os.path.join(parent_dir, "data.xlsx")
-    else:
-        current_dir = os.path.abspath(".")
-        data_path = os.path.join(current_dir, "data.xlsx")
-    
-    return data_path
+    def get_file_path():
+        """Получает путь к data.xlsx"""
+        if getattr(sys, 'frozen', False):
+            exe_dir = os.path.dirname(sys.executable)
+            parent_dir = os.path.dirname(exe_dir)
+            data_path = os.path.join(parent_dir, "data.xlsx")
+        else:
+            current_dir = os.path.abspath(".")
+            data_path = os.path.join(current_dir, "data.xlsx")
+        
+        return data_path
 
-# ============= ОСНОВНОЙ КОД =============
-def main() -> pd.DataFrame:
+    # ============= ОСНОВНОЙ КОД =============
+
     # Инициализация драйвера для firefox (как в вашем коде)
     opt = "--force-device-scale-factor=1"
     page, browser, playwright = get_stealth_driver_chrome(opt)
@@ -1126,3 +1130,4 @@ def main() -> pd.DataFrame:
     # Закрываем драйвер
     browser.close()
     playwright.stop()
+    
