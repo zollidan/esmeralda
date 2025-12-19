@@ -20,6 +20,7 @@ services:
       - .env
     volumes:
       - static_volume:/code/staticfiles
+      - sqlite_data:/code/db_data
     ports:
       - "8000:8000"
     networks:
@@ -33,6 +34,7 @@ services:
     command: uv run celery -A tasks worker --loglevel=info --concurrency=1
     volumes:
       - .:/code:Z
+      - sqlite_data:/code/db_data
     env_file: .env
     shm_size: "2gb"
     depends_on:
@@ -54,5 +56,6 @@ services:
   #     - postgres_data:/var/lib/postgresql/data
 
 volumes:
+  sqlite_data:
   postgres_data:
   static_volume:
