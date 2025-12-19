@@ -24,7 +24,7 @@ def start_task(db: Session = Depends(get_db)):
     new_task = models.ParsingTask(status="PENDING")
     db.add(new_task)
     db.commit()
-    db.refresh(new_task) # Теперь у нас есть ID
+    db.refresh(new_task) 
     
     # Запускаем Celery
     run_parsing_task.delay(new_task.id)

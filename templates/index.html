@@ -1,30 +1,283 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>FastAPI Parser</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAPI Cloud Parser</title>
     <style>
-        body { font-family: sans-serif; max-width: 800px; margin: auto; }
-        .task { border-bottom: 1px solid #ccc; padding: 10px; }
-        .DONE { color: green; }
-        .PROCESSING { color: orange; }
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.025em;
+        }
+
+        header p {
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* Панель управления */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .action-zone {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .info-block h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-block p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        /* История задач */
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 0 0.5rem;
+        }
+
+        .history-header h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .task-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            align-items: center;
+            gap: 1.5rem;
+            transition: border-color 0.2s;
+        }
+
+        .task-item:hover {
+            border-color: var(--primary);
+        }
+
+        .task-id {
+            font-family: monospace;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: #f1f5f9;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            width: fit-content;
+        }
+
+        /* Цвета статусов из вашей логики */
+        .status-DONE { background: #dcfce7; color: #166534; }
+        .status-PROCESSING { background: #fef3c7; color: #92400e; animation: pulse 2s infinite; }
+        .status-FAILED { background: #fee2e2; color: #991b1b; }
+
+        .download-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .download-link:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        @media (max-width: 640px) {
+            .task-item {
+                grid-template-columns: 1fr auto;
+                gap: 0.75rem;
+            }
+            .task-id { grid-column: 1 / 3; width: fit-content; }
+            .action-zone { justify-content: center; text-align: center; }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+        }
     </style>
 </head>
 <body>
-    <h1>Парсер на FastAPI</h1>
-    
-    <form action="/run" method="post">
-        <button type="submit" style="padding: 10px 20px;">Запустить парсинг</button>
-    </form>
 
-    <h2>История задач</h2>
-    {% for task in tasks %}
-    <div class="task">
-        ID: {{ task.id }} | 
-        Статус: <span class="{{ task.status }}">{{ task.status }}</span> |
-        {% if task.result_path %}
-            <a href="/download/{{ task.id }}">Скачать результат</a>
-        {% endif %}
+<div class="container">
+    <header>
+        <h1>Cloud Parser <span style="color: var(--primary);">Pro</span></h1>
+        <p>Управление процессами анализа данных в облаке</p>
+    </header>
+
+    <!-- Форма запуска /run -->
+    <div class="card">
+        <div class="action-zone">
+            <div class="info-block">
+                <h3>Запустить новый анализ</h3>
+                <p>Система автоматически выделит ресурсы и начнет парсинг.</p>
+            </div>
+            <form action="/run" method="post">
+                <button type="submit">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    Запустить парсинг
+                </button>
+            </form>
+        </div>
     </div>
-    {% endfor %}
+
+    <div class="history-header">
+        <h2>История задач</h2>
+        <span style="font-size: 0.85rem; color: var(--text-muted);" id="taskCounter">
+            Всего: {{ tasks|length }}
+        </span>
+    </div>
+
+    <div class="task-list" id="taskList">
+        {% for task in tasks %}
+        <div class="task-item">
+            <span class="task-id">#{{ task.id }}</span>
+            
+            <div class="task-info">
+                <span class="status-badge status-{{ task.status }}">{{ task.status }}</span>
+            </div>
+
+            <div style="text-align: right;">
+                {% if task.result_path %}
+                    <a href="/download/{{ task.id }}" class="download-link">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Результат
+                    </a>
+                {% else %}
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">Обработка...</span>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>Задач пока нет. Нажмите «Запустить парсинг», чтобы начать.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    const hasProcessing = document.querySelector('.status-PROCESSING');
+    if (hasProcessing) {
+        setTimeout(() => {
+            window.location.reload();
+        }, 10000);
+    }
+</script>
+
 </body>
 </html>
