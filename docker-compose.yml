@@ -45,16 +45,6 @@ services:
     ports:
       - "6379:6379"
 
-  flower:
-    build: .
-    command: uv run celery -A esmeralda flower --port=5555 --broker=redis://redis:6379/0
-    ports:
-      - "5555:5555"
-    env_file: .env
-    depends_on:
-      - redis
-      - worker
-
   # db:
   #   image: postgres:13-alpine
   #   environment:
