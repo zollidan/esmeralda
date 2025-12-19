@@ -1,16 +1,16 @@
 version: "3.8"
 
 services:
-  # nginx:
-  #   image: nginx:alpine
-  #   ports:
-  #     - "80:80"
-  #   volumes:
-  #     - ./nginx/nginx-no-ssl.conf:/etc/nginx/nginx.conf:ro
-  #     - static_volume:/code/staticfiles:ro
-  #   depends_on:
-  #     - web
-  #   restart: always
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./nginx/nginx-no-ssl.conf:/etc/nginx/nginx.conf:ro,Z
+      - static_volume:/app/staticfiles:ro,Z
+    depends_on:
+      - web
+    restart: always
 
   web:
     build: .
@@ -19,8 +19,8 @@ services:
             uv run uvicorn esmeralda.asgi:application --host 0.0.0.0 --port 8000"
     env_file:
       - .env
-    # volumes:
-    #   - static_volume:/code/staticfiles
+    volumes:
+      - static_volume:/code/staticfiles
     ports:
       - "8000:8000"
     networks:
@@ -33,7 +33,7 @@ services:
     build: .
     command: uv run celery -A esmeralda worker --loglevel=INFO --concurrency=1
     volumes:
-      - .:/code
+      - .:/code:Z
     env_file: .env
     shm_size: "2gb"
     depends_on:
@@ -42,6 +42,18 @@ services:
 
   redis:
     image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  flower:
+    build: .
+    command: uv run celery -A esmeralda flower --port=5555 --broker=redis://redis:6379/0
+    ports:
+      - "5555:5555"
+    env_file: .env
+    depends_on:
+      - redis
+      - worker
 
   # db:
   #   image: postgres:13-alpine
@@ -54,3 +66,4 @@ services:
 
 volumes:
   postgres_data:
+  static_volume:

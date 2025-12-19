@@ -9,4 +9,4 @@ ADD . /code
 
 RUN uv sync --locked
 
-# RUN uv run python manage.py collectstatic --noinput --clear
+RUN uv run python manage.py collectstatic --noinput --clear

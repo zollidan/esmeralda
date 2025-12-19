@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FastAPI Parser</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: auto; }
+        .task { border-bottom: 1px solid #ccc; padding: 10px; }
+        .DONE { color: green; }
+        .PROCESSING { color: orange; }
+    </style>
+</head>
+<body>
+    <h1>Парсер на FastAPI</h1>
+    
+    <form action="/run" method="post">
+        <button type="submit" style="padding: 10px 20px;">Запустить парсинг</button>
+    </form>
+
+    <h2>История задач</h2>
+    {% for task in tasks %}
+    <div class="task">
+        ID: {{ task.id }} | 
+        Статус: <span class="{{ task.status }}">{{ task.status }}</span> |
+        {% if task.result_path %}
+            <a href="/download/{{ task.id }}">Скачать результат</a>
+        {% endif %}
+    </div>
+    {% endfor %}
+</body>
+</html>
