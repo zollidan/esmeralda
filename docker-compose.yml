@@ -1,56 +1,71 @@
 version: "3.8"
 
 services:
-  redis:
-    image: redis:latest
-    container_name: redis
+  nginx:
+    image: nginx:alpine
     ports:
-      - "6379:6379"
+      - "3000:3000"
     volumes:
-      - ./redisdata:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    restart: unless-stopped
-    tty: true
-    stdin_open: true
+      - ./nginx/nginx-no-ssl.conf:/etc/nginx/nginx.conf:ro,Z
+      - static_volume:/app/staticfiles:ro,Z
+    depends_on:
+      - web
+    restart: always
 
-  postgres:
-    image: postgres:16-alpine
-    container_name: esmeralda-postgres
-    hostname: postgres
-    restart: unless-stopped
+  web:
+    build: .
+    command: >
+      sh -c "uv run uvicorn main:app --host 0.0.0.0 --port 8000"
     env_file:
       - .env
+    volumes:
+      - static_volume:/code/staticfiles
+      - sqlite_data:/code/db_data
+    ports:
+      - "8000:8000"
+    networks:
+      - default
+    # depends_on:
+    #   db:
+    #     condition: service_healthy
+
+  worker:
+    build: .
+    command: uv run celery -A tasks worker --loglevel=info --concurrency=1
+    volumes:
+      - .:/code:Z
+      - sqlite_data:/code/db_data
+    env_file: .env
+    shm_size: "2gb"
+    depends_on:
+      # - db
+      - redis
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  db:
+    image: postgres:16-alpine
     ports:
       - "5432:5432"
+    environment:
+      - POSTGRES_DB=parser_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
     volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U esmeralda_user"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 40s
-    networks:
-      - esmeralda-network
+      - postgres_data:/var/lib/postgresql/data
 
-  # postgresus:
-  #   container_name: postgresus
-  #   image: rostislavdugin/postgresus:latest
-  #   ports:
-  #     - "4005:4005"
-  #   volumes:
-  #     - ./postgresus-data:/postgresus-data
-  #   restart: unless-stopped
+  flower:
+    build: .
+    command: uv run celery -A tasks flower --port=5555 --broker=redis://redis:6379/0
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+      - worker
 volumes:
-  rabbitmq_data:
-    driver: local
-  pgdata:
-    driver: local
-
-networks:
-  esmeralda-network:
-    driver: bridge
+  sqlite_data:
+  postgres_data:
+  static_volume:

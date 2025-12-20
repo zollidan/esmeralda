@@ -1,8 +1,5 @@
-test.db
-.env
-app.log
-tmp/
 **/__pycache__/
-postgresus-data/
-worker/worker.log
-redisdata/
+
+.env
+db.sqlite3
+sql_app.db
