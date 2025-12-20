@@ -12,7 +12,7 @@ def main(input_date:str) -> pd.DataFrame:
 
     # input_date = input('Введите дату в формате 2025-11-27:  ')
 
-    # зарефакторить это кал
+    # зарефакторить этот кал
     url = f'https://m.sofascore.com/football/{input_date}'
 
 
@@ -75,7 +75,7 @@ def main(input_date:str) -> pd.DataFrame:
         ]
         
         browser = playwright.chromium.launch(
-            headless=False,
+            headless=True,
             args=args
         )
         
@@ -124,7 +124,7 @@ def main(input_date:str) -> pd.DataFrame:
             args.append(opt)
         
         browser = playwright.firefox.launch(
-            headless=False,
+            headless=True,
             args=args
         )
         

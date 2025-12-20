@@ -205,13 +205,31 @@
             border: 2px dashed var(--border);
             border-radius: 12px;
         }
+
+        pre {
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            line-height: 1.4;
+            border: 1px solid #fecaca;
+        }
+
+        .status-ERROR { background: #fee2e2; color: #991b1b; } /* Добавим явный цвет для ERROR */
+
+        /* Если хотите, чтобы карточка плавно появлялась */
+        .task-item {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>Cloud Parser <span style="color: var(--primary);">Pro</span></h1>
+        <h1>aaf-bet</h1>
         <p>Управление процессами анализа данных в облаке</p>
     </header>
 
@@ -242,23 +260,52 @@
 
     <div class="task-list" id="taskList">
         {% for task in tasks %}
-        <div class="task-item">
-            <span class="task-id">#{{ task.id }}</span>
-            
-            <div class="task-info">
-                <span class="status-badge status-{{ task.status }}">{{ task.status }}</span>
+        <div class="task-item" style="display: block; margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div>
+                    <span class="task-id">#{{ task.id }}</span>
+                    <span class="status-badge status-{{ task.status }}" style="margin-left: 10px;">{{ task.status }}</span>
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-muted);">
+                    {{ task.created_at.strftime('%Y-%m-%d %H:%M') }}
+                </div>
             </div>
 
-            <div style="text-align: right;">
+            <div style="background: #f8fafc; border-radius: 8px; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid var(--border);">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem;">
+                    <div>
+                        <strong style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Точное время</strong>
+                        <span>{{ task.created_at.strftime('%d.%m.%Y %H:%M:%S') }}</span>
+                    </div>
+                    <div>
+                        <strong style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">ID процесса</strong>
+                        <span>{{ task.id }}</span>
+                    </div>
+                </div>
+
+                {% if task.error_log %}
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border);">
+                    <strong style="display: block; font-size: 0.75rem; color: var(--error); text-transform: uppercase;">Лог ошибки</strong>
+                    <pre style="white-space: pre-wrap; font-size: 0.8rem; color: #991b1b; background: #fff1f2; padding: 8px; border-radius: 4px; margin-top: 5px;">{{ task.error_log }}</pre>
+                </div>
+                {% endif %}
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; align-items: center;">
                 {% if task.result_path %}
                     <a href="/download/{{ task.id }}" class="download-link">
                         <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        Результат
+                        Скачать результат (XLSX)
                     </a>
+                {% elif task.status == 'ERROR' %}
+                    <span style="font-size: 0.85rem; color: var(--error);">Завершено с ошибкой</span>
                 {% else %}
-                    <span style="font-size: 0.85rem; color: var(--text-muted);">Обработка...</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div class="status-PROCESSING" style="width: 10px; height: 10px; border-radius: 50%; background: var(--warning);"></div>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">Выполняется парсинг...</span>
+                    </div>
                 {% endif %}
             </div>
         </div>

@@ -46,14 +46,16 @@ services:
     ports:
       - "6379:6379"
 
-  # db:
-  #   image: postgres:13-alpine
-  #   environment:
-  #     - POSTGRES_DB=parser_db
-  #     - POSTGRES_USER=postgres
-  #     - POSTGRES_PASSWORD=postgres
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=parser_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
   flower:
     build: .
