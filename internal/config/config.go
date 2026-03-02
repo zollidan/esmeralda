@@ -10,6 +10,7 @@ import (
 type Config struct {
 	RedisAddr  string
 	ServerPort string
+	DatabaseDSN string
 }
 
 func Load() *Config {
@@ -18,8 +19,9 @@ func Load() *Config {
 	}
 
 	return &Config{
-		RedisAddr:  getEnv("REDIS_ADDR", "redis:6379"),
-		ServerPort: getEnv("SERVER_PORT", ":8080"),
+		RedisAddr:   getEnv("REDIS_ADDR", "redis:6379"),
+		ServerPort:  getEnv("SERVER_PORT", ":8080"),
+		DatabaseDSN: getEnv("DATABASE_DSN", "host=localhost user=postgres password=postgres dbname=esmeralda port=5432 sslmode=disable"),
 	}
 }
 

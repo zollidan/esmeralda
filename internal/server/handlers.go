@@ -5,15 +5,18 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/zollidan/esmeralda/internal/models"
 	"github.com/zollidan/esmeralda/internal/queue"
+	"gorm.io/gorm"
 )
 
 type Handler struct {
 	producer *queue.Producer
+	db       *gorm.DB
 }
 
-func NewHandler(producer *queue.Producer) *Handler {
-	return &Handler{producer: producer}
+func NewHandler(producer *queue.Producer, db *gorm.DB) *Handler {
+	return &Handler{producer: producer, db: db}
 }
 
 type createTaskRequest struct {
@@ -39,5 +42,25 @@ func (h *Handler) CreateTask(c *gin.Context) {
 		return
 	}
 
+	record := &models.Task{
+		ID:        task.ID,
+		Date:      task.Date,
+		Status:    task.Status,
+		CreatedAt: task.CreatedAt,
+	}
+	if err := h.db.Create(record).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось сохранить задачу в БД"})
+		return
+	}
+
 	c.JSON(http.StatusCreated, task)
+}
+
+func (h *Handler) GetTasks(c *gin.Context) {
+	var tasks []models.Task
+	if err := h.db.Order("created_at desc").Find(&tasks).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось получить задачи"})
+		return
+	}
+	c.JSON(http.StatusOK, tasks)
 }
