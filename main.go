@@ -5,13 +5,16 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/queue"
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/server"
+	"github.com/zollidan/esmeralda/internal/config"
+	"github.com/zollidan/esmeralda/internal/queue"
+	"github.com/zollidan/esmeralda/internal/server"
 )
 
 func main() {
+	cfg := config.Load()
+
 	rdb := redis.NewClient(&redis.Options{
-		Addr: "redis:6379", 
+		Addr: cfg.RedisAddr,
 	})
 
 	producer := queue.NewProducer(rdb)
@@ -20,7 +23,7 @@ func main() {
 	r := gin.Default()
 	server.SetupRoutes(r, handler)
 
-	if err := r.Run(":8080"); err != nil {
+	if err := r.Run(cfg.ServerPort); err != nil {
 		log.Fatal(err)
 	}
 }
