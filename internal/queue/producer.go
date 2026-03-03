@@ -47,7 +47,7 @@ func (p *Producer) Enqueue(ctx context.Context, date string) (*ParseTask, string
 		ID:        uuid.New().String(),
 		Date:      date,
 		CreatedAt: time.Now().UTC(), 
-		Status:    "pending",
+		Status:    StatusPending,
 	}
 
 	data, err := json.Marshal(task)
@@ -66,4 +66,11 @@ func (p *Producer) Enqueue(ctx context.Context, date string) (*ParseTask, string
 	}
 
 	return task, res, nil
+}
+
+func (p *Producer) Delete(ctx context.Context, streamID string) error {
+    if err := p.rdb.XDel(ctx, StreamName, streamID).Err(); err != nil {
+        return fmt.Errorf("xdel failed: %w", err)
+    }
+    return nil
 }

@@ -25,36 +25,39 @@ type createTaskRequest struct {
 }
 
 func (h *Handler) CreateTask(c *gin.Context) {
-	var req createTaskRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "поле date обязательно"})
-		return
-	}
+    var req createTaskRequest
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "поле date обязательно"})
+        return
+    }
 
-	// валидация формата даты
-	if _, err := time.Parse("2006-01-02", req.Date); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "формат даты: YYYY-MM-DD"})
-		return
-	}
+    if _, err := time.Parse("2006-01-02", req.Date); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "формат даты: YYYY-MM-DD"})
+        return
+    }
 
-	task, err := h.producer.Enqueue(c.Request.Context(), req.Date)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось добавить задачу"})
-		return
-	}
+    task, streamID, err := h.producer.Enqueue(c.Request.Context(), req.Date)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось добавить задачу в очередь"})
+        return
+    }
 
-	record := &models.Task{
-		ID:        task.ID,
-		Date:      task.Date,
-		Status:    task.Status,
-		CreatedAt: task.CreatedAt,
-	}
-	if err := h.db.Create(record).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось сохранить задачу в БД"})
-		return
-	}
+    record := &models.Task{
+        ID:        task.ID,
+        Date:      task.Date,
+        Status:    string(task.Status),
+        CreatedAt: task.CreatedAt,
+    }
 
-	c.JSON(http.StatusCreated, task)
+    if err := h.db.WithContext(c.Request.Context()).Transaction(func(tx *gorm.DB) error {
+        return tx.Create(record).Error
+    }); err != nil {
+        _ = h.producer.Delete(c.Request.Context(), streamID)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось сохранить задачу в БД"})
+        return
+    }
+
+    c.JSON(http.StatusCreated, task)
 }
 
 func (h *Handler) GetTasks(c *gin.Context) {
