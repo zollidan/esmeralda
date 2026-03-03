@@ -5,10 +5,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
-	"github.com/zollidan/esmeralda/internal/config"
-	"github.com/zollidan/esmeralda/internal/db"
-	"github.com/zollidan/esmeralda/internal/queue"
-	"github.com/zollidan/esmeralda/internal/server"
+	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/config"
+	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/db"
+	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/queue"
+	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/server"
 )
 
 func main() {

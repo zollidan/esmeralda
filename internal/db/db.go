@@ -3,10 +3,9 @@ package db
 import (
 	"fmt"
 
+	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-
-	"github.com/zollidan/esmeralda/internal/models"
 )
 
 func New(dsn string) (*gorm.DB, error) {

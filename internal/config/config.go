@@ -1,33 +1,52 @@
 package config
 
 import (
+	"flag"
 	"log"
-	"os"
-
-	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	RedisAddr  string
-	ServerPort string
-	DatabaseDSN string
+    SportAPIRU SportAPIRU
+    Excel      Excel
+    Tech       Tech
 }
 
-func Load() *Config {
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found, using environment variables")
-	}
-
-	return &Config{
-		RedisAddr:   getEnv("REDIS_ADDR", "redis:6379"),
-		ServerPort:  getEnv("SERVER_PORT", ":8080"),
-		DatabaseDSN: getEnv("DATABASE_DSN", "host=localhost user=postgres password=postgres dbname=esmeralda port=5432 sslmode=disable"),
-	}
+type SportAPIRU struct {
+    BaseURL         string
+    BaseFootballURL string
+    Token           string
 }
 
-func getEnv(key, fallback string) string {
-	if val, ok := os.LookupEnv(key); ok && val != "" {
-		return val
-	}
-	return fallback
+type Excel struct {
+    FilePath string
+    FileName string
+}
+
+type Tech struct {
+    GamesLimit int
+    Workers int
+} 
+
+func InitConfig() Config {
+    token := flag.String("token", "", "API token for api-sport.ru")
+    flag.Parse()
+
+    if *token == "" {
+        log.Fatal("token is required: --token=YOUR_SECRET_TOKEN")
+    }
+
+    return Config{
+        SportAPIRU: SportAPIRU{
+            BaseURL:         "https://api.api-sport.ru/v2",
+            BaseFootballURL: "https://api.api-sport.ru/v2/football",
+            Token:           *token,
+        },
+        Excel: Excel{
+            FilePath: "./output/",
+            FileName: "esmeralda-ru.xlsx",
+        },
+        Tech: Tech{
+            Workers:    20,
+        },
+    }
 }
