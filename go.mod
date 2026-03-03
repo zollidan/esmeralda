@@ -1,4 +1,4 @@
-module github.com/zollidan/esmeralda-ru-api-fetcher
+module github.com/zollidan/esmeralda
 
 go 1.25.5
 

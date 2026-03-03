@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/models"
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/queue"
+	"github.com/zollidan/esmeralda/internal/models"
+	"github.com/zollidan/esmeralda/internal/queue"
 
 	"gorm.io/gorm"
 )

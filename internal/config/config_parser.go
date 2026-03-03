@@ -6,9 +6,10 @@ import (
 )
 
 type Config struct {
-    SportAPIRU SportAPIRU
-    Excel      Excel
-    Tech       Tech
+    SportAPIRU  SportAPIRU
+    Excel       Excel
+    Tech        Tech
+    DatabaseDSN string
 }
 
 type SportAPIRU struct {
@@ -29,6 +30,7 @@ type Tech struct {
 
 func InitConfig() Config {
     token := flag.String("token", "", "API token for api-sport.ru")
+    dsn := flag.String("dsn", "host=localhost user=esmeralda password=secret dbname=esmeralda port=5432 sslmode=disable", "PostgreSQL DSN")
     flag.Parse()
 
     if *token == "" {
@@ -36,6 +38,7 @@ func InitConfig() Config {
     }
 
     return Config{
+        DatabaseDSN: *dsn,
         SportAPIRU: SportAPIRU{
             BaseURL:         "https://api.api-sport.ru/v2",
             BaseFootballURL: "https://api.api-sport.ru/v2/football",

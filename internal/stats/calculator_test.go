@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/api"
+	"github.com/zollidan/esmeralda/internal/api"
 )
 
 func loadData(t *testing.T) []api.Match {

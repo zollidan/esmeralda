@@ -2,14 +2,16 @@ package main
 
 import (
 	"log"
-	"os"
+	"time"
 
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/api"
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/config"
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/export"
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/processor"
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/utils"
+	"github.com/zollidan/esmeralda/internal/api"
+	"github.com/zollidan/esmeralda/internal/config"
+	"github.com/zollidan/esmeralda/internal/db"
+	"github.com/zollidan/esmeralda/internal/processor"
 )
+
+// в бд сохраеяются значения на все матчи нулями, сделать фикс
+// добавить другой конфиг
 
 func main() {
 
@@ -17,7 +19,19 @@ func main() {
 
 	client := api.NewClient(cfg.SportAPIRU.BaseURL, cfg.SportAPIRU.Token)
 
-	date, err := utils.InputDate(os.Stdin)
+	database, err := db.New(cfg.DatabaseDSN)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// date, err := utils.InputDate(os.Stdin)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+
+	// hardcodeed date for testing
+	date, err := time.Parse("02.01.2006", "03.03.2026")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,18 +43,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	writer, err := export.NewWriter(cfg.Excel.FileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer func() {
-        if err := writer.Save(cfg.Excel.FileName); err != nil {
-            log.Printf("save error: %v", err)
-        }
-    }()
-
-	err = processor.ProcessMatches(client, writer, matches, totalMatches)
+	err = processor.ProcessMatches(client, database, matches, totalMatches)
 	if err != nil {
 		log.Fatal(err)
 	}

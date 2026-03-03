@@ -2,7 +2,7 @@ package export
 
 import (
 	"github.com/xuri/excelize/v2"
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/stats"
+	"github.com/zollidan/esmeralda/internal/stats"
 )
 
 type Writer struct {

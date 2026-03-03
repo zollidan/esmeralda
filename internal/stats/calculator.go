@@ -4,7 +4,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/api"
+	"github.com/zollidan/esmeralda/internal/api"
 )
 
 type MatchStats struct {
