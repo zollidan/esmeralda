@@ -5,12 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 )
 
-// MessageHandler обрабатывает сырой payload одного сообщения из стрима.
-// Если возвращает ошибку — сообщение не считается обработанным (lastID не двигается).
 type MessageHandler func(ctx context.Context, payload []byte) error
 
 type Consumer struct {
@@ -35,7 +34,7 @@ func (c *Consumer) Consume(ctx context.Context, handler MessageHandler) error {
 		streams, err := c.rdb.XRead(ctx, &redis.XReadArgs{
 			Streams: []string{c.stream, lastID},
 			Count:   1,
-			Block:   0,
+			Block:   5*time.Second,
 		}).Result()
 		if err != nil {
 			if err == context.Canceled {
@@ -55,17 +54,16 @@ func (c *Consumer) Consume(ctx context.Context, handler MessageHandler) error {
 
 				if err := handler(ctx, []byte(raw)); err != nil {
 					log.Printf("[consumer:%s] handler error: %v", c.stream, err)
-					// не двигаем lastID — сообщение будет перечитано
 					continue
 				}
 
 				lastID = msg.ID
 			}
 		}
+
 	}
 }
 
-// Unmarshal — хелпер для хэндлеров
 func Unmarshal[T any](payload []byte) (T, error) {
 	var v T
 	if err := json.Unmarshal(payload, &v); err != nil {
