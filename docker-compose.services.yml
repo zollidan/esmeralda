@@ -1,0 +1,30 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: esmeralda-api
+    restart: unless-stopped
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    environment:
+      SPORT_API_TOKEN: ${SPORT_API_TOKEN}
+      SERVER_PORT: ":8080"
+      REDIS_ADDR: redis:6379
+      DATABASE_DSN: "host=postgres user=${POSTGRES_USER:-esmeralda} password=${POSTGRES_PASSWORD:-secret} dbname=${POSTGRES_DB:-esmeralda} port=5432 sslmode=disable"
+
+  parser:
+    build:
+      context: .
+      dockerfile: Dockerfile.parser
+    container_name: esmeralda-parser
+    restart: unless-stopped
+    environment:
+      SPORT_API_TOKEN: ${SPORT_API_TOKEN}
+      REDIS_ADDR: redis:6379
+      DATABASE_DSN: "host=postgres user=${POSTGRES_USER:-esmeralda} password=${POSTGRES_PASSWORD:-secret} dbname=${POSTGRES_DB:-esmeralda} port=5432 sslmode=disable"
+
+networks:
+  default:
+    name: esmeralda_default
+    external: true

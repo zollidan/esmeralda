@@ -1,0 +1,7 @@
+front/node_modules
+front/dist
+internal/static/dist
+*.xlsx
+*.csv
+.env
+.git
