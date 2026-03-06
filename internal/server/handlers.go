@@ -12,6 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
+
 type Handler struct {
 	producer *queue.Producer
 	db       *gorm.DB

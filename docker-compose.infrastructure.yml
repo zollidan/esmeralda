@@ -1,28 +1,45 @@
 services:
   postgres:
     image: postgres:16-alpine
+    container_name: esmeralda-postgres
     restart: unless-stopped
-    volumes:
-      - pg_data:/var/lib/postgresql/data
-      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     environment:
-      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_USER}
+      PROD_DB_SERVICE_A: ${PROD_DB_SERVICE_A}
+      PROD_DB_SERVICE_B: ${PROD_DB_SERVICE_B}
+      TEST_DB_SERVICE_A: ${TEST_DB_SERVICE_A}
+      TEST_DB_SERVICE_B: ${TEST_DB_SERVICE_B}
     ports:
-      - "5432:5432"
-    networks: [shared]
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   redis:
     image: redis:latest
+    container_name: esmeralda-redis
     restart: unless-stopped
-    volumes:
-      - redis-data:/data
+    command: redis-server --save 60 1 --loglevel warning
     ports:
-      - "6379:6379"
-    networks: [shared]
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
-  pg_data:
+  postgres_data:
   redis_data:
 
 networks:
-  shared:
-    name: infrastructure-network
+  default:
+    name: infra-network
