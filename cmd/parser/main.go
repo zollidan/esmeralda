@@ -12,6 +12,7 @@ import (
 	"github.com/zollidan/esmeralda/internal/api"
 	"github.com/zollidan/esmeralda/internal/config"
 	"github.com/zollidan/esmeralda/internal/db"
+	"github.com/zollidan/esmeralda/internal/processor"
 	"github.com/zollidan/esmeralda/internal/queue"
 )
 
@@ -23,18 +24,19 @@ func main() {
 	})
 
 	client := api.NewClient(cfg.SportAPIRU.BaseURL, cfg.SportAPIRU.Token)
-	_, err := db.New(cfg.DatabaseDSN)
+	database, err := db.New(cfg.DatabaseDSN)
 	if err != nil {
 		log.Fatalf("connect to database: %v", err)
 	}
 
-	parseConsumer := queue.NewConsumer(rdb, queue.StreamParse)
+	parseConsumer := queue.NewConsumer(rdb, queue.StreamParse, "parse_group", "parse_consumer")
 	resultsProducer := queue.NewProducer(rdb, queue.StreamResults)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
 	err = parseConsumer.Consume(ctx, func(ctx context.Context, payload []byte) error {
+
 		task, err := queue.Unmarshal[queue.ParseTask](payload)
 		if err != nil {
 			return err
@@ -47,16 +49,14 @@ func main() {
 			return publishResult(ctx, resultsProducer, task.ID, queue.StatusError, err.Error())
 		}
 
-		_, totalMatches, err := client.GetMatches(api.MatchesFilter{Date: date})
+		matches, totalMatches, err := client.GetMatches(api.MatchesFilter{Date: date})
 		if err != nil {
 			return publishResult(ctx, resultsProducer, task.ID, queue.StatusError, err.Error())
 		}
 
-		log.Printf("found %d matches for date %s", totalMatches, task.Date)
-
-		// if err := processor.ProcessMatches(client, database, matches, totalMatches); err != nil {
-		// 	return publishResult(ctx, resultsProducer, task.ID, queue.StatusError, err.Error())
-		// }
+		if err := processor.ProcessMatches(client, database, matches, totalMatches); err != nil {
+			return publishResult(ctx, resultsProducer, task.ID, queue.StatusError, err.Error())
+		}
 
 		return publishResult(ctx, resultsProducer, task.ID, queue.StatusDone, "")
 	})

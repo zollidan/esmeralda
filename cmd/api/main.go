@@ -31,7 +31,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	resultsConsumer := queue.NewConsumer(rdb, queue.StreamResults)
+	resultsConsumer := queue.NewConsumer(rdb, queue.StreamResults, "results_group", "results_consumer")
 	go func() {
 		err := resultsConsumer.Consume(ctx, func(ctx context.Context, payload []byte) error {
 			result, err := queue.Unmarshal[queue.TaskResult](payload)
