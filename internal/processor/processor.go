@@ -22,7 +22,7 @@ type result struct {
 	err   error
 }
 
-func ProcessMatches(client *api.Client, db *gorm.DB, matches []api.Match, totalMatches int) error {
+func ProcessMatches(client api.MatchFetcher, db *gorm.DB, matches []api.Match, totalMatches int) error {
 
 	// bar := progressbar.NewOptions(
 	// 	len(matches),
@@ -83,7 +83,7 @@ func ProcessMatches(client *api.Client, db *gorm.DB, matches []api.Match, totalM
 	return nil
 }
 
-func buildGame(client *api.Client, match api.Match) (models.Game, error) {
+func buildGame(client api.MatchFetcher, match api.Match) (models.Game, error) {
 	// start := time.Now()
 	// defer func() {
 	// 	fmt.Printf("match %d processed in %v\n", match.ID, time.Since(start))
