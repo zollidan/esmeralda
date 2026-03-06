@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/schollz/progressbar/v3"
 	"github.com/zollidan/esmeralda/internal/api"
 	"github.com/zollidan/esmeralda/internal/models"
 	"github.com/zollidan/esmeralda/internal/stats"
@@ -25,20 +24,20 @@ type result struct {
 
 func ProcessMatches(client *api.Client, db *gorm.DB, matches []api.Match, totalMatches int) error {
 
-	bar := progressbar.NewOptions(
-		len(matches),
-		progressbar.OptionSetDescription("Processing matches"),
-		progressbar.OptionSetWidth(40),
-		progressbar.OptionShowCount(),
-		progressbar.OptionShowIts(),
-		progressbar.OptionSetTheme(progressbar.Theme{
-			Saucer:        "=",
-			SaucerHead:    ">",
-			SaucerPadding: " ",
-			BarStart:      "[",
-			BarEnd:        "]",
-		}),
-	)	
+	// bar := progressbar.NewOptions(
+	// 	len(matches),
+	// 	progressbar.OptionSetDescription("Processing matches"),
+	// 	progressbar.OptionSetWidth(40),
+	// 	progressbar.OptionShowCount(),
+	// 	progressbar.OptionShowIts(),
+	// 	progressbar.OptionSetTheme(progressbar.Theme{
+	// 		Saucer:        "=",
+	// 		SaucerHead:    ">",
+	// 		SaucerPadding: " ",
+	// 		BarStart:      "[",
+	// 		BarEnd:        "]",
+	// 	}),
+	// )	
 
 	results := make(chan result, len(matches))
 	sem := make(chan struct{}, workers)
@@ -57,7 +56,7 @@ func ProcessMatches(client *api.Client, db *gorm.DB, matches []api.Match, totalM
 			sem <- struct{}{}
 			defer func() { <-sem }()
 
-			game, err := buildGame(client, match, bar)
+			game, err := buildGame(client, match)
 			results <- result{index: i, game: game, err: err}
 		}()
 	}
@@ -84,12 +83,12 @@ func ProcessMatches(client *api.Client, db *gorm.DB, matches []api.Match, totalM
 	return nil
 }
 
-func buildGame(client *api.Client, match api.Match, bar *progressbar.ProgressBar) (models.Game, error) {
+func buildGame(client *api.Client, match api.Match) (models.Game, error) {
 	// start := time.Now()
-	defer func() {
-		// fmt.Printf("match %d processed in %v\n", match.ID, time.Since(start))
-		bar.Add(1)
-	}()
+	// defer func() {
+	// 	fmt.Printf("match %d processed in %v\n", match.ID, time.Since(start))
+	// 	bar.Add(1)
+	// }()
 
 	date, err := time.Parse("2006-01-02", match.DateEvent)
 	if err != nil {
