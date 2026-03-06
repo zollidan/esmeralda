@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -10,6 +11,12 @@ import (
 	"github.com/zollidan/esmeralda/internal/queue"
 	"gorm.io/gorm"
 )
+
+type TaskRepository interface {
+    CreateTask(ctx context.Context, task *models.Task) error
+    UpdateTaskStatus(ctx context.Context, taskID, status string) error
+    GetTasks(ctx context.Context) ([]models.Task, error)
+}
 
 type createTaskRequest struct {
 	Date string `json:"date" binding:"required"`
