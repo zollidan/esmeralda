@@ -14,15 +14,13 @@ type Processor struct {
 	apiClient       api.MatchFetcher
 	database        *gorm.DB
 	resultsProducer *queue.Producer
-	enrichProducer  *queue.Producer
 }
 
-func Init(apiClient api.MatchFetcher, database *gorm.DB, resultsProducer, enrichProducer *queue.Producer) *Processor {
+func Init(apiClient api.MatchFetcher, database *gorm.DB, resultsProducer *queue.Producer) *Processor {
 	return &Processor{
 		apiClient:       apiClient,
 		database:        database,
 		resultsProducer: resultsProducer,
-		enrichProducer:  enrichProducer,
 	}
 }
 
@@ -51,8 +49,6 @@ func (p *Processor) ProcessParseTask(ctx context.Context, payload []byte) error 
 
 	return p.publishResult(ctx, task.ID, queue.StatusDone, "")
 }
-
-func (p *Processor) ProcessEnrichTask(ctx context.Context, payload []byte) error {return nil}
 
 func (p *Processor) publishResult(ctx context.Context, taskID string, status queue.Status, errMsg string) error {
 	result := queue.TaskResult{

@@ -28,15 +28,13 @@ func main() {
 
 	parseConsumer := queue.NewConsumer(rdb, queue.StreamParse, "parse_group", "parse_consumer")
 	resultsProducer := queue.NewProducer(rdb, queue.StreamResults)
-	resultEnrichProducer := queue.NewProducer(rdb, queue.StreamEnrichResults)
 
-	processor := processor.Init(client, database, resultsProducer, resultEnrichProducer)
+	processor := processor.Init(client, database, resultsProducer)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
 	err = parseConsumer.Consume(ctx, processor.ProcessParseTask)
-	err = parseConsumer.Consume(ctx, processor.ProcessEnrichTask)
 
 	if err != nil && err != context.Canceled {
 		log.Fatal(err)
