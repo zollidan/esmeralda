@@ -2,23 +2,42 @@ package stats
 
 import (
 	"encoding/json"
-	"os"
 	"testing"
 	"time"
 
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/api"
+	"github.com/zollidan/esmeralda/internal/api"
 )
 
 func loadData(t *testing.T) []api.Match {
 	t.Helper()
 
-	data, err := os.ReadFile("../../real_team1_response.json")
-	if err != nil {
-		t.Fatalf("read file error: %v", err)
-	}
+	// Minimal inline fixture: tests should not depend on external files.
+	const team1ResponseMockJSON = `{
+  "totalMatches": 2,
+  "matches": [
+    {
+      "id": 1001,
+      "status": "finished",
+      "dateEvent": "2024-01-01",
+      "homeTeam": { "id": 1079350, "name": "Team1" },
+      "awayTeam": { "id": 2, "name": "Team2" },
+      "homeScore": { "current": 1 },
+      "awayScore": { "current": 0 }
+    },
+    {
+      "id": 1002,
+      "status": "finished",
+      "dateEvent": "2024-01-02",
+      "homeTeam": { "id": 3, "name": "Other" },
+      "awayTeam": { "id": 1079350, "name": "Team1" },
+      "homeScore": { "current": 0 },
+      "awayScore": { "current": 2 }
+    }
+  ]
+}`
 
 	var resp api.MatchesResponse
-	if err := json.Unmarshal(data, &resp); err != nil {
+	if err := json.Unmarshal([]byte(team1ResponseMockJSON), &resp); err != nil {
 		t.Fatalf("unmarshal error: %v", err)
 	}
 

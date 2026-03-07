@@ -1,48 +1,44 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/api"
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/config"
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/export"
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/processor"
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/utils"
+	"github.com/redis/go-redis/v9"
+	"github.com/zollidan/esmeralda/internal/api"
+	"github.com/zollidan/esmeralda/internal/config"
+	"github.com/zollidan/esmeralda/internal/db"
+	"github.com/zollidan/esmeralda/internal/processor"
+	"github.com/zollidan/esmeralda/internal/queue"
 )
 
 func main() {
-
 	cfg := config.InitConfig()
 
+	rdb := redis.NewClient(&redis.Options{Addr: cfg.RedisAddr})
+
 	client := api.NewClient(cfg.SportAPIRU.BaseURL, cfg.SportAPIRU.Token)
-
-	date, err := utils.InputDate(os.Stdin)
+	database, err := db.New(cfg.DatabaseDSN)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("connect to database: %v", err)
 	}
 
-	matches, totalMatches, err := client.GetMatches(api.MatchesFilter{
-		Date: date,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
+	parseConsumer := queue.NewConsumer(rdb, queue.StreamParse, "parse_group", "parse_consumer")
+	resultsProducer := queue.NewProducer(rdb, queue.StreamResults)
+	resultEnrichProducer := queue.NewProducer(rdb, queue.StreamEnrichResults)
 
-	writer, err := export.NewWriter(cfg.Excel.FileName)
-	if err != nil {
-		log.Fatal(err)
-	}
+	processor := processor.Init(client, database, resultsProducer, resultEnrichProducer)
 
-	defer func() {
-        if err := writer.Save(cfg.Excel.FileName); err != nil {
-            log.Printf("save error: %v", err)
-        }
-    }()
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
 
-	err = processor.ProcessMatches(client, writer, matches, totalMatches)
-	if err != nil {
+	err = parseConsumer.Consume(ctx, processor.ProcessParseTask)
+	err = parseConsumer.Consume(ctx, processor.ProcessEnrichTask)
+
+	if err != nil && err != context.Canceled {
 		log.Fatal(err)
 	}
 }
-

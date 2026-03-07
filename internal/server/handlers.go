@@ -1,67 +1,70 @@
 package server
 
 import (
-	"net/http"
-	"time"
+	"context"
+	"log"
+	"sync"
 
-	"github.com/gin-gonic/gin"
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/models"
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/queue"
-
+	"github.com/redis/go-redis/v9"
+	"github.com/zollidan/esmeralda/internal/models"
+	"github.com/zollidan/esmeralda/internal/queue"
 	"gorm.io/gorm"
 )
 
 type Handler struct {
-	producer *queue.Producer
-	db       *gorm.DB
+	producer       *queue.Producer
+	enrichProducer *queue.Producer
+	db             *gorm.DB
+	rdb            *redis.Client
+	pending        map[string]chan *queue.MatchDataResult
+	mu             sync.Mutex
 }
 
-func NewHandler(producer *queue.Producer, db *gorm.DB) *Handler {
-	return &Handler{producer: producer, db: db}
+func NewHandler(producer, enrichProducer *queue.Producer, rdb *redis.Client, db *gorm.DB) *Handler {
+	return &Handler{
+		producer:       producer,
+		enrichProducer: enrichProducer,
+		db:             db,
+		rdb:            rdb,
+		pending:        make(map[string]chan *queue.MatchDataResult),
+	}
 }
 
-type createTaskRequest struct {
-	Date string `json:"date" binding:"required"`
-}
+func (h *Handler) StartConsumers(ctx context.Context) {
+	go func() {
+		c := queue.NewConsumer(h.rdb, queue.StreamResults, "results_group", "results_consumer")
+		err := c.Consume(ctx, func(ctx context.Context, payload []byte) error {
+			result, err := queue.Unmarshal[queue.TaskResult](payload)
+			if err != nil {
+				return err
+			}
+			return h.db.WithContext(ctx).
+				Model(&models.Task{}).
+				Where("id = ?", result.TaskID).
+				Update("status", string(result.Status)).Error
+		})
+		if err != nil && err != context.Canceled {
+			log.Printf("results consumer error: %v", err)
+		}
+	}()
 
-func (h *Handler) CreateTask(c *gin.Context) {
-	var req createTaskRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "поле date обязательно"})
-		return
-	}
-
-	// валидация формата даты
-	if _, err := time.Parse("2006-01-02", req.Date); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "формат даты: YYYY-MM-DD"})
-		return
-	}
-
-	task, err := h.producer.Enqueue(c.Request.Context(), req.Date)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось добавить задачу"})
-		return
-	}
-
-	record := &models.Task{
-		ID:        task.ID,
-		Date:      task.Date,
-		Status:    task.Status,
-		CreatedAt: task.CreatedAt,
-	}
-	if err := h.db.Create(record).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось сохранить задачу в БД"})
-		return
-	}
-
-	c.JSON(http.StatusCreated, task)
-}
-
-func (h *Handler) GetTasks(c *gin.Context) {
-	var tasks []models.Task
-	if err := h.db.Order("created_at desc").Find(&tasks).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось получить задачи"})
-		return
-	}
-	c.JSON(http.StatusOK, tasks)
+	go func() {
+		c := queue.NewConsumer(h.rdb, queue.StreamEnrichResults, "enrich_results_group", "enrich_results_consumer")
+		err := c.Consume(ctx, func(ctx context.Context, payload []byte) error {
+			result, err := queue.Unmarshal[queue.MatchDataResult](payload)
+			if err != nil {
+				return err
+			}
+			h.mu.Lock()
+			ch, ok := h.pending[result.TaskID]
+			h.mu.Unlock()
+			if ok {
+				ch <- &result
+			}
+			return nil
+		})
+		if err != nil && err != context.Canceled {
+			log.Printf("enrich results consumer error: %v", err)
+		}
+	}()
 }

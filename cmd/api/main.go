@@ -5,10 +5,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/config"
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/db"
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/queue"
-	"github.com/zollidan/esmeralda-ru-api-fetcher/internal/server"
+	"github.com/zollidan/esmeralda/internal/config"
+	"github.com/zollidan/esmeralda/internal/db"
+	"github.com/zollidan/esmeralda/internal/queue"
+	"github.com/zollidan/esmeralda/internal/server"
+
+	"context"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
@@ -23,8 +28,14 @@ func main() {
 		Addr: cfg.RedisAddr,
 	})
 
-	producer := queue.NewProducer(rdb)
-	handler := server.NewHandler(producer, database)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+
+	parseProducer := queue.NewProducer(rdb, queue.StreamParse)
+	enrichProducer := queue.NewProducer(rdb, queue.StreamEnrich)
+
+	handler := server.NewHandler(parseProducer, enrichProducer, rdb, database)
+	handler.StartConsumers(ctx)
 
 	r := gin.Default()
 	server.SetupRoutes(r, handler)

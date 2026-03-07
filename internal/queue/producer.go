@@ -4,66 +4,46 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 )
 
-type Status string
-
-const (
-	StatusPending    Status = "pending"
-	StatusProcessing Status = "processing"
-	StatusDone       Status = "done"
-	StatusError      Status = "error"
-	StatusFailed     Status = "failed"
-	StatusCancelled   Status = "cancelled"
-
-)
-
-const (
-	StreamName = "tasks:parse"
-	GroupName  = "parse-workers" 
-)
-
-type ParseTask struct {
-	ID        string    `json:"id"`
-	Date      string    `json:"date"` // "2006-01-02"
-	CreatedAt time.Time `json:"created_at"`
-	Status    Status    `json:"status"`
+type Publisher interface {
+    Publish(ctx context.Context, payload any) (string, error)
+    Delete(ctx context.Context, msgID string) error
 }
 
 type Producer struct {
-	rdb *redis.Client
+	rdb    *redis.Client
+	stream string
 }
 
-func NewProducer(rdb *redis.Client) *Producer {
-	return &Producer{rdb: rdb}
+func NewProducer(rdb *redis.Client, stream string) *Producer {
+	return &Producer{rdb: rdb, stream: stream}
 }
 
-func (p *Producer) Enqueue(ctx context.Context, date string) (*ParseTask, string, error) {
-	task := &ParseTask{
-		ID:        uuid.New().String(),
-		Date:      date,
-		CreatedAt: time.Now().UTC(), 
-		Status:    "pending",
-	}
-
-	data, err := json.Marshal(task)
+func (p *Producer) Publish(ctx context.Context, payload any) (string, error) {
+	data, err := json.Marshal(payload)
 	if err != nil {
-		return nil, "", fmt.Errorf("marshal task: %w", err)
+		return "", fmt.Errorf("marshal payload: %w", err)
 	}
 
-	res, err := p.rdb.XAdd(ctx, &redis.XAddArgs{
-		Stream: StreamName,
-		Values: map[string]interface{}{
+	msgID, err := p.rdb.XAdd(ctx, &redis.XAddArgs{
+		Stream: p.stream,
+		Values: map[string]any{
 			"payload": string(data),
 		},
 	}).Result()
 	if err != nil {
-		return nil, "", fmt.Errorf("xadd failed: %w", err)
+		return "", fmt.Errorf("xadd to %s: %w", p.stream, err)
 	}
 
-	return task, res, nil
+	return msgID, nil
+}
+
+func (p *Producer) Delete(ctx context.Context, msgID string) error {
+	if err := p.rdb.XDel(ctx, p.stream, msgID).Err(); err != nil {
+		return fmt.Errorf("xdel from %s: %w", p.stream, err)
+	}
+	return nil
 }
