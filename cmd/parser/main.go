@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"os"
 	"os/signal"
@@ -29,14 +30,14 @@ func main() {
 	parseConsumer := queue.NewConsumer(rdb, queue.StreamParse, "parse_group", "parse_consumer")
 	resultsProducer := queue.NewProducer(rdb, queue.StreamResults)
 
-	processor := processor.Init(client, database, resultsProducer)
+	consumeProcess := processor.Init(client, database, resultsProducer)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	err = parseConsumer.Consume(ctx, processor.ProcessParseTask)
+	err = parseConsumer.Consume(ctx, consumeProcess.ProcessParseTask)
 
-	if err != nil && err != context.Canceled {
+	if err != nil && !errors.Is(err, context.Canceled) {
 		log.Fatal(err)
 	}
 }

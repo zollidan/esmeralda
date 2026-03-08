@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package parser;
+
+option go_package = "zollidan.esmeralda.v1;esmeraldav1";
+
+service Match {
+  rpc GetMatches (MatchRequest) returns (MatchResponse);
+}
+
+message MatchRequest {
+  string dateStart = 1; // Start date range
+  string dateEnd = 2; // End date range
+}
+
+message MatchResponse {
+  string homeTeam = 1; // Home team
+  string awayTeam = 2; // Away team
+}
+

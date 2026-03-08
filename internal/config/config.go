@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -12,9 +13,11 @@ type Config struct {
 	SportAPIRU  SportAPIRU
 	Excel       Excel
 	Tech        Tech
+	GRPC        GRPC
 	RedisAddr   string
 	ServerPort  string
 	DatabaseDSN string
+	Env         string
 }
 
 type SportAPIRU struct {
@@ -33,6 +36,11 @@ type Tech struct {
 	Workers    int
 }
 
+type GRPC struct {
+	Port    int
+	Timeout time.Duration
+}
+
 func Load() *Config {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, using environment variables")
@@ -42,7 +50,6 @@ func Load() *Config {
 	if token == "" {
 		log.Fatal("SPORT_API_TOKEN is required in environment")
 	}
-
 
 	return &Config{
 		SportAPIRU: SportAPIRU{
@@ -57,9 +64,14 @@ func Load() *Config {
 		Tech: Tech{
 			Workers: getEnvInt("WORKERS", 20),
 		},
+		GRPC: GRPC{
+			Port:    getEnvInt("GRPC_PORT", 44044),
+			Timeout: time.Duration(getEnvInt("GRPC_TIMEOUT", 10)),
+		},
 		RedisAddr:   getEnv("REDIS_ADDR", "redis:6379"),
 		ServerPort:  getEnv("SERVER_PORT", ":8080"),
 		DatabaseDSN: getEnv("DATABASE_DSN", "host=localhost user=postgres password=postgres dbname=esmeralda port=5432 sslmode=disable"),
+		Env:         getEnv("ENV", "local"),
 	}
 }
 

@@ -32,9 +32,8 @@ func main() {
 	defer cancel()
 
 	parseProducer := queue.NewProducer(rdb, queue.StreamParse)
-	enrichProducer := queue.NewProducer(rdb, queue.StreamEnrich)
 
-	handler := server.NewHandler(parseProducer, enrichProducer, rdb, database)
+	handler := server.NewHandler(parseProducer, rdb, database)
 	handler.StartConsumers(ctx)
 
 	r := gin.Default()
