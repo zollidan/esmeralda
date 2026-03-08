@@ -13,7 +13,6 @@ func SetupRoutes(r *gin.Engine, h *Handler) {
 	{
 		api.POST("/tasks", h.CreateTask)
 		api.GET("/tasks", h.GetTasks)
-		api.GET("/export", h.GetExcel)
 	}
 
 	subFS, _ := fs.Sub(static.StaticFiles, "dist")
