@@ -5,44 +5,58 @@ import (
 	"flag"
 	"fmt"
 
+	// Библиотека для миграций
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	// Драйвер для выполнения миграций SQLite 3
+	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"
+	// Драйвер для получения миграций из файлов
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 func main() {
-	var databaseURL, migrationPath, migrationTable string
+    var storagePath, migrationsPath, migrationsTable string
 
-	flag.StringVar(&databaseURL, "database-url", "", "database url")
+    // Получаем необходимые значения из флагов запуска
 
-	flag.StringVar(&migrationPath, "migration-path", "./migrations", "path to migration folder")
+    // Путь до файла БД.
+    // Его достаточно, т.к. мы используем SQLite, другие креды не нужны.
+    flag.StringVar(&storagePath, "storage-path", "", "path to storage")
+    // Путь до папки с миграциями.
+    flag.StringVar(&migrationsPath, "migrations-path", "", "path to migrations")
+    // Таблица, в которой будет храниться информация о миграциях. Она нужна 
+    // для того, чтобы понимать, какие миграции уже применены, а какие нет.
+    // Дефолтное значение - 'migrations'.
+    flag.StringVar(&migrationsTable, "migrations-table", "migrations", "name of migrations table")
+    flag.Parse() // Выполняем парсинг флагов
 
-	flag.StringVar(&migrationTable, "migration-table", "", "name of migrations table")
-	flag.Parse()
+    // Валидация параметров
+    if storagePath == "" {
+        // Простейший способ обработки ошибки :)
+        // При необходимости, можете выбрать более подходящий вариант.
+        // Меня паника пока устраивает, поскольку это вспомогательная утилита.
+        panic("storage-path is required")
+    }
+    if migrationsPath == "" {
+        panic("migrations-path is required")
+    }
 
-	if databaseURL == "" {
-		panic(errors.New("database url required"))
-	}
+    // Создаем объект мигратора, передав креды нашей БД
+    m, err := migrate.New(
+        "file://"+migrationsPath,
+        fmt.Sprintf("sqlite3://%s?x-migrations-table=%s", storagePath, migrationsTable),
+    )
+    if err != nil {
+        panic(err)
+    }
 
-	if migrationPath == "" {
-		panic(errors.New("migration path required"))
-	}
+    // Выполняем миграции до последней версии
+    if err := m.Up(); err != nil {
+        if errors.Is(err, migrate.ErrNoChange) {
+            fmt.Println("no migrations to apply")
 
-	m, err := migrate.New(
-		"",
-		"",
-	)
-	if err != nil {
-		panic(err)
-	}
+            return
+        }
 
-	if err := m.Up(); err != nil {
-		if errors.Is(err, migrate.ErrNoChange) {
-			fmt.Println("Nothing to migrate")
-
-			return
-		}
-
-		panic(err)
-	}
+        panic(err)
+    }
 }

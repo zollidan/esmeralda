@@ -18,12 +18,12 @@ import (
 )
 
 func main() {
-	cfg := config.InitConfig()
+	cfg := config.Load()
 
 	rdb := redis.NewClient(&redis.Options{Addr: cfg.RedisAddr})
 
 	client := api.NewClient(cfg.SportAPIRU.BaseURL, cfg.SportAPIRU.Token)
-	database, err := db.New(cfg.DatabaseDSN)
+	database, err := db.New(cfg)
 	if err != nil {
 		log.Fatalf("connect to database: %v", err)
 	}

@@ -20,7 +20,7 @@ import (
 func main() {
 	cfg := config.Load()
 
-	database, err := db.New(cfg.DatabaseDSN)
+	database, err := db.New(cfg)
 	if err != nil {
 		log.Fatalf("connect db: %v", err)
 	}

@@ -14,9 +14,9 @@ type Config struct {
 	Excel       Excel
 	Tech        Tech
 	GRPC        GRPC
+	Database    Database
 	RedisAddr   string
 	ServerPort  string
-	DatabaseDSN string
 	Env         string
 }
 
@@ -39,6 +39,13 @@ type Tech struct {
 type GRPC struct {
 	Port    int
 	Timeout time.Duration
+}
+
+type Database struct {
+	URL string
+	SQLiteURL string
+	Login   string
+	Password string
 }
 
 func Load() *Config {
@@ -68,9 +75,14 @@ func Load() *Config {
 			Port:    getEnvInt("GRPC_PORT", 44044),
 			Timeout: time.Duration(getEnvInt("GRPC_TIMEOUT", 10)),
 		},
+		Database: Database{
+			URL: getEnv("", ""),
+			SQLiteURL: getEnv("SQLITE_URL", "./storage/storage.db"),
+			Login:   getEnv("DB_LOGIN", ""),
+			Password: getEnv("DB_PASSWORD", ""),
+		},
 		RedisAddr:   getEnv("REDIS_ADDR", "redis:6379"),
 		ServerPort:  getEnv("SERVER_PORT", ":8080"),
-		DatabaseDSN: getEnv("DATABASE_DSN", "host=localhost user=postgres password=postgres dbname=esmeralda port=5432 sslmode=disable"),
 		Env:         getEnv("ENV", "local"),
 	}
 }
