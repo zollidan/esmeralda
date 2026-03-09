@@ -7,19 +7,19 @@ import (
 
 	"github.com/zollidan/esmeralda/internal/api"
 	"github.com/zollidan/esmeralda/internal/queue"
-	"gorm.io/gorm"
+	"github.com/zollidan/esmeralda/internal/repository"
 )
 
 type Processor struct {
 	apiClient       api.MatchFetcher
-	database        *gorm.DB
+	games           *repository.GameRepository
 	resultsProducer *queue.Producer
 }
 
-func Init(apiClient api.MatchFetcher, database *gorm.DB, resultsProducer *queue.Producer) *Processor {
+func Init(apiClient api.MatchFetcher, games *repository.GameRepository, resultsProducer *queue.Producer) *Processor {
 	return &Processor{
 		apiClient:       apiClient,
-		database:        database,
+		games:           games,
 		resultsProducer: resultsProducer,
 	}
 }
@@ -43,7 +43,7 @@ func (p *Processor) ProcessParseTask(ctx context.Context, payload []byte) error 
 		return p.publishResult(ctx, task.ID, queue.StatusError, err.Error())
 	}
 
-	if err := ProcessMatches(p.apiClient, p.database, matches, totalMatches); err != nil {
+	if err := ProcessMatches(ctx, p.apiClient, p.games, matches, totalMatches, task.ID); err != nil {
 		return p.publishResult(ctx, task.ID, queue.StatusError, err.Error())
 	}
 

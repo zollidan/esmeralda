@@ -14,6 +14,7 @@ import (
 	"github.com/zollidan/esmeralda/internal/db"
 	"github.com/zollidan/esmeralda/internal/processor"
 	"github.com/zollidan/esmeralda/internal/queue"
+	"github.com/zollidan/esmeralda/internal/repository"
 )
 
 func main() {
@@ -27,10 +28,12 @@ func main() {
 		log.Fatalf("connect to database: %v", err)
 	}
 
+	gameRepo := repository.NewGameRepository(database)
+
 	parseConsumer := queue.NewConsumer(rdb, queue.StreamParse, "parse_group", "parse_consumer")
 	resultsProducer := queue.NewProducer(rdb, queue.StreamResults)
 
-	consumeProcess := processor.Init(client, database, resultsProducer)
+	consumeProcess := processor.Init(client, gameRepo, resultsProducer)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()

@@ -12,14 +12,14 @@ import (
 type MatchStatus string
 
 const (
-	MatchStatusNotStarted  MatchStatus = "notstarted"
-	MatchStatusInProgress  MatchStatus = "inprogress"
-	MatchStatusFinished    MatchStatus = "finished"
-	MatchStatusCanceled    MatchStatus = "canceled"
-	MatchStatusPostponed   MatchStatus = "postponed"
-	MatchStatusInterrupted MatchStatus = "interrupted"
-	MatchStatusSuspended   MatchStatus = "suspended"
-	MatchStatusDelayed     MatchStatus = "delayed"
+	MatchStatusNotStarted   MatchStatus = "notstarted"
+	MatchStatusInProgress   MatchStatus = "inprogress"
+	MatchStatusFinished     MatchStatus = "finished"
+	MatchStatusCanceled     MatchStatus = "canceled"
+	MatchStatusPostponed    MatchStatus = "postponed"
+	MatchStatusInterrupted  MatchStatus = "interrupted"
+	MatchStatusSuspended    MatchStatus = "suspended"
+	MatchStatusDelayed      MatchStatus = "delayed"
 	MatchStatusWillContinue MatchStatus = "willcontinue"
 )
 
@@ -63,28 +63,28 @@ type MatchesResponse struct {
 }
 
 type Match struct {
-	ID                  int              `json:"id"`
-	Status              MatchStatus      `json:"status"`
-	DateEvent           string           `json:"dateEvent"`
-	// yyyy-mm-dd 
-	StartTimestamp      int64            `json:"startTimestamp"`
+	ID        int         `json:"id"`
+	Status    MatchStatus `json:"status"`
+	DateEvent string      `json:"dateEvent"`
+	// yyyy-mm-dd
+	StartTimestamp int64 `json:"startTimestamp"`
 	// in millis
-	CurrentMatchMinute  int              `json:"currentMatchMinute"`
-	CurrentMatchSecond  int              `json:"currentMatchSecond"`
-	Tournament          Tournament       `json:"tournament"`
-	Category            Category         `json:"category"`
-	RoundInfo           RoundInfo        `json:"roundInfo"`
-	Season              Season           `json:"season"`
-	Venue               *Venue           `json:"venue"`
-	Referee             *Referee         `json:"referee"`
-	HomeTeam            Team             `json:"homeTeam"`
-	AwayTeam            Team             `json:"awayTeam"`
-	HomeScore           Score            `json:"homeScore"`
-	AwayScore           Score            `json:"awayScore"`
-	LiveEvents          []LiveEvent      `json:"liveEvents"`
-	MatchStatistics     []StatsPeriod    `json:"matchStatistics"`
-	OddsBase            []OddsMarket     `json:"oddsBase"`
-	Highlights          []Highlight      `json:"highlights"`
+	CurrentMatchMinute int           `json:"currentMatchMinute"`
+	CurrentMatchSecond int           `json:"currentMatchSecond"`
+	Tournament         Tournament    `json:"tournament"`
+	Category           Category      `json:"category"`
+	RoundInfo          RoundInfo     `json:"roundInfo"`
+	Season             Season        `json:"season"`
+	Venue              *Venue        `json:"venue"`
+	Referee            *Referee      `json:"referee"`
+	HomeTeam           Team          `json:"homeTeam"`
+	AwayTeam           Team          `json:"awayTeam"`
+	HomeScore          Score         `json:"homeScore"`
+	AwayScore          Score         `json:"awayScore"`
+	LiveEvents         []LiveEvent   `json:"liveEvents"`
+	MatchStatistics    []StatsPeriod `json:"matchStatistics"`
+	OddsBase           []OddsMarket  `json:"oddsBase"`
+	Highlights         []Highlight   `json:"highlights"`
 }
 
 type Translations struct {
@@ -174,18 +174,18 @@ type Score struct {
 }
 
 type LiveEvent struct {
-	Time       int         `json:"time"`
-	TimeSeconds int        `json:"timeSeconds"`
-	Type       string      `json:"type"`
-	Class      string      `json:"class"`
-	Team       string      `json:"team"`
-	Player     PlayerRef   `json:"player"`
-	PlayerIn   PlayerRef   `json:"playerIn"`
-	PlayerOut  PlayerRef   `json:"playerOut"`
-	Reason     string      `json:"reason"`
-	From       string      `json:"from"`
-	HomeScore  int         `json:"homeScore"`
-	AwayScore  int         `json:"awayScore"`
+	Time        int       `json:"time"`
+	TimeSeconds int       `json:"timeSeconds"`
+	Type        string    `json:"type"`
+	Class       string    `json:"class"`
+	Team        string    `json:"team"`
+	Player      PlayerRef `json:"player"`
+	PlayerIn    PlayerRef `json:"playerIn"`
+	PlayerOut   PlayerRef `json:"playerOut"`
+	Reason      string    `json:"reason"`
+	From        string    `json:"from"`
+	HomeScore   int       `json:"homeScore"`
+	AwayScore   int       `json:"awayScore"`
 }
 
 type PlayerRef struct {
@@ -232,4 +232,3 @@ type Highlight struct {
 	URL   string `json:"url"`
 	Image string `json:"image"`
 }
-

@@ -9,26 +9,26 @@ import (
 )
 
 type Client struct {
-    httpClient *http.Client
-    baseURL    string
-    token      string
+	httpClient *http.Client
+	baseURL    string
+	token      string
 }
 
 func NewClient(baseURL, token string) *Client {
-    transport := &http.Transport{
-        IdleConnTimeout:     30 * time.Second,
-        DisableKeepAlives:   false,
-        MaxIdleConns:        10,
-        MaxIdleConnsPerHost: 10,
-    }
-    return &Client{
-        httpClient: &http.Client{
-            Timeout:   120 * time.Second,
-            Transport: transport,
-        },
-        baseURL: baseURL,
-        token:   token,
-    }
+	transport := &http.Transport{
+		IdleConnTimeout:     30 * time.Second,
+		DisableKeepAlives:   false,
+		MaxIdleConns:        10,
+		MaxIdleConnsPerHost: 10,
+	}
+	return &Client{
+		httpClient: &http.Client{
+			Timeout:   120 * time.Second,
+			Transport: transport,
+		},
+		baseURL: baseURL,
+		token:   token,
+	}
 }
 
 func (c *Client) get(path string, params url.Values, out interface{}) error {
@@ -60,4 +60,3 @@ func (c *Client) get(path string, params url.Values, out interface{}) error {
 
 	return nil
 }
-	

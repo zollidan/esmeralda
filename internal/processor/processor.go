@@ -1,15 +1,15 @@
 package processor
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
 
 	"github.com/zollidan/esmeralda/internal/api"
 	"github.com/zollidan/esmeralda/internal/models"
+	"github.com/zollidan/esmeralda/internal/repository"
 	"github.com/zollidan/esmeralda/internal/stats"
-
-	"gorm.io/gorm"
 )
 
 // сделать контекст для управления горутинами
@@ -22,32 +22,19 @@ type result struct {
 	err   error
 }
 
-func ProcessMatches(client api.MatchFetcher, db *gorm.DB, matches []api.Match, totalMatches int) error {
-
-	// bar := progressbar.NewOptions(
-	// 	len(matches),
-	// 	progressbar.OptionSetDescription("Processing matches"),
-	// 	progressbar.OptionSetWidth(40),
-	// 	progressbar.OptionShowCount(),
-	// 	progressbar.OptionShowIts(),
-	// 	progressbar.OptionSetTheme(progressbar.Theme{
-	// 		Saucer:        "=",
-	// 		SaucerHead:    ">",
-	// 		SaucerPadding: " ",
-	// 		BarStart:      "[",
-	// 		BarEnd:        "]",
-	// 	}),
-	// )	
+func ProcessMatches(ctx context.Context, client api.MatchFetcher, games *repository.GameRepository, matches []api.Match, totalMatches int, taskID string) error {
 
 	results := make(chan result, len(matches))
 	sem := make(chan struct{}, workers)
 
 	var wg sync.WaitGroup
 
-	for i, match := range matches[:20] {
-		// fmt.Printf("Processing %d/%d (id=%d)\n", i+1, totalMatches, match.ID)
+	limit := len(matches)
+	if limit > 20 {
+		limit = 20
+	}
 
-		// i, match := i, match
+	for i, match := range matches[:limit] {
 		wg.Add(1)
 
 		go func() {
@@ -57,6 +44,9 @@ func ProcessMatches(client api.MatchFetcher, db *gorm.DB, matches []api.Match, t
 			defer func() { <-sem }()
 
 			game, err := buildGame(client, match)
+			if err == nil {
+				game.TaskID = &taskID
+			}
 			results <- result{index: i, game: game, err: err}
 		}()
 	}
@@ -68,15 +58,15 @@ func ProcessMatches(client api.MatchFetcher, db *gorm.DB, matches []api.Match, t
 		close(results)
 	}()
 
-	games := make([]models.Game, len(matches))
+	gameSlice := make([]models.Game, limit)
 	for r := range results {
 		if r.err != nil {
 			return fmt.Errorf("match error: %w", r.err)
 		}
-		games[r.index] = r.game
+		gameSlice[r.index] = r.game
 	}
 
-	if err := db.CreateInBatches(games, 100).Error; err != nil {
+	if err := games.CreateInBatches(ctx, gameSlice, 100); err != nil {
 		return fmt.Errorf("save games to db: %w", err)
 	}
 

@@ -7,24 +7,25 @@ import (
 	"sync"
 
 	"github.com/redis/go-redis/v9"
-	"github.com/zollidan/esmeralda/internal/models"
 	"github.com/zollidan/esmeralda/internal/queue"
-	"gorm.io/gorm"
+	"github.com/zollidan/esmeralda/internal/repository"
 )
 
 type Handler struct {
 	producer *queue.Producer
-	db       *gorm.DB
 	rdb      *redis.Client
+	tasks    *repository.TaskRepository
+	games    *repository.GameRepository
 	pending  map[string]chan *queue.MatchDataResult
 	mu       sync.Mutex
 }
 
-func NewHandler(producer *queue.Producer, rdb *redis.Client, db *gorm.DB) *Handler {
+func NewHandler(producer *queue.Producer, rdb *redis.Client, tasks *repository.TaskRepository, games *repository.GameRepository) *Handler {
 	return &Handler{
 		producer: producer,
-		db:       db,
 		rdb:      rdb,
+		tasks:    tasks,
+		games:    games,
 		pending:  make(map[string]chan *queue.MatchDataResult),
 	}
 }
@@ -37,10 +38,7 @@ func (h *Handler) StartConsumers(ctx context.Context) {
 			if err != nil {
 				return err
 			}
-			return h.db.WithContext(ctx).
-				Model(&models.Task{}).
-				Where("id = ?", result.TaskID).
-				Update("status", string(result.Status)).Error
+			return h.tasks.UpdateStatus(ctx, result.TaskID, string(result.Status))
 		})
 		if err != nil && !errors.Is(err, context.Canceled) {
 			log.Printf("results consumer error: %v", err)

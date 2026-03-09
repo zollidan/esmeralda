@@ -9,8 +9,8 @@ import (
 )
 
 type Publisher interface {
-    Publish(ctx context.Context, payload any) (string, error)
-    Delete(ctx context.Context, msgID string) error
+	Publish(ctx context.Context, payload any) (string, error)
+	Delete(ctx context.Context, msgID string) error
 }
 
 type Producer struct {

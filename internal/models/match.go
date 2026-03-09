@@ -19,15 +19,15 @@ type GoalStats struct {
 }
 
 type Game struct {
-	ID       uint   `gorm:"primaryKey"                json:"id"`
+	ID       uint    `gorm:"primaryKey"                json:"id"`
 	TaskID   *string `gorm:"type:uuid;index"           json:"task_id"`
-	Day      int    `gorm:"not null"                  json:"day"`
-	Month    int    `gorm:"not null"                  json:"month"`
-	Year     int    `gorm:"not null"                  json:"year"`
-	Time     string `gorm:"not null"                  json:"time"`
-	HomeTeam string `gorm:"not null"                  json:"home_team"`
-	AwayTeam string `gorm:"not null"                  json:"away_team"`
-	League   string `gorm:"not null"                  json:"league"`
+	Day      int     `gorm:"not null"                  json:"day"`
+	Month    int     `gorm:"not null"                  json:"month"`
+	Year     int     `gorm:"not null"                  json:"year"`
+	Time     string  `gorm:"not null"                  json:"time"`
+	HomeTeam string  `gorm:"not null"                  json:"home_team"`
+	AwayTeam string  `gorm:"not null"                  json:"away_team"`
+	League   string  `gorm:"not null"                  json:"league"`
 
 	H2H15     TotalStats `gorm:"embedded;embeddedPrefix:h2h15_"      json:"h2h15"`
 	H2H25     TotalStats `gorm:"embedded;embeddedPrefix:h2h25_"      json:"h2h25"`

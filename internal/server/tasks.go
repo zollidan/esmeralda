@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"net/http"
 	"time"
 
@@ -9,14 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/zollidan/esmeralda/internal/models"
 	"github.com/zollidan/esmeralda/internal/queue"
-	"gorm.io/gorm"
 )
-
-type TaskRepository interface {
-    CreateTask(ctx context.Context, task *models.Task) error
-    UpdateTaskStatus(ctx context.Context, taskID, status string) error
-    GetTasks(ctx context.Context) ([]models.Task, error)
-}
 
 type createTaskRequest struct {
 	Date string `json:"date" binding:"required"`
@@ -53,9 +45,7 @@ func (h *Handler) CreateTask(c *gin.Context) {
 		CreatedAt: task.CreatedAt,
 	}
 
-	if err := h.db.WithContext(c.Request.Context()).Transaction(func(tx *gorm.DB) error {
-		return tx.Create(record).Error
-	}); err != nil {
+	if err := h.tasks.Create(c.Request.Context(), record); err != nil {
 		_ = h.producer.Delete(c.Request.Context(), msgID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось сохранить задачу в БД"})
 		return
@@ -65,8 +55,8 @@ func (h *Handler) CreateTask(c *gin.Context) {
 }
 
 func (h *Handler) GetTasks(c *gin.Context) {
-	var tasks []models.Task
-	if err := h.db.Order("created_at desc").Find(&tasks).Error; err != nil {
+	tasks, err := h.tasks.GetAllOrdered(c.Request.Context())
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось получить задачи"})
 		return
 	}

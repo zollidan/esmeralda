@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	StreamParse   = "tasks:parse"
-	StreamResults = "tasks:results"
-	StreamEnrich  = "tasks:enrich"
+	StreamParse         = "tasks:parse"
+	StreamResults       = "tasks:results"
+	StreamEnrich        = "tasks:enrich"
 	StreamEnrichResults = "tasks:enrich_results"
 )
 

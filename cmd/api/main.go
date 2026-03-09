@@ -8,6 +8,7 @@ import (
 	"github.com/zollidan/esmeralda/internal/config"
 	"github.com/zollidan/esmeralda/internal/db"
 	"github.com/zollidan/esmeralda/internal/queue"
+	"github.com/zollidan/esmeralda/internal/repository"
 	"github.com/zollidan/esmeralda/internal/server"
 
 	"context"
@@ -33,7 +34,10 @@ func main() {
 
 	parseProducer := queue.NewProducer(rdb, queue.StreamParse)
 
-	handler := server.NewHandler(parseProducer, rdb, database)
+	taskRepo := repository.NewTaskRepository(database)
+	gameRepo := repository.NewGameRepository(database)
+
+	handler := server.NewHandler(parseProducer, rdb, taskRepo, gameRepo)
 	handler.StartConsumers(ctx)
 
 	r := gin.Default()
