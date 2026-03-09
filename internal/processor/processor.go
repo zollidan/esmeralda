@@ -24,15 +24,12 @@ type result struct {
 
 func ProcessMatches(ctx context.Context, client api.MatchFetcher, games *repository.GameRepository, matches []api.Match, totalMatches int, taskID string) error {
 
-	results := make(chan result, len(matches))
+	limit := len(matches)
+
+	results := make(chan result, limit)
 	sem := make(chan struct{}, workers)
 
 	var wg sync.WaitGroup
-
-	limit := len(matches)
-	if limit > 20 {
-		limit = 20
-	}
 
 	for i, match := range matches[:limit] {
 		wg.Add(1)
@@ -74,12 +71,6 @@ func ProcessMatches(ctx context.Context, client api.MatchFetcher, games *reposit
 }
 
 func buildGame(client api.MatchFetcher, match api.Match) (models.Game, error) {
-	// start := time.Now()
-	// defer func() {
-	// 	fmt.Printf("match %d processed in %v\n", match.ID, time.Since(start))
-	// 	bar.Add(1)
-	// }()
-
 	date, err := time.Parse("2006-01-02", match.DateEvent)
 	if err != nil {
 		return models.Game{}, fmt.Errorf("parse date: %w", err)
