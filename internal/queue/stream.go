@@ -7,10 +7,9 @@ import (
 )
 
 const (
-	StreamParse         = "tasks:parse"
-	StreamResults       = "tasks:results"
-	StreamEnrich        = "tasks:enrich"
-	StreamEnrichResults = "tasks:enrich_results"
+	StreamParse    = "tasks:parse"
+	StreamResults  = "tasks:results"
+	StreamProgress = "tasks:progress "
 )
 
 type Status string
@@ -48,4 +47,11 @@ type TaskResult struct {
 	TaskID string `json:"task_id"`
 	Status Status `json:"status"`
 	Error  string `json:"error,omitempty"`
+}
+
+type TaskProgress struct {
+	TaskID       string `json:"task_id"`
+	Status       Status `json:"status"`
+	TotalMatches int    `json:"total_matches"`
+	CurrentMatch int    `json:"current_match"`
 }

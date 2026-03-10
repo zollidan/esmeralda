@@ -11,16 +11,18 @@ import (
 )
 
 type Processor struct {
-	apiClient       api.MatchFetcher
-	games           *repository.GameRepository
-	resultsProducer *queue.Producer
+	apiClient        api.MatchFetcher
+	games            *repository.GameRepository
+	resultsProducer  *queue.Producer
+	progressProducer *queue.Producer
 }
 
-func Init(apiClient api.MatchFetcher, games *repository.GameRepository, resultsProducer *queue.Producer) *Processor {
+func Init(apiClient api.MatchFetcher, games *repository.GameRepository, resultsProducer *queue.Producer, progressProducer *queue.Producer) *Processor {
 	return &Processor{
-		apiClient:       apiClient,
-		games:           games,
-		resultsProducer: resultsProducer,
+		apiClient:        apiClient,
+		games:            games,
+		resultsProducer:  resultsProducer,
+		progressProducer: progressProducer,
 	}
 }
 
@@ -43,7 +45,7 @@ func (p *Processor) ProcessParseTask(ctx context.Context, payload []byte) error 
 		return p.publishResult(ctx, task.ID, queue.StatusError, err.Error())
 	}
 
-	if err := ProcessMatches(ctx, p.apiClient, p.games, matches, totalMatches, task.ID); err != nil {
+	if err := p.ProcessMatches(ctx, p.apiClient, p.games, matches, totalMatches, task.ID); err != nil {
 		return p.publishResult(ctx, task.ID, queue.StatusError, err.Error())
 	}
 
@@ -59,6 +61,21 @@ func (p *Processor) publishResult(ctx context.Context, taskID string, status que
 	_, err := p.resultsProducer.Publish(ctx, result)
 	if err != nil {
 		log.Printf("publish result for task %s: %v", taskID, err)
+	}
+	return err
+}
+
+func (p *Processor) publishProgress(ctx context.Context, taskID string, status queue.Status, totalMatches int, currentMatch int) error {
+	progress := queue.TaskProgress{
+		TaskID:       taskID,
+		Status:       status,
+		TotalMatches: totalMatches,
+		CurrentMatch: currentMatch,
+	}
+
+	_, err := p.progressProducer.Publish(ctx, progress)
+	if err != nil {
+		log.Printf("publish progress for task %s: %v", taskID, err)
 	}
 	return err
 }

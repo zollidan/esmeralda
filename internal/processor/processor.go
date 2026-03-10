@@ -8,6 +8,7 @@ import (
 
 	"github.com/zollidan/esmeralda/internal/api"
 	"github.com/zollidan/esmeralda/internal/models"
+	"github.com/zollidan/esmeralda/internal/queue"
 	"github.com/zollidan/esmeralda/internal/repository"
 	"github.com/zollidan/esmeralda/internal/stats"
 )
@@ -22,10 +23,8 @@ type result struct {
 	err   error
 }
 
-func ProcessMatches(ctx context.Context, client api.MatchFetcher, games *repository.GameRepository, matches []api.Match, totalMatches int, taskID string) error {
-
-	limit := len(matches)
-
+func (p *Processor) ProcessMatches(ctx context.Context, client api.MatchFetcher, games *repository.GameRepository, matches []api.Match, totalMatches int, taskID string) error {
+	limit := 20
 	results := make(chan result, limit)
 	sem := make(chan struct{}, workers)
 
@@ -41,14 +40,21 @@ func ProcessMatches(ctx context.Context, client api.MatchFetcher, games *reposit
 			defer func() { <-sem }()
 
 			game, err := buildGame(client, match)
-			if err == nil {
-				game.TaskID = &taskID
+			if err != nil {
+				results <- result{index: i, err: fmt.Errorf("build game: %w", err)}
+				return
 			}
-			results <- result{index: i, game: game, err: err}
+
+			game.TaskID = &taskID
+
+			if err := p.publishProgress(ctx, taskID, queue.StatusPending, limit, i); err != nil {
+				results <- result{index: i, err: fmt.Errorf("publish progress: %w", err)}
+				return
+			}
+
+			results <- result{index: i, game: game}
 		}()
 	}
-
-	fmt.Println("Все запросы отправлены, ожидаем завершения...")
 
 	go func() {
 		wg.Wait()

@@ -32,8 +32,9 @@ func main() {
 
 	parseConsumer := queue.NewConsumer(rdb, queue.StreamParse, "parse_group", "parse_consumer")
 	resultsProducer := queue.NewProducer(rdb, queue.StreamResults)
+	progressProducer := queue.NewProducer(rdb, queue.StreamProgress)
 
-	consumeProcess := processor.Init(client, gameRepo, resultsProducer)
+	consumeProcess := processor.Init(client, gameRepo, resultsProducer, progressProducer)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()

@@ -1,7 +1,10 @@
 package main
 
 import (
+	"errors"
 	"log"
+	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
@@ -33,7 +36,6 @@ func main() {
 	defer cancel()
 
 	parseProducer := queue.NewProducer(rdb, queue.StreamParse)
-
 	taskRepo := repository.NewTaskRepository(database)
 	gameRepo := repository.NewGameRepository(database)
 
@@ -43,7 +45,26 @@ func main() {
 	r := gin.Default()
 	server.SetupRoutes(r, handler)
 
-	if err := r.Run(cfg.ServerPort); err != nil {
-		log.Fatal(err)
+	srv := &http.Server{
+		Addr:    cfg.ServerPort,
+		Handler: r,
 	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("listen: %v", err)
+		}
+	}()
+
+	<-ctx.Done()
+	log.Println("shutting down server...")
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdownCancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Fatalf("server forced to shutdown: %v", err)
+	}
+
+	log.Println("server stopped")
 }
