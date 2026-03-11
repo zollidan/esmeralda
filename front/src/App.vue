@@ -8,6 +8,7 @@ type Task = {
   created_at: string;
 };
 
+const new_task = ref<boolean>(false);
 const date = ref<string>("");
 const tasks = ref<Task[]>([]);
 const loading = ref(false);
@@ -44,18 +45,21 @@ async function createTask() {
   }
 }
 
-async function exportToExcel(taskId: string) {
+async function exportToExcel(taskDate: string) {
   try {
-    const res = await fetch(`/api/tasks/${taskId}/export`, {
-      method: "GET",
-    });
+    const res = await fetch(
+      `/api/export?date_start=${taskDate}&date_end=${taskDate}`,
+      {
+        method: "GET",
+      },
+    );
     if (!res.ok) throw new Error(`export failed: ${res.status}`);
 
     const blob = await res.blob();
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `task-${taskId}.xlsx`;
+    a.download = `matches-${taskDate}.xlsx`;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
@@ -71,13 +75,17 @@ onMounted(fetchTasks);
 <template>
   <main class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
     <div class="max-w-6xl mx-auto px-4 py-8">
-      <h1 class="text-4xl font-bold text-slate-800 mb-8">
-        Football Match Statistics
-      </h1>
+      <h1 class="text-4xl font-bold text-slate-800 mb-8">aaf-bet.ru</h1>
 
-      <section class="bg-white rounded-lg shadow-md p-6 mb-8">
+      <button
+        @click="new_task = !new_task"
+        class="px-6 py-2 my-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition"
+      >
+        {{ new_task ? "Скрыть" : "Создать новую задачу" }}
+      </button>
+      <section class="bg-white rounded-lg shadow-md p-6 mb-8" v-if="new_task">
         <h2 class="text-xl font-semibold text-slate-700 mb-4">
-          Create New Task
+          Создать новую задачу
         </h2>
         <div class="flex gap-4 items-end">
           <div class="flex-1">
@@ -85,7 +93,7 @@ onMounted(fetchTasks);
               for="date"
               class="block text-sm font-medium text-slate-700 mb-2"
             >
-              Choose date
+              выбор даты
             </label>
             <input
               id="date"
@@ -99,7 +107,7 @@ onMounted(fetchTasks);
             :disabled="!date"
             class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition"
           >
-            Create Task
+            Создать
           </button>
         </div>
       </section>
@@ -161,7 +169,7 @@ onMounted(fetchTasks);
                 class="hover:bg-slate-50 transition"
               >
                 <td class="px-4 py-3 text-sm font-medium text-slate-900">
-                  {{ t.date }}
+                  {{ new Date(t.date).toLocaleDateString() }}
                 </td>
                 <td class="px-4 py-3 text-sm">
                   <span
@@ -183,9 +191,9 @@ onMounted(fetchTasks);
                 </td>
                 <td class="px-4 py-3 text-sm">
                   <button
-                    @click="exportToExcel(t.id)"
+                    @click="exportToExcel(t.date)"
                     :disabled="t.status !== 'done'"
-                    class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition inline-flex items-center gap-2"
+                    class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg cursor-pointer hover:bg-green-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition inline-flex items-center gap-2"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
