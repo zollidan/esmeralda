@@ -9,7 +9,7 @@ import (
 const (
 	StreamParse    = "tasks:parse"
 	StreamResults  = "tasks:results"
-	StreamProgress = "tasks:progress "
+	StreamProgress = "tasks:progress"
 )
 
 type Status string
