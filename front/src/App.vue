@@ -1,18 +1,103 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-
-type Task = {
-  id: string;
-  date: string;
-  status: string;
-  created_at: string;
-};
+import { ref, onBeforeUnmount, onMounted, watch } from "vue";
+import TaskCreateForm from "./components/TaskCreateForm.vue";
+import TaskTable from "./components/TaskTable.vue";
+import type { ProgressBar, Task } from "./types/task";
 
 const new_task = ref<boolean>(false);
 const date = ref<string>("");
 const tasks = ref<Task[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
+const progressByTaskId = ref<Record<string, ProgressBar>>({});
+const sockets = new Map<string, WebSocket>();
+
+function wsUrl(taskId: string): string {
+  const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+  return `${protocol}://${window.location.host}/api/progress/ws?task_id=${encodeURIComponent(taskId)}`;
+}
+
+function clearProgress(taskId: string) {
+  const next = { ...progressByTaskId.value };
+  delete next[taskId];
+  progressByTaskId.value = next;
+}
+
+function closeTaskSocket(taskId: string) {
+  const ws = sockets.get(taskId);
+  if (!ws) return;
+  ws.onopen = null;
+  ws.onmessage = null;
+  ws.onerror = null;
+  ws.onclose = null;
+  if (
+    ws.readyState === WebSocket.OPEN ||
+    ws.readyState === WebSocket.CONNECTING
+  ) {
+    ws.close();
+  }
+  sockets.delete(taskId);
+}
+
+function upsertTaskStatus(taskID: string, status: string) {
+  tasks.value = tasks.value.map((task) =>
+    task.id === taskID ? { ...task, status } : task,
+  );
+}
+
+function connectTaskProgress(taskId: string) {
+  if (sockets.has(taskId)) return;
+
+  const ws = new WebSocket(wsUrl(taskId));
+  sockets.set(taskId, ws);
+
+  ws.onmessage = (event) => {
+    try {
+      const progress = JSON.parse(event.data) as ProgressBar;
+      progressByTaskId.value = {
+        ...progressByTaskId.value,
+        [progress.task_id]: progress,
+      };
+      upsertTaskStatus(progress.task_id, progress.status);
+
+      if (["done", "error", "failed", "cancelled"].includes(progress.status)) {
+        closeTaskSocket(progress.task_id);
+        void fetchTasks();
+      }
+    } catch {
+      // Ignore malformed websocket payloads.
+    }
+  };
+
+  ws.onclose = () => {
+    sockets.delete(taskId);
+  };
+
+  ws.onerror = () => {
+    closeTaskSocket(taskId);
+  };
+}
+
+watch(tasks, (nextTasks) => {
+  const activeIDs = new Set(
+    nextTasks
+      .filter(
+        (task) => task.status === "pending" || task.status === "processing",
+      )
+      .map((task) => task.id),
+  );
+
+  for (const taskId of activeIDs) {
+    connectTaskProgress(taskId);
+  }
+
+  for (const taskId of sockets.keys()) {
+    if (!activeIDs.has(taskId)) {
+      closeTaskSocket(taskId);
+      clearProgress(taskId);
+    }
+  }
+});
 
 async function fetchTasks() {
   loading.value = true;
@@ -70,6 +155,12 @@ async function exportToExcel(taskDate: string) {
 }
 
 onMounted(fetchTasks);
+
+onBeforeUnmount(() => {
+  for (const taskId of sockets.keys()) {
+    closeTaskSocket(taskId);
+  }
+});
 </script>
 
 <template>
@@ -83,140 +174,20 @@ onMounted(fetchTasks);
       >
         {{ new_task ? "Скрыть" : "Создать новую задачу" }}
       </button>
-      <section class="bg-white rounded-lg shadow-md p-6 mb-8" v-if="new_task">
-        <h2 class="text-xl font-semibold text-slate-700 mb-4">
-          Создать новую задачу
-        </h2>
-        <div class="flex gap-4 items-end">
-          <div class="flex-1">
-            <label
-              for="date"
-              class="block text-sm font-medium text-slate-700 mb-2"
-            >
-              выбор даты
-            </label>
-            <input
-              id="date"
-              type="date"
-              v-model="date"
-              class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-            />
-          </div>
-          <button
-            @click="createTask"
-            :disabled="!date"
-            class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition"
-          >
-            Создать
-          </button>
-        </div>
-      </section>
 
-      <section class="bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-2xl font-semibold text-slate-800 mb-4">All Tasks</h2>
+      <TaskCreateForm
+        v-model:date="date"
+        :visible="new_task"
+        @submit="createTask"
+      />
 
-        <div v-if="loading" class="text-center py-8">
-          <div
-            class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-300 border-t-blue-600"
-          ></div>
-          <p class="mt-2 text-slate-600">Loading...</p>
-        </div>
-
-        <div
-          v-if="error"
-          class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4"
-        >
-          <strong>Error:</strong> {{ error }}
-        </div>
-
-        <div
-          v-if="!loading && !tasks.length"
-          class="text-center py-8 text-slate-500"
-        >
-          No tasks found
-        </div>
-
-        <div v-if="tasks.length" class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th
-                  class="px-4 py-3 text-left text-sm font-semibold text-slate-700"
-                >
-                  Date
-                </th>
-                <th
-                  class="px-4 py-3 text-left text-sm font-semibold text-slate-700"
-                >
-                  Status
-                </th>
-                <th
-                  class="px-4 py-3 text-left text-sm font-semibold text-slate-700"
-                >
-                  Created At
-                </th>
-                <th
-                  class="px-4 py-3 text-left text-sm font-semibold text-slate-700"
-                >
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-200">
-              <tr
-                v-for="t in tasks"
-                :key="t.id"
-                class="hover:bg-slate-50 transition"
-              >
-                <td class="px-4 py-3 text-sm font-medium text-slate-900">
-                  {{ new Date(t.date).toLocaleDateString() }}
-                </td>
-                <td class="px-4 py-3 text-sm">
-                  <span
-                    :class="{
-                      'bg-yellow-100 text-yellow-800': t.status === 'pending',
-                      'bg-blue-100 text-blue-800': t.status === 'processing',
-                      'bg-green-100 text-green-800': t.status === 'done',
-                      'bg-red-100 text-red-800':
-                        t.status === 'error' || t.status === 'failed',
-                      'bg-gray-100 text-gray-800': t.status === 'cancelled',
-                    }"
-                    class="px-2 py-1 rounded-full text-xs font-medium"
-                  >
-                    {{ t.status }}
-                  </span>
-                </td>
-                <td class="px-4 py-3 text-sm text-slate-600">
-                  {{ new Date(t.created_at).toLocaleString() }}
-                </td>
-                <td class="px-4 py-3 text-sm">
-                  <button
-                    @click="exportToExcel(t.date)"
-                    :disabled="t.status !== 'done'"
-                    class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg cursor-pointer hover:bg-green-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition inline-flex items-center gap-2"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                    Export
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <TaskTable
+        :tasks="tasks"
+        :loading="loading"
+        :error="error"
+        :progress-by-task-id="progressByTaskId"
+        @export="exportToExcel"
+      />
     </div>
   </main>
 </template>
