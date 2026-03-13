@@ -58,7 +58,7 @@ func Load() *Config {
 			Workers: getEnvInt("WORKERS", 20),
 		},
 		DatabaseDSN: getEnv("DATABASE_DSN", ""),
-		RedisAddr:   getEnv("REDIS_ADDR", "redis:6379"),
+		RedisAddr:   getEnv("REDIS_ADDR", "localhost:6379"),
 		ServerPort:  getEnv("SERVER_PORT", ":8080"),
 		Env:         getEnv("ENV", "local"),
 	}
