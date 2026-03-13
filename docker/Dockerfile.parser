@@ -8,4 +8,5 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /parser ./cmd/parser
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 COPY --from=builder /parser /parser
+# EXPOSE 8081
 CMD ["/parser"]
