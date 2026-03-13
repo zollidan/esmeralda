@@ -30,6 +30,8 @@ func (p *Producer) Publish(ctx context.Context, payload any) (string, error) {
 
 	msgID, err := p.rdb.XAdd(ctx, &redis.XAddArgs{
 		Stream: p.stream,
+		MaxLen: 1000,
+		Approx: true,
 		Values: map[string]any{
 			"payload": string(data),
 		},
