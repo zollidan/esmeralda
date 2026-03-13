@@ -29,8 +29,11 @@ type MatchesFilter struct {
 	SeasonID      int
 	TeamID        int
 	Status        MatchStatus
+	Page   		  int 
+	PageSize      int
 }
 
+// TODO: валидировать фильтры и возвращать ошибку, если они невалидные
 func (f MatchesFilter) ToParams() url.Values {
 	params := url.Values{}
 
@@ -53,6 +56,12 @@ func (f MatchesFilter) ToParams() url.Values {
 	if f.Status != "" {
 		params.Set("status", string(f.Status))
 	}
+	if f.Page > 0 && f.Page <= 500 {
+		params.Set("page", fmt.Sprintf("%d", f.Page))
+	}
+	if f.PageSize > 0 && f.PageSize <= 100 {
+		params.Set("page_size", fmt.Sprintf("%d", f.PageSize))
+	}
 
 	return params
 }
@@ -60,6 +69,9 @@ func (f MatchesFilter) ToParams() url.Values {
 type MatchesResponse struct {
 	TotalMatches int     `json:"totalMatches"`
 	Matches      []Match `json:"matches"`
+	Page		 int     `json:"page"`
+	PageSize     int     `json:"pageSize"`
+	TotalPages    int     `json:"totalPages"`
 }
 
 type Match struct {

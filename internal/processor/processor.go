@@ -91,11 +91,11 @@ func buildGame(client api.MatchFetcher, match api.Match) (models.Game, error) {
 	ch2 := make(chan res, 1)
 
 	go func() {
-		m, _, err := client.GetMatches(api.MatchesFilter{TeamID: match.HomeTeam.ID, Status: api.MatchStatusFinished})
+		m, _, err := client.GetMatches(api.MatchesFilter{TeamID: match.HomeTeam.ID, Status: api.MatchStatusFinished, Page: 1, PageSize: 25})
 		ch1 <- res{m, err}
 	}()
 	go func() {
-		m, _, err := client.GetMatches(api.MatchesFilter{TeamID: match.AwayTeam.ID, Status: api.MatchStatusFinished})
+		m, _, err := client.GetMatches(api.MatchesFilter{TeamID: match.AwayTeam.ID, Status: api.MatchStatusFinished, Page: 1, PageSize: 25})
 		ch2 <- res{m, err}
 	}()
 
