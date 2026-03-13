@@ -54,18 +54,23 @@ function connectTaskProgress(taskId: string) {
   ws.onmessage = (event) => {
     try {
       const progress = JSON.parse(event.data) as ProgressBar;
+
       progressByTaskId.value = {
         ...progressByTaskId.value,
         [progress.task_id]: progress,
       };
+
       upsertTaskStatus(progress.task_id, progress.status);
 
       if (["done", "error", "failed", "cancelled"].includes(progress.status)) {
         closeTaskSocket(progress.task_id);
-        void fetchTasks();
+        setTimeout(() => {
+          clearProgress(progress.task_id);
+          void fetchTasks();
+        }, 600);
       }
     } catch {
-      // Ignore malformed websocket payloads.
+      // ignore malformed payloads
     }
   };
 
@@ -92,7 +97,7 @@ watch(tasks, (nextTasks) => {
   }
 
   for (const taskId of sockets.keys()) {
-    if (!activeIDs.has(taskId)) {
+    if (!activeIDs.has(taskId) && !nextTasks.find((t) => t.id === taskId)) {
       closeTaskSocket(taskId);
       clearProgress(taskId);
     }
@@ -134,12 +139,8 @@ async function exportToExcel(taskDate: string) {
   try {
     const res = await fetch(
       `/api/export?date_start=${taskDate}&date_end=${taskDate}`,
-      {
-        method: "GET",
-      },
     );
     if (!res.ok) throw new Error(`export failed: ${res.status}`);
-
     const blob = await res.blob();
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
