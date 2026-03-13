@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"log"
+	"net/http"
 	"sync"
 
+	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"github.com/zollidan/esmeralda/internal/queue"
 	"github.com/zollidan/esmeralda/internal/repository"
@@ -62,6 +64,10 @@ func (h *Handler) broadcastProgress(p queue.TaskProgress) {
 		default:
 		}
 	}
+}
+
+func (h *Handler) Health(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
 func (h *Handler) StartConsumers(ctx context.Context) {

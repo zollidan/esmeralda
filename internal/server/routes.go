@@ -5,6 +5,8 @@ import (
 )
 
 func SetupRoutes(r *gin.Engine, h *Handler) {
+	r.GET("/health", h.Health)
+
 	api := r.Group("/api")
 	{
 		api.POST("/tasks", h.CreateTask)

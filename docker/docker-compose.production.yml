@@ -10,6 +10,13 @@ services:
       SERVER_PORT: ":8080"
       REDIS_ADDR: esmeralda-redis:6379
       DATABASE_DSN: "host=esmeralda-postgres user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} dbname=${POSTGRES_USER} port=5432 sslmode=disable"
+    healthcheck:
+      test:
+        ["CMD-SHELL", "wget -q --spider http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   parser:
     image: ghcr.io/zollidan/esmeralda-parser:latest
@@ -19,6 +26,13 @@ services:
       SPORT_API_TOKEN: ${SPORT_API_TOKEN}
       REDIS_ADDR: esmeralda-redis:6379
       DATABASE_DSN: "host=esmeralda-postgres user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} dbname=${POSTGRES_USER} port=5432 sslmode=disable"
+    # healthcheck:
+    #   test:
+    #     ["CMD-SHELL", "wget -q --spider http://localhost:8081/health || exit 1"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 10s
 
 networks:
   default:
