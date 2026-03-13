@@ -1,8 +1,8 @@
 services:
   api:
     build:
-      context: .
-      dockerfile: Dockerfile.api
+      context: ..
+      dockerfile: docker/Dockerfile.api
     container_name: esmeralda-api
     restart: unless-stopped
     ports:
@@ -15,8 +15,8 @@ services:
 
   parser:
     build:
-      context: .
-      dockerfile: Dockerfile.parser
+      context: ..
+      dockerfile: docker/Dockerfile.parser
     container_name: esmeralda-parser
     restart: unless-stopped
     environment:
@@ -26,5 +26,5 @@ services:
 
 networks:
   default:
-    name: esmeralda_default
+    name: esmeralda-network
     external: true

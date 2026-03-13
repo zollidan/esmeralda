@@ -7,10 +7,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_USER}
-      PROD_DB_SERVICE_A: ${PROD_DB_SERVICE_A}
-      PROD_DB_SERVICE_B: ${PROD_DB_SERVICE_B}
-      TEST_DB_SERVICE_A: ${TEST_DB_SERVICE_A}
-      TEST_DB_SERVICE_B: ${TEST_DB_SERVICE_B}
+      PROD_DB_SERVICE: ${PROD_DB_SERVICE}
+      TEST_DB_SERVICE: ${TEST_DB_SERVICE}
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
@@ -42,4 +40,4 @@ volumes:
 
 networks:
   default:
-    name: infra-network
+    name: esmeralda-network

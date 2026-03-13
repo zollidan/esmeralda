@@ -82,6 +82,9 @@ func TestLoad_DefaultValues(t *testing.T) {
 	if cfg.ServerPort != ":8080" {
 		t.Errorf("expected default ServerPort ':8080', got %q", cfg.ServerPort)
 	}
+	if cfg.DatabaseDSN != "" {
+		t.Errorf("expected empty default DatabaseDSN, got %q", cfg.DatabaseDSN)
+	}
 }
 
 func TestLoad_CustomValues(t *testing.T) {
@@ -91,6 +94,7 @@ func TestLoad_CustomValues(t *testing.T) {
 	t.Setenv("WORKERS", "5")
 	t.Setenv("REDIS_ADDR", "localhost:6379")
 	t.Setenv("SERVER_PORT", ":9090")
+	t.Setenv("DATABASE_DSN", "host=localhost user=test password=test dbname=test port=5432 sslmode=disable")
 
 	cfg := Load()
 
@@ -111,6 +115,9 @@ func TestLoad_CustomValues(t *testing.T) {
 	}
 	if cfg.ServerPort != ":9090" {
 		t.Errorf("expected ':9090', got %q", cfg.ServerPort)
+	}
+	if cfg.DatabaseDSN != "host=localhost user=test password=test dbname=test port=5432 sslmode=disable" {
+		t.Errorf("expected custom DatabaseDSN, got %q", cfg.DatabaseDSN)
 	}
 }
 

@@ -4,4 +4,7 @@ internal/static/dist
 *.xlsx
 *.csv
 .env
+.env*
 .git
+.github
+*.md

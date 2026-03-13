@@ -5,12 +5,12 @@ import (
 
 	"github.com/zollidan/esmeralda/internal/config"
 	"github.com/zollidan/esmeralda/internal/models"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 func New(cfg *config.Config) (*gorm.DB, error) {
-	database, err := gorm.Open(sqlite.Open(cfg.Database.SQLiteURL), &gorm.Config{})
+	database, err := gorm.Open(postgres.Open(cfg.DatabaseDSN), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("open db: %w", err)
 	}
