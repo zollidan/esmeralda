@@ -24,7 +24,7 @@ type result struct {
 }
 
 func (p *Processor) ProcessMatches(ctx context.Context, client api.MatchFetcher, games *repository.GameRepository, matches []api.Match, totalMatches int, taskID string) error {
-	limit := 20
+	limit := len(matches)
 	results := make(chan result, limit)
 	sem := make(chan struct{}, workers)
 
