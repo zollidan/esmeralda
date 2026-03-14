@@ -98,7 +98,8 @@ function progressPercent(progress: ProgressBar | undefined): number {
                 {{ task.status }}
               </span>
 
-              <div v-if="progressByTaskId[task.id]" class="mt-2">
+              <!-- progress bar temporarily hidden -->
+              <!-- <div v-if="progressByTaskId[task.id]" class="mt-2">
                 <div class="h-2 w-48 bg-slate-200 rounded-full overflow-hidden">
                   <div
                     class="h-full bg-blue-500 transition-all"
@@ -111,7 +112,7 @@ function progressPercent(progress: ProgressBar | undefined): number {
                   {{ progressByTaskId[task.id]?.current_match ?? 0 }} /
                   {{ progressByTaskId[task.id]?.total_matches ?? 0 }}
                 </p>
-              </div>
+              </div> -->
             </td>
             <td class="px-4 py-3 text-sm text-slate-600">
               {{ new Date(task.created_at).toLocaleString() }}
