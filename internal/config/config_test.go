@@ -76,8 +76,8 @@ func TestLoad_DefaultValues(t *testing.T) {
 	if cfg.Tech.Workers != 20 {
 		t.Errorf("expected default Workers 20, got %d", cfg.Tech.Workers)
 	}
-	if cfg.RedisAddr != "redis:6379" {
-		t.Errorf("expected default RedisAddr 'redis:6379', got %q", cfg.RedisAddr)
+	if cfg.RedisAddr != "localhost:6379" {
+		t.Errorf("expected default RedisAddr 'localhost:6379', got %q", cfg.RedisAddr)
 	}
 	if cfg.ServerPort != ":8080" {
 		t.Errorf("expected default ServerPort ':8080', got %q", cfg.ServerPort)
