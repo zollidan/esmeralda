@@ -12,6 +12,7 @@ type Config struct {
 	SportAPIRU  SportAPIRU
 	Excel       Excel
 	Tech        Tech
+	TelegramBot TelegramBot
 	DatabaseDSN string
 	RedisAddr   string
 	ServerPort  string
@@ -32,6 +33,13 @@ type Excel struct {
 type Tech struct {
 	GamesLimit int
 	Workers    int
+}
+
+type TelegramBot struct {
+	Token string
+	Debug string
+	APIBaseURL    string
+	APIToken      string
 }
 
 func Load() *Config {
@@ -56,6 +64,12 @@ func Load() *Config {
 		},
 		Tech: Tech{
 			Workers: getEnvInt("WORKERS", 20),
+		},
+		TelegramBot: TelegramBot{
+			Token: getEnv("TELEGRAM_BOT_TOKEN", ""),
+			Debug: getEnv("TELEGRAM_BOT_DEBUG", "true"),
+			APIBaseURL: getEnv("TELEGRAM_API_BASE_URL", "http://localhost:8080"),
+			APIToken:   getEnv("API_TOKEN", ""),
 		},
 		DatabaseDSN: getEnv("DATABASE_DSN", ""),
 		RedisAddr:   getEnv("REDIS_ADDR", "localhost:6379"),
