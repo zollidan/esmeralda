@@ -9,7 +9,7 @@ services:
       SPORT_API_TOKEN: ${SPORT_API_TOKEN}
       SERVER_PORT: ":8080"
       REDIS_ADDR: esmeralda-redis:6379
-      DATABASE_DSN: "host=esmeralda-postgres user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} dbname=${POSTGRES_USER} port=5432 sslmode=disable"
+      DATABASE_URL: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@esmeralda-postgres:5432/${POSTGRES_USER}?sslmode=disable"
       GIN_MODE: "release"
     healthcheck:
       test:
@@ -26,7 +26,7 @@ services:
     environment:
       SPORT_API_TOKEN: ${SPORT_API_TOKEN}
       REDIS_ADDR: esmeralda-redis:6379
-      DATABASE_DSN: "host=esmeralda-postgres user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} dbname=${POSTGRES_USER} port=5432 sslmode=disable"
+      DATABASE_URL: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@esmeralda-postgres:5432/${POSTGRES_USER}?sslmode=disable"
       # healthcheck:
       test:
         ["CMD-SHELL", "wget -q --spider http://localhost:8081/health || exit 1"]
@@ -35,12 +35,21 @@ services:
       retries: 3
       start_period: 10s
 
+  bot:
+    image: ghcr.io/zollidan/esmeralda-bot:latest
+    container_name: esmeralda-bot
+    restart: unless-stopped
+    environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_BOT_DEBUG: false
+      API_BASE_URL: "http://esmeralda-api:8080"
+
   frontend:
     image: ghcr.io/zollidan/esmeralda-frontend:latest
     container_name: esmeralda-frontend
     restart: unless-stopped
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
+      - "${FRONTEND_PORT:-3030}:3000"
 
 networks:
   default:

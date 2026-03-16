@@ -70,7 +70,7 @@ func Load() *Config {
 		TelegramBot: TelegramBot{
 			Token: getEnv("TELEGRAM_BOT_TOKEN", ""),
 			Debug: getEnv("TELEGRAM_BOT_DEBUG", "true"),
-			APIBaseURL: getEnv("TELEGRAM_API_BASE_URL", "http://localhost:8080"),
+			APIBaseURL: getEnv("API_BASE_URL", "http://localhost:8080"),
 			APIToken:   getEnv("API_TOKEN", ""),
 		},
 		DatabaseURL: getEnv("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"),
