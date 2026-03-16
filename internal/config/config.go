@@ -31,6 +31,7 @@ type Excel struct {
 }
 
 type Tech struct {
+	ParserPort string
 	GamesLimit int
 	Workers    int
 }
@@ -63,6 +64,7 @@ func Load() *Config {
 			FileName: getEnv("EXCEL_FILE_NAME", "esmeralda-ru.xlsx"),
 		},
 		Tech: Tech{
+			ParserPort: getEnv("PARSER_PORT", ":8081"),
 			Workers: getEnvInt("WORKERS", 20),
 		},
 		TelegramBot: TelegramBot{

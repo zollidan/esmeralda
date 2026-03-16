@@ -2,26 +2,37 @@ package bot
 
 import (
 	"log"
+	"net/http"
 	"strconv"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/zollidan/esmeralda/internal/config"
 )
 
-func Run(cfg config.Config) error {
-	bot, err := tgbotapi.NewBotAPI(cfg.TelegramBot.Token)
+type Bot struct {
+	cfg config.Config
+	client *http.Client
+}
+
+func NewBot(cfg config.Config) *Bot {
+	return &Bot{
+		cfg:    cfg,
+		client: &http.Client{},
+	}
+}
+
+func (b *Bot) Run() error {
+	bot, err := tgbotapi.NewBotAPI(b.cfg.TelegramBot.Token)
 	if err != nil {
 		return err
 	}
 
-	bot.Debug, err = strconv.ParseBool(cfg.TelegramBot.Debug)
+	bot.Debug, err = strconv.ParseBool(b.cfg.TelegramBot.Debug)
 	if err != nil {
 		return err
 	}
 
 	log.Printf("Authorized on account %s", bot.Self.UserName)
-
-	svc := NewRequestClient(cfg.TelegramBot.APIBaseURL, cfg.TelegramBot.APIToken)
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
@@ -35,24 +46,24 @@ func Run(cfg config.Config) error {
 			text := update.Message.Text
 
 			switch update.Message.Command() {
+
 			case "start":
 				if err := replyToStartCommand(bot, chatID, msgID); err != nil {
 					log.Println(err)
 				}
-			case "tasks":
-				if err := replyTasks(bot, chatID, msgID, svc); err != nil {
-					log.Println(err)
-				}
+
 			case "date":
-				if err := replyStartTask(bot, chatID, msgID, text, svc); err != nil {
+				if err := b.replyStartTask(bot, chatID, msgID, text); err != nil {
 					log.Println(err)
 				}
+
 			case "help":
-				if err := replyHelp(bot, chatID, msgID); err != nil {
+				if err := b.replyHelp(bot, chatID, msgID); err != nil {
 					log.Println(err)
 				}
+
 			default:
-				if err := replyDefault(bot, chatID, msgID); err != nil {
+				if err := b.replyDefault(bot, chatID, msgID); err != nil {
 					log.Println(err)
 				}
 			}
