@@ -24,8 +24,22 @@ jobs:
       - name: Run tests
         run: go test ./...
 
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+
   build-and-push:
-    needs: test
+    needs: [test, lint]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
@@ -67,3 +81,15 @@ jobs:
             ${{ env.IMAGE_PREFIX }}/esmeralda-parser:${{ github.sha }}
           cache-from: type=gha,scope=parser
           cache-to: type=gha,mode=max,scope=parser
+
+      - name: Build and push Bot
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.bot
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/esmeralda-bot:latest
+            ${{ env.IMAGE_PREFIX }}/esmeralda-bot:${{ github.sha }}
+          cache-from: type=gha,scope=bot
+          cache-to: type=gha,mode=max,scope=bot
