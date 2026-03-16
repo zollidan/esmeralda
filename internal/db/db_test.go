@@ -11,11 +11,10 @@ import (
 )
 
 func TestNew(t *testing.T) {
-
 	ctx := context.Background()
 
 	req := testcontainers.ContainerRequest{
-		Image: "postgres:16-alpine",
+		Image:        "postgres:16-alpine",
 		ExposedPorts: []string{"5432/tcp"},
 		Env: map[string]string{
 			"POSTGRES_USER":     "postgres",
@@ -27,7 +26,7 @@ func TestNew(t *testing.T) {
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
-		Started: true,
+		Started:          true,
 	})
 
 	assert.NoError(t, err)

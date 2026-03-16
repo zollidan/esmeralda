@@ -52,7 +52,6 @@ func main() {
 		}
 	}()
 
-
 	log.Println("Processor started")
 	err = parseConsumer.Consume(ctx, consumeProcess.ProcessParseTask)
 

@@ -29,7 +29,6 @@ func setupRedis(t *testing.T) *redis.Client {
 	})
 	require.NoError(t, err)
 
-
 	endpoint, err := container.Endpoint(ctx, "")
 	require.NoError(t, err)
 

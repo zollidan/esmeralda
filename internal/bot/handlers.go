@@ -16,7 +16,6 @@ const (
 )
 
 func replyToStartCommand(bot *tgbotapi.BotAPI, chatID int64, msgID int) error {
-
 	msg := tgbotapi.NewMessage(chatID, "Welcome to Esmeralda Bot! Use /tasks to see your tasks, /date to start a task, and /help for more information.")
 	msg.ReplyToMessageID = msgID
 
@@ -26,7 +25,6 @@ func replyToStartCommand(bot *tgbotapi.BotAPI, chatID int64, msgID int) error {
 }
 
 func (b *Bot) replyStartTask(bot *tgbotapi.BotAPI, chatID int64, msgID int, text string) error {
-
 	parts := strings.Split(text, " ")
 
 	if len(parts) < 2 {
@@ -59,7 +57,6 @@ func (b *Bot) replyStartTask(bot *tgbotapi.BotAPI, chatID int64, msgID int, text
 }
 
 func (b *Bot) replyHelp(bot *tgbotapi.BotAPI, chatID int64, msgID int) error {
-
 	msg := tgbotapi.NewMessage(chatID,
 		"Commands:\n"+
 			"/date YYYY-MM-DD — create task\n"+
@@ -72,7 +69,6 @@ func (b *Bot) replyHelp(bot *tgbotapi.BotAPI, chatID int64, msgID int) error {
 }
 
 func (b *Bot) replyDefault(bot *tgbotapi.BotAPI, chatID int64, msgID int) error {
-
 	msg := tgbotapi.NewMessage(chatID, "Unknown command. Use /help")
 	msg.ReplyToMessageID = msgID
 

@@ -29,7 +29,6 @@ func Init(apiClient api.MatchFetcher, games *repository.GameRepository, resultsP
 }
 
 func (p *Processor) ProcessParseTask(ctx context.Context, payload []byte) error {
-
 	task, err := queue.Unmarshal[queue.ParseTask](payload)
 	if err != nil {
 		return err

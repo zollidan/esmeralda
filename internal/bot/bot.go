@@ -10,7 +10,7 @@ import (
 )
 
 type Bot struct {
-	cfg config.Config
+	cfg    config.Config
 	client *http.Client
 }
 
@@ -46,7 +46,6 @@ func (b *Bot) Run() error {
 			text := update.Message.Text
 
 			switch update.Message.Command() {
-
 			case "start":
 				if err := replyToStartCommand(bot, chatID, msgID); err != nil {
 					log.Println(err)

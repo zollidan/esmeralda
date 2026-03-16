@@ -37,10 +37,10 @@ type Tech struct {
 }
 
 type TelegramBot struct {
-	Token string
-	Debug string
-	APIBaseURL    string
-	APIToken      string
+	Token      string
+	Debug      string
+	APIBaseURL string
+	APIToken   string
 }
 
 func Load() *Config {
@@ -65,11 +65,11 @@ func Load() *Config {
 		},
 		Tech: Tech{
 			ParserPort: getEnv("PARSER_PORT", ":8081"),
-			Workers: getEnvInt("WORKERS", 20),
+			Workers:    getEnvInt("WORKERS", 20),
 		},
 		TelegramBot: TelegramBot{
-			Token: getEnv("TELEGRAM_BOT_TOKEN", ""),
-			Debug: getEnv("TELEGRAM_BOT_DEBUG", "true"),
+			Token:      getEnv("TELEGRAM_BOT_TOKEN", ""),
+			Debug:      getEnv("TELEGRAM_BOT_DEBUG", "true"),
 			APIBaseURL: getEnv("API_BASE_URL", "http://localhost:8080"),
 			APIToken:   getEnv("API_TOKEN", ""),
 		},

@@ -8,11 +8,9 @@ import (
 )
 
 func main() {
-
 	cfg := config.InitConfig()
 
 	b := bot.NewBot(cfg)
-
 
 	err := b.Run()
 	if err != nil {
