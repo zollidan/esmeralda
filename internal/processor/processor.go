@@ -13,10 +13,6 @@ import (
 	"github.com/zollidan/esmeralda/internal/stats"
 )
 
-// сделать контекст для управления горутинами
-
-const workers = 20
-
 type result struct {
 	index int
 	game  models.Game
@@ -26,7 +22,7 @@ type result struct {
 func (p *Processor) ProcessMatches(ctx context.Context, client api.MatchFetcher, games *repository.GameRepository, matches []api.Match, totalMatches int, taskID string) error {
 	limit := len(matches)
 	results := make(chan result, limit)
-	sem := make(chan struct{}, workers)
+	sem := make(chan struct{}, p.workers)
 
 	var wg sync.WaitGroup
 
@@ -36,7 +32,12 @@ func (p *Processor) ProcessMatches(ctx context.Context, client api.MatchFetcher,
 		go func() {
 			defer wg.Done()
 
-			sem <- struct{}{}
+			select {
+			case sem <- struct{}{}:
+			case <-ctx.Done():
+				results <- result{index: i, err: ctx.Err()}
+				return
+			}
 			defer func() { <-sem }()
 
 			game, err := buildGame(client, match)

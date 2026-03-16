@@ -180,7 +180,7 @@ func TestInit_CreatesProcessor(t *testing.T) {
 	gamesRepo := repository.NewGameRepository(db)
 	fetcher := &mockFetcher{}
 
-	p := Init(fetcher, gamesRepo, &queue.Producer{}, &queue.Producer{})
+	p := Init(fetcher, gamesRepo, &queue.Producer{}, &queue.Producer{}, 5)
 	if p == nil {
 		t.Fatal("Init returned nil")
 	}

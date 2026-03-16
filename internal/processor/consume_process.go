@@ -15,14 +15,16 @@ type Processor struct {
 	games            *repository.GameRepository
 	resultsProducer  *queue.Producer
 	progressProducer *queue.Producer
+	workers          int
 }
 
-func Init(apiClient api.MatchFetcher, games *repository.GameRepository, resultsProducer *queue.Producer, progressProducer *queue.Producer) *Processor {
+func Init(apiClient api.MatchFetcher, games *repository.GameRepository, resultsProducer *queue.Producer, progressProducer *queue.Producer, workers int) *Processor {
 	return &Processor{
 		apiClient:        apiClient,
 		games:            games,
 		resultsProducer:  resultsProducer,
 		progressProducer: progressProducer,
+		workers:          workers,
 	}
 }
 
