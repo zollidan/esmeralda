@@ -13,7 +13,7 @@ type Config struct {
 	Excel       Excel
 	Tech        Tech
 	TelegramBot TelegramBot
-	DatabaseDSN string
+	DatabaseURL string
 	RedisAddr   string
 	ServerPort  string
 	Env         string
@@ -73,7 +73,7 @@ func Load() *Config {
 			APIBaseURL: getEnv("TELEGRAM_API_BASE_URL", "http://localhost:8080"),
 			APIToken:   getEnv("API_TOKEN", ""),
 		},
-		DatabaseDSN: getEnv("DATABASE_DSN", ""),
+		DatabaseURL: getEnv("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"),
 		RedisAddr:   getEnv("REDIS_ADDR", "localhost:6379"),
 		ServerPort:  getEnv("SERVER_PORT", ":8080"),
 		Env:         getEnv("ENV", "local"),
