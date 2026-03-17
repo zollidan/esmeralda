@@ -9,13 +9,13 @@ import (
 
 func TestGameToSlice_BasicFields(t *testing.T) {
 	g := models.Game{
-		Day:      5,
-		Month:    6,
-		Year:     2025,
-		Time:     "20:00",
-		HomeTeam: "Team1",
-		AwayTeam: "Team2",
-		League:   "Liga",
+		Day:            5,
+		Month:          6,
+		Year:           2025,
+		Time:           "20:00",
+		HomeTeam:       "Team1",
+		AwayTeam:       "Team2",
+		League:         "Liga",
 		H2HHomeMatches: 10,
 		H2HHomeWin1:    5,
 		H2HHomeDraw:    3,
@@ -54,9 +54,9 @@ func TestGameToSlice_BasicFields(t *testing.T) {
 
 func TestGameToSlice_H2H15Stats(t *testing.T) {
 	g := models.Game{
-		Day:   1,
-		Month: 1,
-		Year:  2025,
+		Day:            1,
+		Month:          1,
+		Year:           2025,
 		H2HHomeMatches: 10,
 		H2HHomeWin1:    5,
 		H2HHomeDraw:    3,

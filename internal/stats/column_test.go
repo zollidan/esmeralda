@@ -28,13 +28,13 @@ func TestHeaders(t *testing.T) {
 
 func TestGameToSlice(t *testing.T) {
 	g := &models.Game{
-		Day:      15,
-		Month:    3,
-		Year:     2025,
-		Time:     "18:00",
-		HomeTeam: "Team A",
-		AwayTeam: "Team B",
-		League:   "League 1",
+		Day:            15,
+		Month:          3,
+		Year:           2025,
+		Time:           "18:00",
+		HomeTeam:       "Team A",
+		AwayTeam:       "Team B",
+		League:         "League 1",
 		H2HHomeMatches: 10,
 		H2HHomeWin1:    5,
 		H2HHomeDraw:    3,
