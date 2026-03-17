@@ -3,6 +3,7 @@ package processor
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -20,13 +21,14 @@ type result struct {
 }
 
 func (p *Processor) ProcessMatches(ctx context.Context, client api.MatchFetcher, games *repository.GameRepository, matches []api.Match, totalMatches int, taskID string) error {
-	limit := 20
+	limit := len(matches)
 	results := make(chan result, limit)
 	sem := make(chan struct{}, p.workers)
 
 	var wg sync.WaitGroup
 
 	for i, match := range matches[:limit] {
+		i, match := i, match
 		wg.Add(1)
 
 		go func() {
@@ -48,7 +50,7 @@ func (p *Processor) ProcessMatches(ctx context.Context, client api.MatchFetcher,
 
 			game.TaskID = &taskID
 
-			if err := p.publishProgress(ctx, taskID, queue.StatusPending, limit, i); err != nil {
+			if err := p.publishProgress(ctx, taskID, queue.StatusPending, totalMatches, i+1); err != nil {
 				results <- result{index: i, err: fmt.Errorf("publish progress: %w", err)}
 				return
 			}
@@ -93,16 +95,27 @@ func buildGame(client api.MatchFetcher, match api.Match) (models.Game, error) {
 
 	go func() {
 		m, err := fetchMatches(client, api.MatchesFilter{
-			TeamID:         match.HomeTeam.ID,
-			Status:         api.MatchStatusFinished,
-		}, 25, 25)
+			TeamID: match.HomeTeam.ID,
+			Status: api.MatchStatusFinished,
+		}, fetchNeed{
+			NeedHome:       25,
+			NeedAway:       25,
+			NeedH2HAny:     25,
+			NeedH2HHome:    15,
+			OpponentTeamID: match.AwayTeam.ID,
+			Before:         date,
+		})
 		ch1 <- res{m, err}
 	}()
 	go func() {
 		m, err := fetchMatches(client, api.MatchesFilter{
-			TeamID:         match.AwayTeam.ID,
-			Status:         api.MatchStatusFinished,
-		}, 25, 25)
+			TeamID: match.AwayTeam.ID,
+			Status: api.MatchStatusFinished,
+		}, fetchNeed{
+			NeedHome: 25,
+			NeedAway: 25,
+			Before:   date,
+		})
 		ch2 <- res{m, err}
 	}()
 
@@ -124,7 +137,7 @@ func buildGame(client api.MatchFetcher, match api.Match) (models.Game, error) {
 		Time:     time.UnixMilli(match.StartTimestamp).Format("15:04"),
 		HomeTeam: match.HomeTeam.Name,
 		AwayTeam: match.AwayTeam.Name,
-		League:   match.Tournament.Name,
+		League:   formatLeagueName(match),
 
 		H2HHomeMatches: s.H2H15.Matches,
 		H2HHomeWin1:    s.H2H15.Win1,
@@ -197,39 +210,80 @@ func buildGame(client api.MatchFetcher, match api.Match) (models.Game, error) {
 	}, nil
 }
 
-func fetchMatches(client api.MatchFetcher, filter api.MatchesFilter, needHome, needAway int) ([]api.Match, error) {
-    var all []api.Match
-    homeCount, awayCount := 0, 0
-    teamID := filter.TeamID
+type fetchNeed struct {
+	NeedHome       int
+	NeedAway       int
+	NeedH2HAny     int
+	NeedH2HHome    int
+	OpponentTeamID int
+	Before         time.Time
+}
 
-    for page := 1; page <= 20; page++ {
-        filter.Page = page
-        filter.PageSize = 25
+func fetchMatches(client api.MatchFetcher, filter api.MatchesFilter, need fetchNeed) ([]api.Match, error) {
+	var all []api.Match
+	homeCount, awayCount := 0, 0
+	h2hAnyCount, h2hHomeCount := 0, 0
+	teamID := filter.TeamID
 
-        matches, total, err := client.GetMatches(filter)
-        if err != nil {
-            return nil, err
-        }
+	for page := 1; page <= 20; page++ {
+		filter.Page = page
+		filter.PageSize = 25
 
-        all = append(all, matches...)
+		matches, total, err := client.GetMatches(filter)
+		if err != nil {
+			return nil, err
+		}
 
-        for _, m := range matches {
-            if m.HomeTeam.ID == teamID {
-                homeCount++
-            } else {
-                awayCount++
-            }
-        }
+		all = append(all, matches...)
 
-        if homeCount >= needHome && awayCount >= needAway {
-            break
-        }
+		for _, m := range matches {
+			matchDate, err := time.Parse("2006-01-02", m.DateEvent)
+			if err != nil {
+				continue
+			}
+			if !need.Before.IsZero() && !matchDate.Before(need.Before) {
+				continue
+			}
 
-        // больше страниц нет
-        if len(all) >= total {
-            break
-        }
-    }
+			if m.HomeTeam.ID == teamID {
+				homeCount++
+			}
+			if m.AwayTeam.ID == teamID {
+				awayCount++
+			}
 
-    return all, nil
+			if need.OpponentTeamID == 0 {
+				continue
+			}
+
+			isH2HAny := (m.HomeTeam.ID == teamID && m.AwayTeam.ID == need.OpponentTeamID) ||
+				(m.HomeTeam.ID == need.OpponentTeamID && m.AwayTeam.ID == teamID)
+			if isH2HAny {
+				h2hAnyCount++
+			}
+
+			if m.HomeTeam.ID == teamID && m.AwayTeam.ID == need.OpponentTeamID {
+				h2hHomeCount++
+			}
+		}
+
+		if homeCount >= need.NeedHome && awayCount >= need.NeedAway && h2hAnyCount >= need.NeedH2HAny && h2hHomeCount >= need.NeedH2HHome {
+			break
+		}
+
+		if len(all) >= total {
+			break
+		}
+	}
+
+	return all, nil
+}
+
+func formatLeagueName(match api.Match) string {
+	league := strings.TrimSpace(match.Tournament.Name)
+	season := strings.TrimSpace(match.Season.Name)
+	if season == "" || strings.Contains(league, season) {
+		return league
+	}
+	return strings.TrimSpace(league + " " + season)
 }

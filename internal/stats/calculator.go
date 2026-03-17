@@ -1,6 +1,7 @@
 package stats
 
 import (
+	"fmt"
 	"sort"
 	"time"
 
@@ -13,17 +14,22 @@ func Calculate(match api.Match, team1Matches []api.Match, team2Matches []api.Mat
 	awayTeamID := match.AwayTeam.ID
 
 	// Фильтруем матчи по времени (ДО текущей даты)
+	team1All := filterTeam(team1Matches, homeTeamID, date)
 	team1Home := filterHome(team1Matches, homeTeamID, date)
 	team1Away := filterAway(team1Matches, homeTeamID, date)
+	team2All := filterTeam(team2Matches, awayTeamID, date)
 	team2Away := filterAway(team2Matches, awayTeamID, date)
 
 	// H2H фильтры
-	h2hAny := filterH2H(team1Matches, homeTeamID, awayTeamID, date)
-	h2hHome := filterH2HHomeField(team1Matches, homeTeamID, awayTeamID, date)
+	combined := combineUniqueMatches(team1Matches, team2Matches)
+	h2hAny := filterH2H(combined, homeTeamID, awayTeamID, date)
+	h2hHome := filterH2HHomeField(combined, homeTeamID, awayTeamID, date)
 
 	// Сортируем по дате (новые первыми)
+	team1All = sortByDateDesc(team1All)
 	team1Home = sortByDateDesc(team1Home)
 	team1Away = sortByDateDesc(team1Away)
+	team2All = sortByDateDesc(team2All)
 	team2Away = sortByDateDesc(team2Away)
 	h2hAny = sortByDateDesc(h2hAny)
 	h2hHome = sortByDateDesc(h2hHome)
@@ -38,12 +44,12 @@ func Calculate(match api.Match, team1Matches []api.Match, team2Matches []api.Mat
 		AwayK2_25: calcTotal(team2Away, awayTeamID, 25),
 
 		// Расширенные данные (JSON)
-		Details: buildDetails(h2hAny, h2hHome, team1Home, team1Away, team2Away, homeTeamID, awayTeamID),
+		Details: buildDetails(h2hAny, h2hHome, team1All, team1Home, team1Away, team2All, team2Away),
 	}
 }
 
 // buildDetails создает расширенные статистики для JSON
-func buildDetails(h2hAny, h2hHome, team1Home, team1Away, team2Away []api.Match, team1ID, team2ID int) StatsDetails {
+func buildDetails(h2hAny, h2hHome, team1All, team1Home, team1Away, team2All, team2Away []api.Match) StatsDetails {
 	var d StatsDetails
 
 	// H2H stats - любое поле
@@ -59,10 +65,10 @@ func buildDetails(h2hAny, h2hHome, team1Home, team1Away, team2Away []api.Match, 
 	d.H2H.HomeField.Win3 = calcWinWindow(h2hHome, 3)
 
 	// Home team stats (Team 1 at home)
-	d.Home.AllField.Over25 = calcOver25(team1Home, 25)
-	d.Home.AllField.Win5 = calcWinWindow(team1Home, 5)
-	d.Home.AllField.Win3 = calcWinWindow(team1Home, 3)
-	d.Home.AllField.Goals = calcGoalsWindow(team1Home, 25)
+	d.Home.AllField.Over25 = calcOver25(team1All, 25)
+	d.Home.AllField.Win5 = calcWinWindow(team1All, 5)
+	d.Home.AllField.Win3 = calcWinWindow(team1All, 3)
+	d.Home.AllField.Goals = calcGoalsWindow(team1All, 25)
 
 	d.Home.HomeField.Over25 = calcOver25(team1Home, 25) // все матчи дома уже на своем поле
 	d.Home.HomeField.Win5 = calcWinWindow(team1Home, 5)
@@ -70,10 +76,10 @@ func buildDetails(h2hAny, h2hHome, team1Home, team1Away, team2Away []api.Match, 
 	d.Home.HomeField.Goals = calcGoalsWindow(team1Home, 25)
 
 	// Away team stats (Team 2 away)
-	d.Away.AllField.Over25 = calcOver25(team2Away, 25)
-	d.Away.AllField.Win5 = calcWinWindow(team2Away, 5)
-	d.Away.AllField.Win3 = calcWinWindow(team2Away, 3)
-	d.Away.AllField.Goals = calcGoalsWindow(team2Away, 25)
+	d.Away.AllField.Over25 = calcOver25(team2All, 25)
+	d.Away.AllField.Win5 = calcWinWindow(team2All, 5)
+	d.Away.AllField.Win3 = calcWinWindow(team2All, 3)
+	d.Away.AllField.Goals = calcGoalsWindow(team2All, 25)
 
 	d.Away.AwayField.Over25 = calcOver25(team2Away, 25) // все матчи в гостях уже на выезде
 	d.Away.AwayField.Win5 = calcWinWindow(team2Away, 5)
@@ -81,6 +87,24 @@ func buildDetails(h2hAny, h2hHome, team1Home, team1Away, team2Away []api.Match, 
 	d.Away.AwayField.Goals = calcGoalsWindow(team2Away, 25)
 
 	return d
+}
+
+// combineUniqueMatches объединяет срезы матчей без дублей по match ID.
+func combineUniqueMatches(slices ...[]api.Match) []api.Match {
+	seen := make(map[int]struct{})
+	result := make([]api.Match, 0)
+
+	for _, slice := range slices {
+		for _, m := range slice {
+			if _, ok := seen[m.ID]; ok {
+				continue
+			}
+			seen[m.ID] = struct{}{}
+			result = append(result, m)
+		}
+	}
+
+	return result
 }
 
 // calcTotal подсчитывает побед/ничьи/поражений за N матчей
@@ -216,6 +240,24 @@ func filterHome(matches []api.Match, teamID int, before time.Time) []api.Match {
 	return result
 }
 
+// filterTeam возвращает все матчи команды на любом поле
+func filterTeam(matches []api.Match, teamID int, before time.Time) []api.Match {
+	var result []api.Match
+	for _, m := range matches {
+		date, err := time.Parse("2006-01-02", m.DateEvent)
+		if err != nil {
+			continue
+		}
+		if !date.Before(before) {
+			continue
+		}
+		if m.HomeTeam.ID == teamID || m.AwayTeam.ID == teamID {
+			result = append(result, m)
+		}
+	}
+	return result
+}
+
 // filterAway возвращает матчи team в гостях
 func filterAway(matches []api.Match, teamID int, before time.Time) []api.Match {
 	var result []api.Match
@@ -239,8 +281,11 @@ func sortByDateDesc(matches []api.Match) []api.Match {
 	sorted := make([]api.Match, len(matches))
 	copy(sorted, matches)
 	sort.Slice(sorted, func(i, j int) bool {
-		di, _ := time.Parse("2006-01-02", sorted[i].DateEvent)
-		dj, _ := time.Parse("2006-01-02", sorted[j].DateEvent)
+		di, errI := time.Parse("2006-01-02", sorted[i].DateEvent)
+		dj, errJ := time.Parse("2006-01-02", sorted[j].DateEvent)
+		if errI != nil || errJ != nil {
+			return fmt.Sprintf("%s-%d", sorted[i].DateEvent, sorted[i].ID) > fmt.Sprintf("%s-%d", sorted[j].DateEvent, sorted[j].ID)
+		}
 		return di.After(dj)
 	})
 	return sorted
