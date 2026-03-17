@@ -20,10 +20,10 @@ type Game struct {
 	H2HHomeWin2    int `gorm:"not null;default:0" json:"h2h_home_win2"`
 
 	// Общее количество матчей дома первой команды + W/D/L
-	HomeTeamHomeMatches int `gorm:"not null;default:0" json:"home_team_home_matches"`
-	HomeTeamHomeWin     int `gorm:"not null;default:0" json:"home_team_home_win"`
-	HomeTeamHomeDraw    int `gorm:"not null;default:0" json:"home_team_home_draw"`
-	HomeTeamHomeLoss    int `gorm:"not null;default:0" json:"home_team_home_loss"`
+	HomeTeamHomeMatches 										int `gorm:"not null;default:0" json:"home_team_home_matches"`
+	HomeTeamHomeWin     															int `gorm:"not null;default:0" json:"home_team_home_win"`
+	HomeTeamHomeDraw    																			int `gorm:"not null;default:0" json:"home_team_home_draw"`
+	HomeTeamHomeLoss    																							int `gorm:"not null;default:0" json:"home_team_home_loss"`
 
 	// Общее количество матчей в гостях второй команды + L/D/W
 	AwayTeamAwayMatches int `gorm:"not null;default:0" json:"away_team_away_matches"`
