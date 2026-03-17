@@ -158,13 +158,13 @@ func buildGame(client api.MatchFetcher, match api.Match) (models.Game, error) {
 		H2HHomeOver25Over:  d.H2H.HomeField.Over25.Over25,
 		H2HHomeOver25Under: d.H2H.HomeField.Over25.Under25,
 
-		HomeAllOver25Total: d.Home.AllField.Over25.Total,
-		HomeAllOver25Over:  d.Home.AllField.Over25.Over25,
-		HomeAllOver25Under: d.Home.AllField.Over25.Under25,
+		HomeAllOver25Total: d.Home.HomeField.Over25.Total,
+		HomeAllOver25Over:  d.Home.HomeField.Over25.Over25,
+		HomeAllOver25Under: d.Home.HomeField.Over25.Under25,
 
-		AwayAllOver25Total: d.Away.AllField.Over25.Total,
-		AwayAllOver25Over:  d.Away.AllField.Over25.Over25,
-		AwayAllOver25Under: d.Away.AllField.Over25.Under25,
+		AwayAllOver25Total: d.Away.AwayField.Over25.Total,
+		AwayAllOver25Over:  d.Away.AwayField.Over25.Over25,
+		AwayAllOver25Under: d.Away.AwayField.Over25.Under25,
 
 		H2HAnyGames25: d.H2H.AllField.Goals.Matches,
 		H2HAnyGoals25: d.H2H.AllField.Goals.Goals,
