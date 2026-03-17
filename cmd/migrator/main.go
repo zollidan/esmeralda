@@ -1,3 +1,4 @@
+// Utility for applying database migrations.
 package main
 
 import (

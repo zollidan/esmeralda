@@ -39,7 +39,10 @@ func TestClient_Get_Success(t *testing.T) {
 			t.Errorf("path = %q, want %q", r.URL.Path, "/test-path")
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(expected)
+		err := json.NewEncoder(w).Encode(expected)
+		if err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -69,7 +72,10 @@ func TestClient_Get_WithParams(t *testing.T) {
 			t.Errorf("date param = %q, want %q", r.URL.Query().Get("date"), "2025-01-15")
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(MatchesResponse{})
+		err := json.NewEncoder(w).Encode(MatchesResponse{})
+		if err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -110,7 +116,9 @@ func TestClient_Get_Non200Status(t *testing.T) {
 func TestClient_Get_InvalidJSON(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte("not json"))
+		if _, err := w.Write([]byte("not json")); err != nil {
+			t.Fatalf("failed to write response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -156,7 +164,9 @@ func TestClient_GetMatches(t *testing.T) {
 			t.Errorf("path = %q, want %q", r.URL.Path, "/football/matches")
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(expected)
+		if err := json.NewEncoder(w).Encode(expected); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 

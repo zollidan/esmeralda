@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/zollidan/esmeralda/internal/api"
@@ -45,9 +46,18 @@ func main() {
 		mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"status":"ok"}`))
+			if _, err := w.Write([]byte(`{"status":"ok"}`)); err != nil {
+				log.Printf("failed to write health response: %v", err)
+			}
 		})
-		if err := http.ListenAndServe(cfg.Tech.ParserPort, mux); err != nil {
+
+		srv := &http.Server{
+			Addr:              cfg.Tech.ParserPort,
+			Handler:           mux,
+			ReadHeaderTimeout: 5 * time.Second,
+		}
+
+		if err := srv.ListenAndServe(); err != nil {
 			log.Printf("health server: %v", err)
 		}
 	}()
@@ -56,6 +66,6 @@ func main() {
 	err = parseConsumer.Consume(ctx, consumeProcess.ProcessParseTask)
 
 	if err != nil && !errors.Is(err, context.Canceled) {
-		log.Fatal(err)
+		log.Print(err)
 	}
 }

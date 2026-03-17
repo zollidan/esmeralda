@@ -8,6 +8,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// Config is the main configuration struct for the application. It contains all necessary configuration fields, grouped by their respective domains (e.g., SportAPIRU, Excel, Tech, TelegramBot).
 type Config struct {
 	SportAPIRU  SportAPIRU
 	Excel       Excel
@@ -19,30 +20,35 @@ type Config struct {
 	Env         string
 }
 
+// SportAPIRU contains configuration related to the Sport API.
 type SportAPIRU struct {
 	BaseURL         string
 	BaseFootballURL string
 	Token           string
 }
 
+// Excel contains configuration related to Excel file handling.
 type Excel struct {
 	FilePath string
 	FileName string
 }
 
+// Tech contains configuration related to technical aspects of the application.
 type Tech struct {
 	ParserPort string
 	GamesLimit int
 	Workers    int
 }
 
+// TelegramBot contains configuration related to the Telegram Bot integration.
 type TelegramBot struct {
 	Token      string
 	Debug      string
 	APIBaseURL string
-	APIToken   string
+	APIAuth    string
 }
 
+// Load reads the configuration from environment variables (and optionally from a .env file) and returns a Config struct populated with the values. It also performs basic validation to ensure required fields are set.
 func Load() *Config {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, using environment variables")
@@ -71,7 +77,7 @@ func Load() *Config {
 			Token:      getEnv("TELEGRAM_BOT_TOKEN", ""),
 			Debug:      getEnv("TELEGRAM_BOT_DEBUG", "true"),
 			APIBaseURL: getEnv("API_BASE_URL", "http://localhost:8080"),
-			APIToken:   getEnv("API_TOKEN", ""),
+			APIAuth:    getEnv("API_TOKEN", ""),
 		},
 		DatabaseURL: getEnv("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"),
 		RedisAddr:   getEnv("REDIS_ADDR", "localhost:6379"),
@@ -80,6 +86,7 @@ func Load() *Config {
 	}
 }
 
+// InitConfig is a helper function that initializes the configuration by calling Load and returns the Config struct. This function can be used in the main application to easily get the configuration.
 func InitConfig() Config {
 	return *Load()
 }

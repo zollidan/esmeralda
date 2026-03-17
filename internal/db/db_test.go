@@ -32,6 +32,7 @@ func TestNew(t *testing.T) {
 	assert.NoError(t, err)
 
 	endpoint, err := container.Endpoint(ctx, "")
+	assert.NoError(t, err)
 
 	cfg := &config.Config{
 		DatabaseURL: "postgres://postgres:postgres@" + endpoint + "/test_db?sslmode=disable",

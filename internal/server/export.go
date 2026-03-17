@@ -52,22 +52,33 @@ func (h *Handler) ExportGames(c *gin.Context) {
 	}
 
 	f := excelize.NewFile()
-	defer f.Close()
+	defer func() {
+		_ = f.Close()
+	}()
 
 	sheet := "Games"
-	f.SetSheetName("Sheet1", sheet)
+	if err := f.SetSheetName("Sheet1", sheet); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось подготовить лист Excel"})
+		return
+	}
 
 	headers := stats.Headers()
 	for col, header := range headers {
 		cell, _ := excelize.CoordinatesToCellName(col+1, 1)
-		f.SetCellValue(sheet, cell, header)
+		if err := f.SetCellValue(sheet, cell, header); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось записать заголовки Excel"})
+			return
+		}
 	}
 
 	for rowIdx, game := range games {
 		values := stats.GameToSlice(&game)
 		for col, val := range values {
 			cell, _ := excelize.CoordinatesToCellName(col+1, rowIdx+2)
-			f.SetCellValue(sheet, cell, val)
+			if err := f.SetCellValue(sheet, cell, val); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось записать данные Excel"})
+				return
+			}
 		}
 	}
 

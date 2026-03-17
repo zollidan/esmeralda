@@ -46,8 +46,9 @@ func main() {
 	server.SetupRoutes(r, handler)
 
 	srv := &http.Server{
-		Addr:    cfg.ServerPort,
-		Handler: r,
+		Addr:              cfg.ServerPort,
+		Handler:           r,
+		ReadHeaderTimeout: 5 * time.Second,
 	}
 
 	go func() {
@@ -63,7 +64,7 @@ func main() {
 	defer shutdownCancel()
 
 	if err := srv.Shutdown(shutdownCtx); err != nil {
-		log.Fatalf("server forced to shutdown: %v", err)
+		log.Printf("server forced to shutdown: %v", err)
 	}
 
 	log.Println("server stopped")

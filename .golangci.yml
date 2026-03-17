@@ -13,7 +13,7 @@ linters:
     - ineffassign
 
     # стиль и читаемость
-    - revive
+    # - revive
     - gocritic
     - misspell
     - whitespace

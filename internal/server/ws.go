@@ -33,7 +33,9 @@ func (h *Handler) WSHandler(c *gin.Context) {
 		log.Printf("websocket upgrade: %v", err)
 		return
 	}
-	defer ws.Close()
+	defer func() {
+		_ = ws.Close()
+	}()
 
 	ctx, cancel := context.WithCancel(c.Request.Context())
 	defer cancel()
