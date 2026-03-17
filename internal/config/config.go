@@ -12,7 +12,8 @@ type Config struct {
 	SportAPIRU  SportAPIRU
 	Excel       Excel
 	Tech        Tech
-	DatabaseDSN string
+	TelegramBot TelegramBot
+	DatabaseURL string
 	RedisAddr   string
 	ServerPort  string
 	Env         string
@@ -30,8 +31,16 @@ type Excel struct {
 }
 
 type Tech struct {
+	ParserPort string
 	GamesLimit int
 	Workers    int
+}
+
+type TelegramBot struct {
+	Token      string
+	Debug      string
+	APIBaseURL string
+	APIToken   string
 }
 
 func Load() *Config {
@@ -55,9 +64,16 @@ func Load() *Config {
 			FileName: getEnv("EXCEL_FILE_NAME", "esmeralda-ru.xlsx"),
 		},
 		Tech: Tech{
-			Workers: getEnvInt("WORKERS", 20),
+			ParserPort: getEnv("PARSER_PORT", ":8081"),
+			Workers:    getEnvInt("WORKERS", 20),
 		},
-		DatabaseDSN: getEnv("DATABASE_DSN", ""),
+		TelegramBot: TelegramBot{
+			Token:      getEnv("TELEGRAM_BOT_TOKEN", ""),
+			Debug:      getEnv("TELEGRAM_BOT_DEBUG", "true"),
+			APIBaseURL: getEnv("API_BASE_URL", "http://localhost:8080"),
+			APIToken:   getEnv("API_TOKEN", ""),
+		},
+		DatabaseURL: getEnv("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"),
 		RedisAddr:   getEnv("REDIS_ADDR", "localhost:6379"),
 		ServerPort:  getEnv("SERVER_PORT", ":8080"),
 		Env:         getEnv("ENV", "local"),

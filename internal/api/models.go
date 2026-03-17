@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -29,7 +28,7 @@ type MatchesFilter struct {
 	SeasonID      int
 	TeamID        int
 	Status        MatchStatus
-	Page   		  int 
+	Page          int
 	PageSize      int
 }
 
@@ -48,19 +47,19 @@ func (f MatchesFilter) ToParams() url.Values {
 		params.Set("tournament_id", strings.Join(ids, ","))
 	}
 	if f.SeasonID != 0 {
-		params.Set("season_id", fmt.Sprintf("%d", f.SeasonID))
+		params.Set("season_id", strconv.Itoa(f.SeasonID))
 	}
 	if f.TeamID != 0 {
-		params.Set("team_id", fmt.Sprintf("%d", f.TeamID))
+		params.Set("team_id", strconv.Itoa(f.TeamID))
 	}
 	if f.Status != "" {
 		params.Set("status", string(f.Status))
 	}
 	if f.Page > 0 && f.Page <= 500 {
-		params.Set("page", fmt.Sprintf("%d", f.Page))
+		params.Set("page", strconv.Itoa(f.Page))
 	}
 	if f.PageSize > 0 && f.PageSize <= 100 {
-		params.Set("page_size", fmt.Sprintf("%d", f.PageSize))
+		params.Set("page_size", strconv.Itoa(f.PageSize))
 	}
 
 	return params
@@ -69,9 +68,9 @@ func (f MatchesFilter) ToParams() url.Values {
 type MatchesResponse struct {
 	TotalMatches int     `json:"totalMatches"`
 	Matches      []Match `json:"matches"`
-	Page		 int     `json:"page"`
+	Page         int     `json:"page"`
 	PageSize     int     `json:"pageSize"`
-	TotalPages    int     `json:"totalPages"`
+	TotalPages   int     `json:"totalPages"`
 }
 
 type Match struct {

@@ -1,0 +1,52 @@
+name: Go Auto-Format (dev)
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - "**.go"
+  workflow_dispatch:
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install goimports
+        run: go install golang.org/x/tools/cmd/goimports@latest
+
+      - name: Install golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          args: --help
+
+      - name: Run goimports (Format & Fix Imports)
+        run: goimports -w .
+
+      - name: Run golangci-lint --fix (Auto-fix supported issues)
+        run: |
+          golangci-lint run --fix --timeout=5m || true
+        env:
+          GOLANGCI_LINT_CONFIG: .golangci.yml
+
+      - name: Commit and push if changed
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(dev): auto-format & lint-fix [ci skip]"
+          file_pattern: "*.go"
+          skip_fetch: true

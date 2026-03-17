@@ -82,8 +82,8 @@ func TestLoad_DefaultValues(t *testing.T) {
 	if cfg.ServerPort != ":8080" {
 		t.Errorf("expected default ServerPort ':8080', got %q", cfg.ServerPort)
 	}
-	if cfg.DatabaseDSN != "" {
-		t.Errorf("expected empty default DatabaseDSN, got %q", cfg.DatabaseDSN)
+	if cfg.DatabaseURL != "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable" {
+		t.Errorf("expected default DatabaseURL, got %q", cfg.DatabaseURL)
 	}
 }
 
@@ -94,7 +94,7 @@ func TestLoad_CustomValues(t *testing.T) {
 	t.Setenv("WORKERS", "5")
 	t.Setenv("REDIS_ADDR", "localhost:6379")
 	t.Setenv("SERVER_PORT", ":9090")
-	t.Setenv("DATABASE_DSN", "host=localhost user=test password=test dbname=test port=5432 sslmode=disable")
+	t.Setenv("DATABASE_URL", "postgres://test:test@localhost:5432/test?sslmode=disable")
 
 	cfg := Load()
 
@@ -116,8 +116,8 @@ func TestLoad_CustomValues(t *testing.T) {
 	if cfg.ServerPort != ":9090" {
 		t.Errorf("expected ':9090', got %q", cfg.ServerPort)
 	}
-	if cfg.DatabaseDSN != "host=localhost user=test password=test dbname=test port=5432 sslmode=disable" {
-		t.Errorf("expected custom DatabaseDSN, got %q", cfg.DatabaseDSN)
+	if cfg.DatabaseURL != "postgres://test:test@localhost:5432/test?sslmode=disable" {
+		t.Errorf("expected custom DatabaseURL, got %q", cfg.DatabaseURL)
 	}
 }
 

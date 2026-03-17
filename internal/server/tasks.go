@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/zollidan/esmeralda/internal/models"
 	"github.com/zollidan/esmeralda/internal/queue"
+	"gorm.io/gorm"
 )
 
 type createTaskRequest struct {
@@ -61,4 +63,24 @@ func (h *Handler) GetTasks(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, tasks)
+}
+
+func (h *Handler) GetTask(c *gin.Context) {
+	taskID := c.Param("id")
+	if taskID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id задачи обязателен"})
+		return
+	}
+
+	task, err := h.tasks.FindByID(c.Request.Context(), taskID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "задача не найдена"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось получить задачу"})
+		return
+	}
+
+	c.JSON(http.StatusOK, task)
 }

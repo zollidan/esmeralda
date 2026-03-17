@@ -1,0 +1,95 @@
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  enable:
+    # базовые проверки
+    - govet
+    - errcheck
+    - staticcheck
+    - ineffassign
+
+    # стиль и читаемость
+    - revive
+    - gocritic
+    - misspell
+    - whitespace
+    - unconvert
+
+    # безопасность
+    - gosec
+
+    # ошибки и nil
+    - nilerr
+    - nilnil
+    - errorlint
+
+    # производительность
+    - prealloc
+    - perfsprint
+
+    # работа с контекстом (очень важно для backend)
+    - noctx
+    - contextcheck
+
+    # HTTP и ресурсы
+    - bodyclose
+
+    # SQL / DB
+    - sqlclosecheck
+
+    # структурные проблемы
+    - wastedassign
+
+linters-settings:
+  revive:
+    severity: warning
+    rules:
+      - name: indent-error-flow
+      - name: error-return
+      - name: error-naming
+      - name: var-naming
+      - name: receiver-naming
+
+  gocritic:
+    enabled-tags:
+      - performance
+      - style
+      - diagnostic
+
+  gosec:
+    excludes:
+      - G404
+
+issues:
+  exclude-dirs:
+    - vendor
+    - node_modules
+    - tmp
+
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck
+        - gosec
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+
+output:
+  formats:
+    colored-line-number:
+      path: stdout
+
+  sort-order:
+    - file
+    - linter
+
+  show-stats: true
+  print-issued-lines: true
+  print-linter-name: true

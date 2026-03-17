@@ -4,9 +4,9 @@ services:
     container_name: esmeralda-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-esmeralda}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
-      POSTGRES_DB: ${POSTGRES_DB:-esmeralda}
+      POSTGRES_USER: esmeralda
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: esmeralda
     ports:
       - "5432:5432"
     volumes:

@@ -10,7 +10,7 @@ import (
 )
 
 func New(cfg *config.Config) (*gorm.DB, error) {
-	database, err := gorm.Open(postgres.Open(cfg.DatabaseDSN), &gorm.Config{})
+	database, err := gorm.Open(postgres.Open(cfg.DatabaseURL), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("open db: %w", err)
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -34,23 +35,24 @@ func main() {
 	resultsProducer := queue.NewProducer(rdb, queue.StreamResults)
 	progressProducer := queue.NewProducer(rdb, queue.StreamProgress)
 
-	consumeProcess := processor.Init(client, gameRepo, resultsProducer, progressProducer)
+	consumeProcess := processor.Init(client, gameRepo, resultsProducer, progressProducer, cfg.Tech.Workers)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	// go func() {
-	// 	mux := http.NewServeMux()
-	// 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-	// 		w.Header().Set("Content-Type", "application/json")
-	// 		w.WriteHeader(http.StatusOK)
-	// 		w.Write([]byte(`{"status":"ok"}`))
-	// 	})
-	// 	if err := http.ListenAndServe(":8081", mux); err != nil {
-	// 		log.Printf("health server: %v", err)
-	// 	}
-	// }()
+	go func() {
+		mux := http.NewServeMux()
+		mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`{"status":"ok"}`))
+		})
+		if err := http.ListenAndServe(cfg.Tech.ParserPort, mux); err != nil {
+			log.Printf("health server: %v", err)
+		}
+	}()
 
+	log.Println("Processor started")
 	err = parseConsumer.Consume(ctx, consumeProcess.ProcessParseTask)
 
 	if err != nil && !errors.Is(err, context.Canceled) {
