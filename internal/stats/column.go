@@ -1,101 +1,117 @@
 package stats
 
-type column struct {
-	header string
-	value  func(r Row) interface{}
+import (
+	"github.com/zollidan/esmeralda/internal/models"
+)
+
+type Column struct {
+	Header string
+	Value  func(g *models.Game) interface{}
 }
 
-var Columns = []column{
-	// базовая инфа
-	{"число", func(r Row) interface{} { return r.Day }},
-	{"месяц", func(r Row) interface{} { return int(r.Month) }},
-	{"год", func(r Row) interface{} { return r.Year }},
-	{"время", func(r Row) interface{} { return r.Time }},
-	{"команда_1", func(r Row) interface{} { return r.HomeTeam }},
-	{"команда_2", func(r Row) interface{} { return r.AwayTeam }},
-	// {"бк", func(r Row) interface{} { return r.BK }},
-	{"лига", func(r Row) interface{} { return r.League }},
+var Columns = []Column{
+	// Базовая информация
+	{"число", func(g *models.Game) interface{} { return g.Day }},
+	{"месяц", func(g *models.Game) interface{} { return g.Month }},
+	{"год", func(g *models.Game) interface{} { return g.Year }},
+	{"время", func(g *models.Game) interface{} { return g.Time }},
+	{"команда_1", func(g *models.Game) interface{} { return g.HomeTeam }},
+	{"команда_2", func(g *models.Game) interface{} { return g.AwayTeam }},
+	{"лига", func(g *models.Game) interface{} { return g.League }},
 
-	// H2H на поле хозяев — 15 матчей
-	{"H2H15 всего", func(r Row) interface{} { return r.H2H15.Matches }},
-	{"H2H15 победы К1", func(r Row) interface{} { return r.H2H15.Win1 }},
-	{"H2H15 ничьи", func(r Row) interface{} { return r.H2H15.Draw }},
-	{"H2H15 победы К2", func(r Row) interface{} { return r.H2H15.Win2 }},
+	{"Сумма очных игр на поле команда 1", func(g *models.Game) interface{} { return g.H2HHomeMatches }},
+	{"Побед на своем поле в очных играх на поле команда 1", func(g *models.Game) interface{} { return g.H2HHomeWin1 }},
+	{"Ничьи в очных играх на поле команда 1", func(g *models.Game) interface{} { return g.H2HHomeDraw }},
+	{"Поражений на своем поле в очных играх на поле команда 1", func(g *models.Game) interface{} { return g.H2HHomeWin2 }},
 
-	// H2H на поле хозяев — 25 матчей
-	{"H2H25 всего", func(r Row) interface{} { return r.H2H25.Matches }},
-	{"H2H25 победы К1", func(r Row) interface{} { return r.H2H25.Win1 }},
-	{"H2H25 ничьи", func(r Row) interface{} { return r.H2H25.Draw }},
-	{"H2H25 победы К2", func(r Row) interface{} { return r.H2H25.Win2 }},
+	{"общее количество матчей дома первой команды", func(g *models.Game) interface{} { return g.HomeTeamHomeMatches }},
+	{"победа на своем поле", func(g *models.Game) interface{} { return g.HomeTeamHomeWin }},
+	{"ничья на своем поле", func(g *models.Game) interface{} { return g.HomeTeamHomeDraw }},
+	{"поражение на своем поле", func(g *models.Game) interface{} { return g.HomeTeamHomeLoss }},
 
-	// домашние К1 — 25 матчей
-	{"Дома К1 всего", func(r Row) interface{} { return r.Home25.Matches }},
-	{"Дома К1 победы", func(r Row) interface{} { return r.Home25.Win1 }},
-	{"Дома К1 ничьи", func(r Row) interface{} { return r.Home25.Draw }},
-	{"Дома К1 поражения", func(r Row) interface{} { return r.Home25.Win2 }},
+	{"Общее количество матчей в гостях второй команды", func(g *models.Game) interface{} { return g.AwayTeamAwayMatches }},
+	{"Поражения команды 2 в гостях", func(g *models.Game) interface{} { return g.AwayTeamAwayLoss }},
+	{"Игра в гостях. Ничьи", func(g *models.Game) interface{} { return g.AwayTeamAwayDraw }},
+	{"Победы команды 2 в гостях", func(g *models.Game) interface{} { return g.AwayTeamAwayWin }},
 
-	// выездные К1 — 15 матчей
-	{"Выезд К1-15 всего", func(r Row) interface{} { return r.Away15.Matches }},
-	{"Выезд К1-15 победы", func(r Row) interface{} { return r.Away15.Win1 }},
-	{"Выезд К1-15 ничьи", func(r Row) interface{} { return r.Away15.Draw }},
-	{"Выезд К1-15 поражения", func(r Row) interface{} { return r.Away15.Win2 }},
+	{"Очные встречи. Свое поле. Тотал 2.5 Б/М", func(g *models.Game) interface{} { return g.H2HHomeOver25Total }},
+	{"Очные встречи. Свое поле. Тотал 2.5 Б", func(g *models.Game) interface{} { return g.H2HHomeOver25Over }},
+	{"Очные встречи. Свое поле. Тотал 2.5 М", func(g *models.Game) interface{} { return g.H2HHomeOver25Under }},
 
-	// выездные К1 — 25 матчей
-	{"Выезд К1-25 всего", func(r Row) interface{} { return r.Away25.Matches }},
-	{"Выезд К1-25 победы", func(r Row) interface{} { return r.Away25.Win1 }},
-	{"Выезд К1-25 ничьи", func(r Row) interface{} { return r.Away25.Draw }},
-	{"Выезд К1-25 поражения", func(r Row) interface{} { return r.Away25.Win2 }},
+	{"Все встречи. Свое поле. Тотал 2.5 Б/М", func(g *models.Game) interface{} { return g.HomeAllOver25Total }},
+	{"Все встречи. Свое поле. Тотал 2.5 Б", func(g *models.Game) interface{} { return g.HomeAllOver25Over }},
+	{"Все встречи. Свое поле. Тотал 2.5 М", func(g *models.Game) interface{} { return g.HomeAllOver25Under }},
 
-	// под вопросом
-	// Выезд К2 — 25 матчей
-	{"Выезд К2 всего", func(r Row) interface{} { return r.AwayK2_25.Matches }},
-	{"Выезд К2 победы", func(r Row) interface{} { return r.AwayK2_25.Win1 }},
-	{"Выезд К2 ничьи", func(r Row) interface{} { return r.AwayK2_25.Draw }},
-	{"Выезд К2 поражения", func(r Row) interface{} { return r.AwayK2_25.Win2 }},
+	{"Все встречи. Гостевое поле. Тотал 2.5 Б/М", func(g *models.Game) interface{} { return g.AwayAllOver25Total }},
+	{"Все встречи. Гостевое поле. Тотал 2.5 Б", func(g *models.Game) interface{} { return g.AwayAllOver25Over }},
+	{"Все встречи. Гостевое поле. Тотал 2.5 М", func(g *models.Game) interface{} { return g.AwayAllOver25Under }},
 
-	// под вопросом
-	// тоталы голов — выезд К2
-	{"Выезд К2 гол >2.5 матчей", func(r Row) interface{} { return r.GoalsAway.Over25Matches }},
-	{"Выезд К2 гол >2.5 итог", func(r Row) interface{} { return r.GoalsAway.Over25Total }},
-	{"H2H гол >3 матчей", func(r Row) interface{} { return r.GoalsH2H.Over3Matches }},
-	{"H2H гол >3 итог", func(r Row) interface{} { return r.GoalsH2H.Over3Total }},
-	{"H2H гол >5 матчей", func(r Row) interface{} { return r.GoalsH2H.Over5Matches }},
-	{"H2H гол >5 итог", func(r Row) interface{} { return r.GoalsH2H.Over5Total }},
+	{"Кол-во игр очн. (25) команда 1 и команда 2 на любом поле", func(g *models.Game) interface{} { return g.H2HAnyGames25 }},
+	{"Сумма мячей очн. (25)", func(g *models.Game) interface{} { return g.H2HAnyGoals25 }},
+	{"Кол-во игр очн. (5) команда 1 и команда 2 на любом поле", func(g *models.Game) interface{} { return g.H2HAnyGames5 }},
+	{"Сумма мячей очн. (5)", func(g *models.Game) interface{} { return g.H2HAnyGoals5 }},
+	{"Кол-во игр очн. (3) команда 1 и команда 2 на любом поле", func(g *models.Game) interface{} { return g.H2HAnyGames3 }},
+	{"Сумма мячей очн. (3)", func(g *models.Game) interface{} { return g.H2HAnyGoals3 }},
 
-	// тоталы голов — дома К1
-	{"Дома гол >2.5 матчей", func(r Row) interface{} { return r.GoalsHome.Over25Matches }},
-	{"Дома гол >2.5 итог", func(r Row) interface{} { return r.GoalsHome.Over25Total }},
-	{"Дома гол >3 матчей", func(r Row) interface{} { return r.GoalsHome.Over3Matches }},
-	{"Дома гол >3 итог", func(r Row) interface{} { return r.GoalsHome.Over3Total }},
-	{"Дома гол >5 матчей", func(r Row) interface{} { return r.GoalsHome.Over5Matches }},
-	{"Дома гол >5 итог", func(r Row) interface{} { return r.GoalsHome.Over5Total }},
+	{"количество игр хозяев (25) на любом поле", func(g *models.Game) interface{} { return g.HomeAnyGames25 }},
+	{"сумма мячей хозяев (25) на любом поле", func(g *models.Game) interface{} { return g.HomeAnyGoals25 }},
+	{"количество игр хозяев (5) на любом поле", func(g *models.Game) interface{} { return g.HomeAnyGames5 }},
+	{"сумма мячей хозяев (5) на любом поле", func(g *models.Game) interface{} { return g.HomeAnyGoals5 }},
+	{"количество игр хозяев (3) на любом поле", func(g *models.Game) interface{} { return g.HomeAnyGames3 }},
+	{"сумма мячей хозяев (3) на любом поле", func(g *models.Game) interface{} { return g.HomeAnyGoals3 }},
 
-	// тоталы — выезд К2
-	{"Выезд К2 гол >2.5 матчей", func(r Row) interface{} { return r.GoalsAway.Over25Matches }},
-	{"Выезд К2 гол >2.5 итог", func(r Row) interface{} { return r.GoalsAway.Over25Total }},
-	{"Выезд К2 гол >3 матчей", func(r Row) interface{} { return r.GoalsAway.Over3Matches }},
-	{"Выезд К2 гол >3 итог", func(r Row) interface{} { return r.GoalsAway.Over3Total }},
-	{"Выезд К2 гол >5 матчей", func(r Row) interface{} { return r.GoalsAway.Over5Matches }},
-	{"Выезд К2 гол >5 итог", func(r Row) interface{} { return r.GoalsAway.Over5Total }},
+	{"количество игр гостей (25) на любом поле", func(g *models.Game) interface{} { return g.AwayAnyGames25 }},
+	{"сумма мячей гостей (25) на любом поле", func(g *models.Game) interface{} { return g.AwayAnyGoals25 }},
+	{"количество игр гостей (5) на любом поле", func(g *models.Game) interface{} { return g.AwayAnyGames5 }},
+	{"сумма мячей гостей (5) на любом поле", func(g *models.Game) interface{} { return g.AwayAnyGoals5 }},
+	{"количество игр гостей (3) на любом поле", func(g *models.Game) interface{} { return g.AwayAnyGames3 }},
+	{"сумма мячей гостей (3) на любом поле", func(g *models.Game) interface{} { return g.AwayAnyGoals3 }},
 
-	// коэффициенты
-	// {"фора", func(r Row) interface{} { return r.Fora }},
-	// {"коэф 1", func(r Row) interface{} { return r.Coef1 }},
-	// {"коэф 2", func(r Row) interface{} { return r.Coef2 }},
+	{"Кол-во игр очн. (25) команда 1 и команда 2 на поле хозяев", func(g *models.Game) interface{} { return g.H2HHomeGames25 }},
+	{"Сумма мячей очн. (25) команда 1 и команда 2 на поле хозяев", func(g *models.Game) interface{} { return g.H2HHomeGoals25 }},
+	{"Кол-во игр очн. (5) команда 1 и команда 2 на поле хозяев", func(g *models.Game) interface{} { return g.H2HHomeGames5 }},
+	{"Сумма мячей очн. (5) команда 1 и команда 2 на поле хозяев", func(g *models.Game) interface{} { return g.H2HHomeGoals5 }},
+	{"Кол-во игр очн. (3) команда 1 и команда 2 на поле хозяев", func(g *models.Game) interface{} { return g.H2HHomeGames3 }},
+	{"Сумма мячей очн. (3) команда 1 и команда 2 на поле хозяев", func(g *models.Game) interface{} { return g.H2HHomeGoals3 }},
+
+	{"количество игр хозяев (25) на поле хозяев", func(g *models.Game) interface{} { return g.HomeHomeGames25 }},
+	{"сумма мячей хозяев (25) на поле хозяев", func(g *models.Game) interface{} { return g.HomeHomeGoals25 }},
+	{"количество игр хозяев (5) на поле хозяев", func(g *models.Game) interface{} { return g.HomeHomeGames5 }},
+	{"сумма мячей хозяев (5) на поле хозяев", func(g *models.Game) interface{} { return g.HomeHomeGoals5 }},
+	{"количество игр хозяев (3) на поле хозяев", func(g *models.Game) interface{} { return g.HomeHomeGames3 }},
+	{"сумма мячей хозяев (3) на поле хозяев", func(g *models.Game) interface{} { return g.HomeHomeGoals3 }},
+
+	{"количество игр гостей (25) на поле гостей", func(g *models.Game) interface{} { return g.AwayAwayGames25 }},
+	{"сумма мячей гостей (25) на поле гостей", func(g *models.Game) interface{} { return g.AwayAwayGoals25 }},
+	{"количество игр гостей (5) на поле гостей", func(g *models.Game) interface{} { return g.AwayAwayGames5 }},
+	{"сумма мячей гостей (5) на поле гостей", func(g *models.Game) interface{} { return g.AwayAwayGoals5 }},
+	{"количество игр гостей (3) на поле гостей", func(g *models.Game) interface{} { return g.AwayAwayGames3 }},
+	{"сумма мячей гостей (3) на поле гостей", func(g *models.Game) interface{} { return g.AwayAwayGoals3 }},
 }
 
-func Headers() []interface{} {
-	h := make([]interface{}, len(Columns))
-	for i, c := range Columns {
-		h[i] = c.header
+// Headers возвращает заголовки столбцов
+func Headers() []string {
+	headers := make([]string, len(Columns))
+	for i, col := range Columns {
+		headers[i] = col.Header
 	}
-	return h
+	return headers
 }
 
-func (r Row) ToSlice() []interface{} {
-	s := make([]interface{}, len(Columns))
-	for i, c := range Columns {
-		s[i] = c.value(r)
+// GetValue возвращает значение для ячейки из игры по индексу колонки
+func GetValue(g *models.Game, colIdx int) interface{} {
+	if colIdx < 0 || colIdx >= len(Columns) {
+		return ""
 	}
-	return s
+	return Columns[colIdx].Value(g)
+}
+
+// ToSlice преобразует Game в слайс значений для Excel экспорта
+// (без расширенных данных из JSON - они лежат отдельно)
+func GameToSlice(g *models.Game) []interface{} {
+	slice := make([]interface{}, len(Columns))
+	for i, col := range Columns {
+		slice[i] = col.Value(g)
+	}
+	return slice
 }

@@ -180,26 +180,6 @@ func TestCalcTotal_Limit(t *testing.T) {
 	}
 }
 
-func TestCalcGoals(t *testing.T) {
-	matches := []api.Match{
-		{HomeScore: api.Score{Current: 2}, AwayScore: api.Score{Current: 1}}, // 3
-		{HomeScore: api.Score{Current: 3}, AwayScore: api.Score{Current: 2}}, // 5
-		{HomeScore: api.Score{Current: 1}, AwayScore: api.Score{Current: 0}}, // 1
-	}
-
-	stats := calcGoals(matches, 10)
-
-	if stats.Over25Matches != 2 {
-		t.Fatalf("expected 2 matches over 2.5, got %d", stats.Over25Matches)
-	}
-	if stats.Over3Matches != 1 {
-		t.Fatalf("expected 1 match over 3, got %d", stats.Over3Matches)
-	}
-	if stats.Over5Matches != 0 {
-		t.Fatalf("expected 0 matches over 5, got %d", stats.Over5Matches)
-	}
-}
-
 func TestIntegration_WithRealJSON(t *testing.T) {
 	matches := loadData(t)
 

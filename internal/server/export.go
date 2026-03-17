@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/xuri/excelize/v2"
-	"github.com/zollidan/esmeralda/internal/models"
 	"github.com/zollidan/esmeralda/internal/stats"
 )
 
@@ -65,8 +64,7 @@ func (h *Handler) ExportGames(c *gin.Context) {
 	}
 
 	for rowIdx, game := range games {
-		row := gameToRow(game)
-		values := row.ToSlice()
+		values := stats.GameToSlice(&game)
 		for col, val := range values {
 			cell, _ := excelize.CoordinatesToCellName(col+1, rowIdx+2)
 			f.SetCellValue(sheet, cell, val)
@@ -80,28 +78,5 @@ func (h *Handler) ExportGames(c *gin.Context) {
 	if err := f.Write(c.Writer); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось сформировать Excel файл"})
 		return
-	}
-}
-
-func gameToRow(g models.Game) stats.Row {
-	return stats.Row{
-		Day:      g.Day,
-		Month:    time.Month(g.Month),
-		Year:     g.Year,
-		Time:     g.Time,
-		HomeTeam: g.HomeTeam,
-		AwayTeam: g.AwayTeam,
-		League:   g.League,
-
-		H2H15:     stats.TotalStats(g.H2H15),
-		H2H25:     stats.TotalStats(g.H2H25),
-		Home25:    stats.TotalStats(g.Home25),
-		Away15:    stats.TotalStats(g.Away15),
-		Away25:    stats.TotalStats(g.Away25),
-		AwayK2_25: stats.TotalStats(g.AwayK2_25),
-
-		GoalsH2H:  stats.GoalStats(g.GoalsH2H),
-		GoalsHome: stats.GoalStats(g.GoalsHome),
-		GoalsAway: stats.GoalStats(g.GoalsAway),
 	}
 }

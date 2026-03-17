@@ -20,7 +20,7 @@ type result struct {
 }
 
 func (p *Processor) ProcessMatches(ctx context.Context, client api.MatchFetcher, games *repository.GameRepository, matches []api.Match, totalMatches int, taskID string) error {
-	limit := len(matches)
+	limit := 20
 	results := make(chan result, limit)
 	sem := make(chan struct{}, p.workers)
 
@@ -92,11 +92,17 @@ func buildGame(client api.MatchFetcher, match api.Match) (models.Game, error) {
 	ch2 := make(chan res, 1)
 
 	go func() {
-		m, _, err := client.GetMatches(api.MatchesFilter{TeamID: match.HomeTeam.ID, Status: api.MatchStatusFinished, Page: 1, PageSize: 25})
+		m, err := fetchMatches(client, api.MatchesFilter{
+			TeamID:         match.HomeTeam.ID,
+			Status:         api.MatchStatusFinished,
+		}, 25, 25)
 		ch1 <- res{m, err}
 	}()
 	go func() {
-		m, _, err := client.GetMatches(api.MatchesFilter{TeamID: match.AwayTeam.ID, Status: api.MatchStatusFinished, Page: 1, PageSize: 25})
+		m, err := fetchMatches(client, api.MatchesFilter{
+			TeamID:         match.AwayTeam.ID,
+			Status:         api.MatchStatusFinished,
+		}, 25, 25)
 		ch2 <- res{m, err}
 	}()
 
@@ -109,6 +115,8 @@ func buildGame(client api.MatchFetcher, match api.Match) (models.Game, error) {
 	}
 
 	s := stats.Calculate(match, r1.matches, r2.matches)
+	d := s.Details
+
 	return models.Game{
 		Day:      date.Day(),
 		Month:    int(date.Month()),
@@ -118,15 +126,110 @@ func buildGame(client api.MatchFetcher, match api.Match) (models.Game, error) {
 		AwayTeam: match.AwayTeam.Name,
 		League:   match.Tournament.Name,
 
-		H2H15:     models.TotalStats(s.H2H15),
-		H2H25:     models.TotalStats(s.H2H25),
-		Home25:    models.TotalStats(s.Home25),
-		Away15:    models.TotalStats(s.Away15),
-		Away25:    models.TotalStats(s.Away25),
-		AwayK2_25: models.TotalStats(s.AwayK2_25),
+		H2HHomeMatches: s.H2H15.Matches,
+		H2HHomeWin1:    s.H2H15.Win1,
+		H2HHomeDraw:    s.H2H15.Draw,
+		H2HHomeWin2:    s.H2H15.Win2,
 
-		GoalsH2H:  models.GoalStats(s.GoalsH2H),
-		GoalsHome: models.GoalStats(s.GoalsHome),
-		GoalsAway: models.GoalStats(s.GoalsAway),
+		HomeTeamHomeMatches: s.Home25.Matches,
+		HomeTeamHomeWin:     s.Home25.Win1,
+		HomeTeamHomeDraw:    s.Home25.Draw,
+		HomeTeamHomeLoss:    s.Home25.Win2,
+
+		AwayTeamAwayMatches: s.AwayK2_25.Matches,
+		AwayTeamAwayLoss:    s.AwayK2_25.Win2,
+		AwayTeamAwayDraw:    s.AwayK2_25.Draw,
+		AwayTeamAwayWin:     s.AwayK2_25.Win1,
+
+		H2HHomeOver25Total: d.H2H.HomeField.Over25.Total,
+		H2HHomeOver25Over:  d.H2H.HomeField.Over25.Over25,
+		H2HHomeOver25Under: d.H2H.HomeField.Over25.Under25,
+
+		HomeAllOver25Total: d.Home.AllField.Over25.Total,
+		HomeAllOver25Over:  d.Home.AllField.Over25.Over25,
+		HomeAllOver25Under: d.Home.AllField.Over25.Under25,
+
+		AwayAllOver25Total: d.Away.AllField.Over25.Total,
+		AwayAllOver25Over:  d.Away.AllField.Over25.Over25,
+		AwayAllOver25Under: d.Away.AllField.Over25.Under25,
+
+		H2HAnyGames25: d.H2H.AllField.Goals.Matches,
+		H2HAnyGoals25: d.H2H.AllField.Goals.Goals,
+		H2HAnyGames5:  d.H2H.AllField.Win5.Matches,
+		H2HAnyGoals5:  d.H2H.AllField.Win5.Goals,
+		H2HAnyGames3:  d.H2H.AllField.Win3.Matches,
+		H2HAnyGoals3:  d.H2H.AllField.Win3.Goals,
+
+		HomeAnyGames25: d.Home.AllField.Goals.Matches,
+		HomeAnyGoals25: d.Home.AllField.Goals.Goals,
+		HomeAnyGames5:  d.Home.AllField.Win5.Matches,
+		HomeAnyGoals5:  d.Home.AllField.Win5.Goals,
+		HomeAnyGames3:  d.Home.AllField.Win3.Matches,
+		HomeAnyGoals3:  d.Home.AllField.Win3.Goals,
+
+		AwayAnyGames25: d.Away.AllField.Goals.Matches,
+		AwayAnyGoals25: d.Away.AllField.Goals.Goals,
+		AwayAnyGames5:  d.Away.AllField.Win5.Matches,
+		AwayAnyGoals5:  d.Away.AllField.Win5.Goals,
+		AwayAnyGames3:  d.Away.AllField.Win3.Matches,
+		AwayAnyGoals3:  d.Away.AllField.Win3.Goals,
+
+		H2HHomeGames25: d.H2H.HomeField.Goals.Matches,
+		H2HHomeGoals25: d.H2H.HomeField.Goals.Goals,
+		H2HHomeGames5:  d.H2H.HomeField.Win5.Matches,
+		H2HHomeGoals5:  d.H2H.HomeField.Win5.Goals,
+		H2HHomeGames3:  d.H2H.HomeField.Win3.Matches,
+		H2HHomeGoals3:  d.H2H.HomeField.Win3.Goals,
+
+		HomeHomeGames25: d.Home.HomeField.Goals.Matches,
+		HomeHomeGoals25: d.Home.HomeField.Goals.Goals,
+		HomeHomeGames5:  d.Home.HomeField.Win5.Matches,
+		HomeHomeGoals5:  d.Home.HomeField.Win5.Goals,
+		HomeHomeGames3:  d.Home.HomeField.Win3.Matches,
+		HomeHomeGoals3:  d.Home.HomeField.Win3.Goals,
+
+		AwayAwayGames25: d.Away.AwayField.Goals.Matches,
+		AwayAwayGoals25: d.Away.AwayField.Goals.Goals,
+		AwayAwayGames5:  d.Away.AwayField.Win5.Matches,
+		AwayAwayGoals5:  d.Away.AwayField.Win5.Goals,
+		AwayAwayGames3:  d.Away.AwayField.Win3.Matches,
+		AwayAwayGoals3:  d.Away.AwayField.Win3.Goals,
 	}, nil
+}
+
+func fetchMatches(client api.MatchFetcher, filter api.MatchesFilter, needHome, needAway int) ([]api.Match, error) {
+    var all []api.Match
+    homeCount, awayCount := 0, 0
+    teamID := filter.TeamID
+
+    for page := 1; page <= 20; page++ {
+        filter.Page = page
+        filter.PageSize = 25
+
+        matches, total, err := client.GetMatches(filter)
+        if err != nil {
+            return nil, err
+        }
+
+        all = append(all, matches...)
+
+        for _, m := range matches {
+            if m.HomeTeam.ID == teamID {
+                homeCount++
+            } else {
+                awayCount++
+            }
+        }
+
+        if homeCount >= needHome && awayCount >= needAway {
+            break
+        }
+
+        // больше страниц нет
+        if len(all) >= total {
+            break
+        }
+    }
+
+    return all, nil
 }
