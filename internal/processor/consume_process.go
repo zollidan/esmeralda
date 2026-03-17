@@ -36,6 +36,8 @@ func (p *Processor) ProcessParseTask(ctx context.Context, payload []byte) error 
 
 	log.Printf("received task: id=%s date=%s", task.ID, task.Date)
 
+	p.publishResult(ctx, task.ID, queue.StatusProcessing, "")
+
 	date, err := time.Parse("2006-01-02", task.Date)
 	if err != nil {
 		return p.publishResult(ctx, task.ID, queue.StatusError, err.Error())

@@ -9,7 +9,6 @@ import (
 
 	"github.com/zollidan/esmeralda/internal/api"
 	"github.com/zollidan/esmeralda/internal/models"
-	"github.com/zollidan/esmeralda/internal/queue"
 	"github.com/zollidan/esmeralda/internal/repository"
 	"github.com/zollidan/esmeralda/internal/stats"
 )
@@ -28,7 +27,6 @@ func (p *Processor) ProcessMatches(ctx context.Context, client api.MatchFetcher,
 	var wg sync.WaitGroup
 
 	for i, match := range matches[:limit] {
-		i, match := i, match
 		wg.Add(1)
 
 		go func() {
@@ -49,11 +47,6 @@ func (p *Processor) ProcessMatches(ctx context.Context, client api.MatchFetcher,
 			}
 
 			game.TaskID = &taskID
-
-			if err := p.publishProgress(ctx, taskID, queue.StatusPending, totalMatches, i+1); err != nil {
-				results <- result{index: i, err: fmt.Errorf("publish progress: %w", err)}
-				return
-			}
 
 			results <- result{index: i, game: game}
 		}()
