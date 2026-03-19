@@ -29,8 +29,8 @@ type StatsDetails struct {
 		HomeField struct {
 			Over25 Over25Stats `json:"over25"`
 			Goals  GoalsWindow `json:"goals"`
-			Win5   WinStats    `json:"win5"`   // last 5 matches
-			Win3   WinStats    `json:"win3"`   // last 3 matches
+			Win5   WinStats    `json:"win5"` // last 5 matches
+			Win3   WinStats    `json:"win3"` // last 3 matches
 		} `json:"home_field"`
 		AllField struct {
 			Over25 Over25Stats `json:"over25"`
@@ -75,8 +75,8 @@ type StatsDetails struct {
 
 // Over25Stats - total matches, over 2.5 goals, under 2.5 goals
 type Over25Stats struct {
-	Total  int `json:"total"`
-	Over25 int `json:"over25"`
+	Total   int `json:"total"`
+	Over25  int `json:"over25"`
 	Under25 int `json:"under25"`
 }
 

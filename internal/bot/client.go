@@ -2,9 +2,11 @@ package bot
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -15,16 +17,21 @@ import (
 func (b *Bot) ListTasks() ([]models.Task, error) {
 	var taskList []models.Task
 
-	req, err := http.NewRequest("GET", b.cfg.TelegramBot.APIBaseURL+"/api/tasks", nil)
+	req, err := http.NewRequestWithContext(context.Background(), "GET", b.cfg.TelegramBot.APIBaseURL+"/api/tasks", nil)
 	if err != nil {
 		return nil, err
 	}
 
+	//nolint:gosec // URL is provided by trusted service configuration.
 	res, err := b.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			log.Printf("failed to close response body: %v", err)
+		}
+	}()
 
 	if res.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status: %s", res.Status)
@@ -48,7 +55,8 @@ func (b *Bot) CreateTask(taskDate string) (*queue.ParseTask, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest(
+	req, err := http.NewRequestWithContext(
+		context.Background(),
 		"POST",
 		b.cfg.TelegramBot.APIBaseURL+"/api/tasks",
 		bytes.NewBuffer(jsonBody),
@@ -59,11 +67,17 @@ func (b *Bot) CreateTask(taskDate string) (*queue.ParseTask, error) {
 
 	req.Header.Set("Content-Type", "application/json")
 
+	//nolint:gosec // URL is provided by trusted service configuration.
 	res, err := b.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
+
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			log.Printf("failed to close response body: %v", err)
+		}
+	}()
 
 	if res.StatusCode != http.StatusCreated && res.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(res.Body)
@@ -79,16 +93,21 @@ func (b *Bot) CreateTask(taskDate string) (*queue.ParseTask, error) {
 }
 
 func (b *Bot) GetTask(taskID string) (*models.Task, error) {
-	req, err := http.NewRequest("GET", b.cfg.TelegramBot.APIBaseURL+"/api/tasks/"+taskID, nil)
+	req, err := http.NewRequestWithContext(context.Background(), "GET", b.cfg.TelegramBot.APIBaseURL+"/api/tasks/"+taskID, nil)
 	if err != nil {
 		return nil, err
 	}
 
+	//nolint:gosec // URL is provided by trusted service configuration.
 	res, err := b.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			log.Printf("failed to close response body: %v", err)
+		}
+	}()
 
 	if res.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(res.Body)
@@ -127,16 +146,21 @@ func (b *Bot) WaitForTask(taskID string, pollInterval, timeout time.Duration) (*
 
 func (b *Bot) DownloadExport(date string) ([]byte, string, error) {
 	url := fmt.Sprintf("%s/api/export?date_start=%s&date_end=%s", b.cfg.TelegramBot.APIBaseURL, date, date)
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(context.Background(), "GET", url, nil)
 	if err != nil {
 		return nil, "", err
 	}
 
+	//nolint:gosec // URL is provided by trusted service configuration.
 	res, err := b.client.Do(req)
 	if err != nil {
 		return nil, "", err
 	}
-	defer res.Body.Close()
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			log.Printf("failed to close response body: %v", err)
+		}
+	}()
 
 	if res.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(res.Body)

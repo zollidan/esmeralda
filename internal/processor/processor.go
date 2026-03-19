@@ -9,7 +9,6 @@ import (
 
 	"github.com/zollidan/esmeralda/internal/api"
 	"github.com/zollidan/esmeralda/internal/models"
-	"github.com/zollidan/esmeralda/internal/queue"
 	"github.com/zollidan/esmeralda/internal/repository"
 	"github.com/zollidan/esmeralda/internal/stats"
 )
@@ -28,7 +27,6 @@ func (p *Processor) ProcessMatches(ctx context.Context, client api.MatchFetcher,
 	var wg sync.WaitGroup
 
 	for i, match := range matches[:limit] {
-		i, match := i, match
 		wg.Add(1)
 
 		go func() {
@@ -49,11 +47,6 @@ func (p *Processor) ProcessMatches(ctx context.Context, client api.MatchFetcher,
 			}
 
 			game.TaskID = &taskID
-
-			if err := p.publishProgress(ctx, taskID, queue.StatusPending, totalMatches, i+1); err != nil {
-				results <- result{index: i, err: fmt.Errorf("publish progress: %w", err)}
-				return
-			}
 
 			results <- result{index: i, game: game}
 		}()
@@ -158,13 +151,13 @@ func buildGame(client api.MatchFetcher, match api.Match) (models.Game, error) {
 		H2HHomeOver25Over:  d.H2H.HomeField.Over25.Over25,
 		H2HHomeOver25Under: d.H2H.HomeField.Over25.Under25,
 
-		HomeAllOver25Total: d.Home.AllField.Over25.Total,
-		HomeAllOver25Over:  d.Home.AllField.Over25.Over25,
-		HomeAllOver25Under: d.Home.AllField.Over25.Under25,
+		HomeAllOver25Total: d.Home.HomeField.Over25.Total,
+		HomeAllOver25Over:  d.Home.HomeField.Over25.Over25,
+		HomeAllOver25Under: d.Home.HomeField.Over25.Under25,
 
-		AwayAllOver25Total: d.Away.AllField.Over25.Total,
-		AwayAllOver25Over:  d.Away.AllField.Over25.Over25,
-		AwayAllOver25Under: d.Away.AllField.Over25.Under25,
+		AwayAllOver25Total: d.Away.AwayField.Over25.Total,
+		AwayAllOver25Over:  d.Away.AwayField.Over25.Over25,
+		AwayAllOver25Under: d.Away.AwayField.Over25.Under25,
 
 		H2HAnyGames25: d.H2H.AllField.Goals.Matches,
 		H2HAnyGoals25: d.H2H.AllField.Goals.Goals,

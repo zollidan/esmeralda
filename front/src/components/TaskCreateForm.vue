@@ -2,11 +2,11 @@
 const date = defineModel<string>("date", { required: true });
 
 defineProps<{
-  visible: boolean;
+	visible: boolean;
 }>();
 
 const emit = defineEmits<{
-  submit: [];
+	submit: [];
 }>();
 </script>
 

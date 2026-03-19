@@ -1,3 +1,4 @@
+// Package utils contains helper functions used across the application.
 package utils
 
 import (
@@ -10,7 +11,7 @@ import (
 
 const dateLayout = "02.01.2006"
 
-// dd.mm.yyyy
+// InputDate reads a date from input in dd.mm.yyyy format.
 func InputDate(r io.Reader) (time.Time, error) {
 	fmt.Println("Введите дату в формате ДД.ММ.ГГГГ")
 

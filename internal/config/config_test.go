@@ -1,6 +1,7 @@
 package config
 
 import (
+	"net/url"
 	"os"
 	"testing"
 )
@@ -13,7 +14,12 @@ func TestGetEnv_ReturnsValue(t *testing.T) {
 }
 
 func TestGetEnv_ReturnsFallbackWhenMissing(t *testing.T) {
-	os.Unsetenv("TEST_KEY_MISSING")
+	err := os.Unsetenv("TEST_KEY_MISSING")
+
+	if err != nil {
+		t.Fatalf("failed to unset TEST_KEY_MISSING: %v", err)
+	}
+
 	if got := getEnv("TEST_KEY_MISSING", "default"); got != "default" {
 		t.Errorf("expected 'default', got %q", got)
 	}
@@ -34,7 +40,10 @@ func TestGetEnvInt_ReturnsValue(t *testing.T) {
 }
 
 func TestGetEnvInt_ReturnsFallbackWhenMissing(t *testing.T) {
-	os.Unsetenv("TEST_INT_MISSING")
+	err := os.Unsetenv("TEST_INT_MISSING")
+	if err != nil {
+		t.Fatalf("failed to unset TEST_INT_MISSING: %v", err)
+	}
 	if got := getEnvInt("TEST_INT_MISSING", 99); got != 99 {
 		t.Errorf("expected 99, got %d", got)
 	}
@@ -49,12 +58,30 @@ func TestGetEnvInt_ReturnsFallbackOnInvalidValue(t *testing.T) {
 
 func TestLoad_DefaultValues(t *testing.T) {
 	t.Setenv("SPORT_API_TOKEN", "test-token")
-	os.Unsetenv("EXCEL_FILE_PATH")
-	os.Unsetenv("EXCEL_FILE_NAME")
-	os.Unsetenv("WORKERS")
-	os.Unsetenv("REDIS_ADDR")
-	os.Unsetenv("SERVER_PORT")
-	os.Unsetenv("DATABASE_DSN")
+	err := os.Unsetenv("EXCEL_FILE_PATH")
+	if err != nil {
+		t.Fatalf("failed to unset EXCEL_FILE_PATH: %v", err)
+	}
+	err = os.Unsetenv("EXCEL_FILE_NAME")
+	if err != nil {
+		t.Fatalf("failed to unset EXCEL_FILE_NAME: %v", err)
+	}
+	err = os.Unsetenv("WORKERS")
+	if err != nil {
+		t.Fatalf("failed to unset WORKERS: %v", err)
+	}
+	err = os.Unsetenv("REDIS_ADDR")
+	if err != nil {
+		t.Fatalf("failed to unset REDIS_ADDR: %v", err)
+	}
+	err = os.Unsetenv("SERVER_PORT")
+	if err != nil {
+		t.Fatalf("failed to unset SERVER_PORT: %v", err)
+	}
+	err = os.Unsetenv("DATABASE_DSN")
+	if err != nil {
+		t.Fatalf("failed to unset DATABASE_DSN: %v", err)
+	}
 
 	cfg := Load()
 
@@ -82,8 +109,21 @@ func TestLoad_DefaultValues(t *testing.T) {
 	if cfg.ServerPort != ":8080" {
 		t.Errorf("expected default ServerPort ':8080', got %q", cfg.ServerPort)
 	}
-	if cfg.DatabaseURL != "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable" {
-		t.Errorf("expected default DatabaseURL, got %q", cfg.DatabaseURL)
+	parsedDBURL, err := url.Parse(cfg.DatabaseURL)
+	if err != nil {
+		t.Fatalf("failed to parse DatabaseURL: %v", err)
+	}
+	if parsedDBURL.Scheme != "postgres" {
+		t.Errorf("expected scheme 'postgres', got %q", parsedDBURL.Scheme)
+	}
+	if parsedDBURL.Host != "localhost:5432" {
+		t.Errorf("expected host 'localhost:5432', got %q", parsedDBURL.Host)
+	}
+	if parsedDBURL.Path != "/postgres" {
+		t.Errorf("expected path '/postgres', got %q", parsedDBURL.Path)
+	}
+	if parsedDBURL.Query().Get("sslmode") != "disable" {
+		t.Errorf("expected sslmode 'disable', got %q", parsedDBURL.Query().Get("sslmode"))
 	}
 }
 
@@ -116,8 +156,21 @@ func TestLoad_CustomValues(t *testing.T) {
 	if cfg.ServerPort != ":9090" {
 		t.Errorf("expected ':9090', got %q", cfg.ServerPort)
 	}
-	if cfg.DatabaseURL != "postgres://test:test@localhost:5432/test?sslmode=disable" {
-		t.Errorf("expected custom DatabaseURL, got %q", cfg.DatabaseURL)
+	parsedDBURL, err := url.Parse(cfg.DatabaseURL)
+	if err != nil {
+		t.Fatalf("failed to parse DatabaseURL: %v", err)
+	}
+	if parsedDBURL.Scheme != "postgres" {
+		t.Errorf("expected scheme 'postgres', got %q", parsedDBURL.Scheme)
+	}
+	if parsedDBURL.Host != "localhost:5432" {
+		t.Errorf("expected host 'localhost:5432', got %q", parsedDBURL.Host)
+	}
+	if parsedDBURL.Path != "/test" {
+		t.Errorf("expected path '/test', got %q", parsedDBURL.Path)
+	}
+	if parsedDBURL.Query().Get("sslmode") != "disable" {
+		t.Errorf("expected sslmode 'disable', got %q", parsedDBURL.Query().Get("sslmode"))
 	}
 }
 

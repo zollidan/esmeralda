@@ -37,6 +37,7 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           version: latest
+          args: --fix --timeout=5m
 
   build-and-push:
     needs: [test, lint]

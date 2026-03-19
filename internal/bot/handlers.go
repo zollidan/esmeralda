@@ -19,7 +19,10 @@ func replyToStartCommand(bot *tgbotapi.BotAPI, chatID int64, msgID int) error {
 	msg := tgbotapi.NewMessage(chatID, "Welcome to Esmeralda Bot! Use /tasks to see your tasks, /date to start a task, and /help for more information.")
 	msg.ReplyToMessageID = msgID
 
-	bot.Send(msg)
+	_, err := bot.Send(msg)
+	if err != nil {
+		return fmt.Errorf("failed to send message: %w", err)
+	}
 
 	return nil
 }
@@ -40,7 +43,10 @@ func (b *Bot) replyStartTask(bot *tgbotapi.BotAPI, chatID int64, msgID int, text
 	if err != nil {
 		msg := tgbotapi.NewMessage(chatID, "Failed to create task")
 		msg.ReplyToMessageID = msgID
-		bot.Send(msg)
+		_, err := bot.Send(msg)
+		if err != nil {
+			return fmt.Errorf("failed to send message: %w", err)
+		}
 		return err
 	}
 
