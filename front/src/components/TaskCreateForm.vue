@@ -2,11 +2,11 @@
 const date = defineModel<string>("date", { required: true });
 
 defineProps<{
-	visible: boolean;
+  visible: boolean;
 }>();
 
 const emit = defineEmits<{
-	submit: [];
+  submit: [];
 }>();
 </script>
 
@@ -23,16 +23,16 @@ const emit = defineEmits<{
         </label>
         <input
           id="date"
-          type="date"
           v-model="date"
+          type="date"
           class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
         />
       </div>
 
       <button
-        @click="emit('submit')"
         :disabled="!date"
         class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition"
+        @click="emit('submit')"
       >
         Создать
       </button>

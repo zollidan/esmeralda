@@ -30,7 +30,7 @@ jobs:
         with:
           path: |
             ~/.bun/install/cache
-            front/node_modules
+            node_modules
           key: ${{ runner.os }}-bun-${{ hashFiles('front/bun.lockb') }}
           restore-keys: |
             ${{ runner.os }}-bun-
@@ -38,5 +38,5 @@ jobs:
       - name: Install deps
         run: bun install --frozen-lockfile
 
-      - name: Run Biome
+      - name: Run ESLint
         run: bun run lint

@@ -2,30 +2,24 @@
 import type { ProgressBar, Task } from "../types/task";
 
 defineProps<{
-	tasks: Task[];
-	loading: boolean;
-	error: string | null;
-	progressByTaskId: Record<string, ProgressBar>;
+  tasks: Task[];
+  loading: boolean;
+  error: string | null;
+  progressByTaskId: Record<string, ProgressBar>;
 }>();
 
 const emit = defineEmits<{
-	export: [taskDate: string];
+  export: [taskDate: string];
 }>();
 
 function statusClass(status: string): string {
-	if (status === "pending") return "bg-yellow-100 text-yellow-800";
-	if (status === "processing") return "bg-blue-100 text-blue-800";
-	if (status === "done") return "bg-green-100 text-green-800";
-	if (status === "error" || status === "failed")
-		return "bg-red-100 text-red-800";
-	if (status === "cancelled") return "bg-gray-100 text-gray-800";
-	return "bg-slate-100 text-slate-700";
-}
-
-function progressPercent(progress: ProgressBar | undefined): number {
-	if (!progress || progress.total_matches <= 0) return 0;
-	const value = (progress.current_match / progress.total_matches) * 100;
-	return Math.max(0, Math.min(100, Math.round(value)));
+  if (status === "pending") return "bg-yellow-100 text-yellow-800";
+  if (status === "processing") return "bg-blue-100 text-blue-800";
+  if (status === "done") return "bg-green-100 text-green-800";
+  if (status === "error" || status === "failed")
+    return "bg-red-100 text-red-800";
+  if (status === "cancelled") return "bg-gray-100 text-gray-800";
+  return "bg-slate-100 text-slate-700";
 }
 </script>
 
@@ -119,9 +113,9 @@ function progressPercent(progress: ProgressBar | undefined): number {
             </td>
             <td class="px-4 py-3 text-sm">
               <button
-                @click="emit('export', task.date)"
                 :disabled="task.status !== 'done'"
                 class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg cursor-pointer hover:bg-green-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition inline-flex items-center gap-2"
+                @click="emit('export', task.date)"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
