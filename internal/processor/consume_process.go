@@ -36,7 +36,10 @@ func (p *Processor) ProcessParseTask(ctx context.Context, payload []byte) error 
 
 	log.Printf("received task: id=%s date=%s", task.ID, task.Date)
 
-	p.publishResult(ctx, task.ID, queue.StatusProcessing, "")
+	err = p.publishResult(ctx, task.ID, queue.StatusProcessing, "")
+	if err != nil {
+		return err
+	}
 
 	date, err := time.Parse("2006-01-02", task.Date)
 	if err != nil {
@@ -68,17 +71,17 @@ func (p *Processor) publishResult(ctx context.Context, taskID string, status que
 	return err
 }
 
-func (p *Processor) publishProgress(ctx context.Context, taskID string, status queue.Status, totalMatches int, currentMatch int) error {
-	progress := queue.TaskProgress{
-		TaskID:       taskID,
-		Status:       status,
-		TotalMatches: totalMatches,
-		CurrentMatch: currentMatch,
-	}
+// func (p *Processor) publishProgress(ctx context.Context, taskID string, status queue.Status, totalMatches int, currentMatch int) error {
+// 	progress := queue.TaskProgress{
+// 		TaskID:       taskID,
+// 		Status:       status,
+// 		TotalMatches: totalMatches,
+// 		CurrentMatch: currentMatch,
+// 	}
 
-	_, err := p.progressProducer.Publish(ctx, progress)
-	if err != nil {
-		log.Printf("publish progress for task %s: %v", taskID, err)
-	}
-	return err
-}
+// 	_, err := p.progressProducer.Publish(ctx, progress)
+// 	if err != nil {
+// 		log.Printf("publish progress for task %s: %v", taskID, err)
+// 	}
+// 	return err
+// }
