@@ -9,11 +9,23 @@ func SetupRoutes(r *gin.Engine, h *Handler) {
 
 	api := r.Group("/api")
 	{
-		api.POST("/tasks", h.CreateTask)
-		api.GET("/tasks", h.GetTasks)
-		api.GET("/tasks/:id", h.GetTask)
-		api.GET("/export", h.ExportGames)
-		api.GET("/progress/ws", h.WSHandler)
+		tasks := api.Group("/tasks")
+		{
+			tasks.GET("/", h.GetTasks)
+			tasks.POST("/", h.CreateTask)
+			tasks.GET("/:id", h.GetTask)
+			tasks.DELETE("/:id", h.DeleteTask)
+		}
+
+		export := api.Group("/export")
+		{
+			export.GET("/", h.ExportGames)
+		}
+		
+		progress := api.Group("/progress")
+		{
+			progress.GET("/ws", h.WSHandler)
+		}
 
 		archive := api.Group("/archive")
 		{

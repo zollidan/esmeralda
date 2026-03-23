@@ -84,3 +84,28 @@ func (h *Handler) GetTask(c *gin.Context) {
 
 	c.JSON(http.StatusOK, task)
 }
+
+func (h *Handler) DeleteTask(c *gin.Context) {
+	taskID := c.Param("id")
+	if taskID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id задачи обязателен"})
+		return
+	}
+	task, err := h.tasks.FindByID(c.Request.Context(), taskID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "задача не найдена"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось получить задачу"})
+		return
+	}
+
+	err = h.tasks.Delete(c.Request.Context(), task.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось удалить задачу"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "задача успешно удалена"})
+}

@@ -9,6 +9,7 @@ import (
 
 	"github.com/zollidan/esmeralda/internal/api"
 	"github.com/zollidan/esmeralda/internal/models"
+	"github.com/zollidan/esmeralda/internal/queue"
 	"github.com/zollidan/esmeralda/internal/repository"
 	"github.com/zollidan/esmeralda/internal/stats"
 )
@@ -19,8 +20,20 @@ type result struct {
 	err   error
 }
 
-func (p *Processor) ProcessMatches(ctx context.Context, client api.MatchFetcher, games *repository.GameRepository, matches []api.Match, totalMatches int, taskID string) error {
-	limit := len(matches)
+func setGamesLimit(matches, gamesLimit int) int {
+	limit := matches
+
+	if gamesLimit != 0 && gamesLimit < limit {
+		limit = gamesLimit
+	}
+
+	return limit
+}
+
+func (p *Processor) ProcessMatches(ctx context.Context, client api.MatchFetcher, games *repository.GameRepository, matches []api.Match, taskID string) error {
+
+	limit := setGamesLimit(len(matches), p.gamesLimit)
+
 	results := make(chan result, limit)
 	sem := make(chan struct{}, p.workers)
 
@@ -58,11 +71,14 @@ func (p *Processor) ProcessMatches(ctx context.Context, client api.MatchFetcher,
 	}()
 
 	gameSlice := make([]models.Game, limit)
+	processed := 0
 	for r := range results {
 		if r.err != nil {
 			return fmt.Errorf("match error: %w", r.err)
 		}
 		gameSlice[r.index] = r.game
+		processed++
+		p.publishProgress(ctx, taskID, queue.StatusProcessing, limit, processed)
 	}
 
 	if err := games.CreateInBatches(ctx, gameSlice, 100); err != nil {

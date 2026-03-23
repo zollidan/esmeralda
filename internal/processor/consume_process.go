@@ -16,15 +16,17 @@ type Processor struct {
 	resultsProducer  *queue.Producer
 	progressProducer *queue.Producer
 	workers          int
+	gamesLimit		int 
 }
 
-func Init(apiClient api.MatchFetcher, games *repository.GameRepository, resultsProducer *queue.Producer, progressProducer *queue.Producer, workers int) *Processor {
+func Init(apiClient api.MatchFetcher, games *repository.GameRepository, resultsProducer *queue.Producer, progressProducer *queue.Producer, workers, gamesLimit int) *Processor {
 	return &Processor{
 		apiClient:        apiClient,
 		games:            games,
 		resultsProducer:  resultsProducer,
 		progressProducer: progressProducer,
 		workers:          workers,
+		gamesLimit:       gamesLimit,
 	}
 }
 
@@ -46,12 +48,12 @@ func (p *Processor) ProcessParseTask(ctx context.Context, payload []byte) error 
 		return p.publishResult(ctx, task.ID, queue.StatusError, err.Error())
 	}
 
-	matches, totalMatches, err := p.apiClient.GetMatches(api.MatchesFilter{Date: date})
+	matches, _, err := p.apiClient.GetMatches(api.MatchesFilter{Date: date})
 	if err != nil {
 		return p.publishResult(ctx, task.ID, queue.StatusError, err.Error())
 	}
 
-	if err := p.ProcessMatches(ctx, p.apiClient, p.games, matches, totalMatches, task.ID); err != nil {
+	if err := p.ProcessMatches(ctx, p.apiClient, p.games, matches, task.ID); err != nil {
 		return p.publishResult(ctx, task.ID, queue.StatusError, err.Error())
 	}
 
@@ -71,17 +73,17 @@ func (p *Processor) publishResult(ctx context.Context, taskID string, status que
 	return err
 }
 
-// func (p *Processor) publishProgress(ctx context.Context, taskID string, status queue.Status, totalMatches int, currentMatch int) error {
-// 	progress := queue.TaskProgress{
-// 		TaskID:       taskID,
-// 		Status:       status,
-// 		TotalMatches: totalMatches,
-// 		CurrentMatch: currentMatch,
-// 	}
+func (p *Processor) publishProgress(ctx context.Context, taskID string, status queue.Status, totalMatches int, currentMatch int) error {
+	progress := queue.TaskProgress{
+		TaskID:       taskID,
+		Status:       status,
+		TotalMatches: totalMatches,
+		CurrentMatch: currentMatch,
+	}
 
-// 	_, err := p.progressProducer.Publish(ctx, progress)
-// 	if err != nil {
-// 		log.Printf("publish progress for task %s: %v", taskID, err)
-// 	}
-// 	return err
-// }
+	_, err := p.progressProducer.Publish(ctx, progress)
+	if err != nil {
+		log.Printf("publish progress for task %s: %v", taskID, err)
+	}
+	return err
+}
