@@ -48,12 +48,12 @@ func (p *Processor) ProcessParseTask(ctx context.Context, payload []byte) error 
 		return p.publishResult(ctx, task.ID, queue.StatusError, err.Error())
 	}
 
-	matches, totalMatches, err := p.apiClient.GetMatches(api.MatchesFilter{Date: date})
+	matches, _, err := p.apiClient.GetMatches(api.MatchesFilter{Date: date})
 	if err != nil {
 		return p.publishResult(ctx, task.ID, queue.StatusError, err.Error())
 	}
 
-	if err := p.ProcessMatches(ctx, p.apiClient, p.games, matches, totalMatches, task.ID); err != nil {
+	if err := p.ProcessMatches(ctx, p.apiClient, p.games, matches, task.ID); err != nil {
 		return p.publishResult(ctx, task.ID, queue.StatusError, err.Error())
 	}
 
