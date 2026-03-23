@@ -71,17 +71,17 @@ func (p *Processor) publishResult(ctx context.Context, taskID string, status que
 	return err
 }
 
-// func (p *Processor) publishProgress(ctx context.Context, taskID string, status queue.Status, totalMatches int, currentMatch int) error {
-// 	progress := queue.TaskProgress{
-// 		TaskID:       taskID,
-// 		Status:       status,
-// 		TotalMatches: totalMatches,
-// 		CurrentMatch: currentMatch,
-// 	}
+func (p *Processor) publishProgress(ctx context.Context, taskID string, status queue.Status, totalMatches int, currentMatch int) error {
+	progress := queue.TaskProgress{
+		TaskID:       taskID,
+		Status:       status,
+		TotalMatches: totalMatches,
+		CurrentMatch: currentMatch,
+	}
 
-// 	_, err := p.progressProducer.Publish(ctx, progress)
-// 	if err != nil {
-// 		log.Printf("publish progress for task %s: %v", taskID, err)
-// 	}
-// 	return err
-// }
+	_, err := p.progressProducer.Publish(ctx, progress)
+	if err != nil {
+		log.Printf("publish progress for task %s: %v", taskID, err)
+	}
+	return err
+}

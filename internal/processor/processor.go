@@ -9,6 +9,7 @@ import (
 
 	"github.com/zollidan/esmeralda/internal/api"
 	"github.com/zollidan/esmeralda/internal/models"
+	"github.com/zollidan/esmeralda/internal/queue"
 	"github.com/zollidan/esmeralda/internal/repository"
 	"github.com/zollidan/esmeralda/internal/stats"
 )
@@ -58,11 +59,14 @@ func (p *Processor) ProcessMatches(ctx context.Context, client api.MatchFetcher,
 	}()
 
 	gameSlice := make([]models.Game, limit)
+	processed := 0
 	for r := range results {
 		if r.err != nil {
 			return fmt.Errorf("match error: %w", r.err)
 		}
 		gameSlice[r.index] = r.game
+		processed++
+		p.publishProgress(ctx, taskID, queue.StatusProcessing, totalMatches, processed)
 	}
 
 	if err := games.CreateInBatches(ctx, gameSlice, 100); err != nil {
