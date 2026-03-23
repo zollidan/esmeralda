@@ -72,6 +72,7 @@ func Load() *Config {
 		Tech: Tech{
 			ParserPort: getEnv("PARSER_PORT", ":8081"),
 			Workers:    getEnvInt("WORKERS", 20),
+			GamesLimit: getEnvInt("GAMES_LIMIT", 20),
 		},
 		TelegramBot: TelegramBot{
 			Token:      getEnv("TELEGRAM_BOT_TOKEN", ""),

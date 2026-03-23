@@ -36,7 +36,7 @@ func main() {
 	resultsProducer := queue.NewProducer(rdb, queue.StreamResults)
 	progressProducer := queue.NewProducer(rdb, queue.StreamProgress)
 
-	consumeProcess := processor.Init(client, gameRepo, resultsProducer, progressProducer, cfg.Tech.Workers)
+	consumeProcess := processor.Init(client, gameRepo, resultsProducer, progressProducer, cfg.Tech.Workers, cfg.Tech.GamesLimit)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()

@@ -20,8 +20,20 @@ type result struct {
 	err   error
 }
 
+func setGamesLimit(matches, gamesLimit int) int {
+	limit := matches
+
+	if gamesLimit != 0 && gamesLimit < limit {
+		limit = gamesLimit
+	}
+
+	return limit
+}
+
 func (p *Processor) ProcessMatches(ctx context.Context, client api.MatchFetcher, games *repository.GameRepository, matches []api.Match, totalMatches int, taskID string) error {
-	limit := len(matches)
+
+	limit := setGamesLimit(len(matches), p.gamesLimit)
+
 	results := make(chan result, limit)
 	sem := make(chan struct{}, p.workers)
 
