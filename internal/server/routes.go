@@ -21,7 +21,7 @@ func SetupRoutes(r *gin.Engine, h *Handler) {
 		{
 			export.GET("/", h.ExportGames)
 		}
-		
+
 		progress := api.Group("/progress")
 		{
 			progress.GET("/ws", h.WSHandler)
