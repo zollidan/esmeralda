@@ -1,24 +1,30 @@
 <script setup lang="ts">
-const date = defineModel<string>("date", { required: true });
+const date = defineModel<string>('date', { required: true })
 
 defineProps<{
-  visible: boolean;
-}>();
+  visible: boolean
+}>()
 
 const emit = defineEmits<{
-  submit: [];
-}>();
+  submit: []
+}>()
 </script>
 
 <template>
-  <section v-if="visible" class="bg-white rounded-lg shadow-md p-6 mb-8">
+  <section
+    v-if="visible"
+    class="bg-white rounded-lg shadow-md p-6 mb-8"
+  >
     <h2 class="text-xl font-semibold text-slate-700 mb-4">
       Создать новую задачу
     </h2>
 
     <div class="flex gap-4 items-end">
       <div class="flex-1">
-        <label for="date" class="block text-sm font-medium text-slate-700 mb-2">
+        <label
+          for="date"
+          class="block text-sm font-medium text-slate-700 mb-2"
+        >
           выбор даты
         </label>
         <input

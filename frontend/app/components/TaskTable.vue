@@ -1,54 +1,62 @@
 <script setup lang="ts">
-import type { ProgressBar, Task } from "~/types/task";
+import type { ProgressBar, Task } from '~/types/task'
 
-const openRows = ref<Set<string>>(new Set());
+const openRows = ref<Set<string>>(new Set())
 
 function toggleRow(id: string) {
   if (openRows.value.has(id)) {
-    openRows.value.delete(id);
-  } else {
-    openRows.value.add(id);
+    openRows.value.delete(id)
   }
-  openRows.value = new Set(openRows.value);
+  else {
+    openRows.value.add(id)
+  }
+  openRows.value = new Set(openRows.value)
 }
 
 const { progressByTaskId } = defineProps<{
-  tasks: Task[];
-  loading: boolean;
-  error: string | null;
-  progressByTaskId: Record<string, ProgressBar>;
-}>();
+  tasks: Task[]
+  loading: boolean
+  error: string | null
+  progressByTaskId: Record<string, ProgressBar>
+}>()
 
 function getProgress(taskId: string) {
-  return progressByTaskId[taskId];
+  return progressByTaskId[taskId]
 }
 
 const emit = defineEmits<{
-  export: [taskDate: string];
-  delete: [taskId: string];
-}>();
+  export: [taskDate: string]
+  delete: [taskId: string]
+}>()
 
 function statusClass(status: string): string {
-  if (status === "pending") return "bg-yellow-100 text-yellow-800";
-  if (status === "processing")
-    return "bg-blue-100 text-blue-800 flex items-center gap-1";
-  if (status === "done") return "bg-green-100 text-green-800";
-  if (status === "error" || status === "failed")
-    return "bg-red-100 text-red-800";
-  if (status === "cancelled") return "bg-gray-100 text-gray-800";
-  return "bg-slate-100 text-slate-700";
+  if (status === 'pending') return 'bg-yellow-100 text-yellow-800'
+  if (status === 'processing')
+    return 'bg-blue-100 text-blue-800 flex items-center gap-1'
+  if (status === 'done') return 'bg-green-100 text-green-800'
+  if (status === 'error' || status === 'failed')
+    return 'bg-red-100 text-red-800'
+  if (status === 'cancelled') return 'bg-gray-100 text-gray-800'
+  return 'bg-slate-100 text-slate-700'
 }
 </script>
 
 <template>
   <section class="bg-white rounded-lg shadow-md p-6">
-    <h2 class="text-2xl font-semibold text-slate-800 mb-4">All Tasks</h2>
+    <h2 class="text-2xl font-semibold text-slate-800 mb-4">
+      All Tasks
+    </h2>
 
-    <div v-if="loading" class="text-center py-8">
+    <div
+      v-if="loading"
+      class="text-center py-8"
+    >
       <div
         class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-300 border-t-blue-600"
       />
-      <p class="mt-2 text-slate-600">Loading...</p>
+      <p class="mt-2 text-slate-600">
+        Loading...
+      </p>
     </div>
 
     <div
@@ -65,7 +73,10 @@ function statusClass(status: string): string {
       No tasks found
     </div>
 
-    <div v-if="tasks.length" class="overflow-x-auto">
+    <div
+      v-if="tasks.length"
+      class="overflow-x-auto"
+    >
       <table class="w-full">
         <thead class="bg-slate-50 border-b border-slate-200">
           <tr>
@@ -85,11 +96,14 @@ function statusClass(status: string): string {
               Дата создания
             </th>
 
-            <th class="px-4 py-3 w-10"/>
+            <th class="px-4 py-3 w-10" />
           </tr>
         </thead>
         <tbody>
-          <template v-for="task in tasks" :key="task.id">
+          <template
+            v-for="task in tasks"
+            :key="task.id"
+          >
             <!-- Основная строка -->
             <tr class="hover:bg-slate-50 transition border-b border-slate-100">
               <td class="px-4 py-3 text-sm font-medium text-slate-900">
@@ -174,7 +188,10 @@ function statusClass(status: string): string {
               v-if="openRows.has(task.id)"
               class="bg-slate-50 border-b border-slate-200"
             >
-              <td colspan="4" class="px-4 py-4 pl-14">
+              <td
+                colspan="4"
+                class="px-4 py-4 pl-14"
+              >
                 <div class="flex flex-col gap-4">
                   <!-- Task ID -->
                   <div>
