@@ -1,19 +1,16 @@
-import type { Ref } from "vue";
-import type { Task } from "../src/types/task";
-
-type TaskState = {
-  date: Ref<string>;
-  tasks: Ref<Task[]>;
-  loading: Ref<boolean>;
-  error: Ref<string | null>;
-};
+import type { Task } from "~/types/task";
 
 function errorMessage(err: unknown): string {
   if (err instanceof Error) return err.message;
   return String(err);
 }
 
-export function createTaskActions({ date, tasks, loading, error }: TaskState) {
+export function useTasks() {
+  const date = ref("");
+  const tasks = ref<Task[]>([]);
+  const loading = ref(false);
+  const error = ref<string | null>(null);
+
   const fetchTasks = async () => {
     loading.value = true;
     error.value = null;
@@ -47,9 +44,7 @@ export function createTaskActions({ date, tasks, loading, error }: TaskState) {
 
   const deleteTask = async (taskId: string) => {
     try {
-      const res = await fetch(`/api/tasks/${taskId}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(`/api/tasks/${taskId}`, { method: "DELETE" });
       if (!res.ok) throw new Error(`delete failed: ${res.status}`);
       await fetchTasks();
     } catch (err: unknown) {
@@ -77,10 +72,5 @@ export function createTaskActions({ date, tasks, loading, error }: TaskState) {
     }
   };
 
-  return {
-    fetchTasks,
-    createTask,
-    deleteTask,
-    exportToExcel,
-  };
+  return { date, tasks, loading, error, fetchTasks, createTask, deleteTask, exportToExcel };
 }

@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import type { ProgressBar, Task } from "../types/task";
+import type { ProgressBar, Task } from "~/types/task";
 
 const openRows = ref<Set<string>>(new Set());
 
