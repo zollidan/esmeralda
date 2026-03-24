@@ -47,7 +47,7 @@ function statusClass(status: string): string {
     <div v-if="loading" class="text-center py-8">
       <div
         class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-300 border-t-blue-600"
-      ></div>
+      />
       <p class="mt-2 text-slate-600">Loading...</p>
     </div>
 
@@ -85,7 +85,7 @@ function statusClass(status: string): string {
               Дата создания
             </th>
 
-            <th class="px-4 py-3 w-10"></th>
+            <th class="px-4 py-3 w-10"/>
           </tr>
         </thead>
         <tbody>
@@ -142,13 +142,13 @@ function statusClass(status: string): string {
               </td>
               <td class="px-4 py-3">
                 <button
-                  @click="toggleRow(task.id)"
                   class="w-7 h-7 flex items-center justify-center rounded-md border border-slate-200 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all duration-200"
                   :class="{
                     'rotate-180 bg-slate-100 text-slate-600': openRows.has(
                       task.id,
                     ),
                   }"
+                  @click="toggleRow(task.id)"
                 >
                   <svg
                     width="12"
