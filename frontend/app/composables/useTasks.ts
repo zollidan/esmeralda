@@ -77,5 +77,14 @@ export function useTasks() {
     }
   }
 
-  return { date, tasks, loading, error, fetchTasks, createTask, deleteTask, exportToExcel }
+  return {
+    date,
+    tasks,
+    loading,
+    error,
+    fetchTasks,
+    createTask,
+    deleteTask,
+    exportToExcel,
+  }
 }
