@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "front/**"
+      - "frontend/**"
       - "docker/Dockerfile.frontend"
   workflow_dispatch:
 
@@ -34,7 +34,7 @@ jobs:
       - name: Build and push Frontend
         uses: docker/build-push-action@v6
         with:
-          context: ./front
+          context: ./frontend
           file: docker/Dockerfile.frontend
           push: true
           tags: |

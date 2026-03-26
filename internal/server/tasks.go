@@ -1,7 +1,9 @@
 package server
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -108,4 +110,35 @@ func (h *Handler) DeleteTask(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "задача успешно удалена"})
+}
+
+func (h *Handler) StreamTasks(c *gin.Context) {
+	c.Header("Content-Type", "text/event-stream")
+	c.Header("Cache-Control", "no-cache")
+	c.Header("Connection", "keep-alive")
+	c.Header("X-Accel-Buffering", "no")
+
+	client := h.hub.Subscribe()
+
+	defer h.hub.Unsubscribe(client)
+
+	tasks, err := h.tasks.GetAllOrdered(c.Request.Context())
+	if err == nil {
+		data, _ := json.Marshal(tasks)
+		fmt.Fprintf(c.Writer, "data: %s\n\n", data)
+		c.Writer.Flush()
+	}
+
+	for {
+		select {
+		case msg, ok := <-client:
+			if !ok {
+				return
+			}
+			fmt.Fprintf(c.Writer, "data: %s\n\n", msg)
+			c.Writer.Flush()
+		case <-c.Request.Context().Done():
+			return
+		}
+	}
 }

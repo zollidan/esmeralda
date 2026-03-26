@@ -13,6 +13,7 @@ import (
 	"github.com/zollidan/esmeralda/internal/queue"
 	"github.com/zollidan/esmeralda/internal/repository"
 	"github.com/zollidan/esmeralda/internal/server"
+	"github.com/zollidan/esmeralda/internal/sse"
 
 	"context"
 	"os"
@@ -39,7 +40,9 @@ func main() {
 	taskRepo := repository.NewTaskRepository(database)
 	gameRepo := repository.NewGameRepository(database)
 
-	handler := server.NewHandler(parseProducer, rdb, taskRepo, gameRepo)
+	hub := sse.NewHub()
+
+	handler := server.NewHandler(parseProducer, rdb, taskRepo, gameRepo, hub)
 	handler.StartConsumers(ctx)
 
 	r := gin.Default()

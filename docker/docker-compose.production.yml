@@ -52,6 +52,8 @@ services:
     restart: unless-stopped
     ports:
       - "${FRONTEND_PORT:-3030}:3000"
+    environment:
+      NUXT_API_BASE: "http://esmeralda-api:8080"
 
 networks:
   default:

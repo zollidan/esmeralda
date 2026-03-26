@@ -15,16 +15,12 @@ func SetupRoutes(r *gin.Engine, h *Handler) {
 			tasks.POST("/", h.CreateTask)
 			tasks.GET("/:id", h.GetTask)
 			tasks.DELETE("/:id", h.DeleteTask)
+			tasks.GET("/stream", h.StreamTasks)
 		}
 
 		export := api.Group("/export")
 		{
 			export.GET("/", h.ExportGames)
-		}
-
-		progress := api.Group("/progress")
-		{
-			progress.GET("/ws", h.WSHandler)
 		}
 
 		archive := api.Group("/archive")

@@ -31,7 +31,6 @@ func setGamesLimit(matches, gamesLimit int) int {
 }
 
 func (p *Processor) ProcessMatches(ctx context.Context, client api.MatchFetcher, games *repository.GameRepository, matches []api.Match, taskID string) error {
-
 	limit := setGamesLimit(len(matches), p.gamesLimit)
 
 	results := make(chan result, limit)
