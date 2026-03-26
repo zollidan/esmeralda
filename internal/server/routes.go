@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	_ "github.com/zollidan/esmeralda/docs"
 )
 
 func SetupRoutes(r *gin.Engine, h *Handler) {
