@@ -21,6 +21,11 @@ import (
 	"syscall"
 )
 
+// @title           Esmeralda API
+// @version         1.0
+// @description     API для управления задачами парсинга
+// @host            localhost:8080
+// @BasePath        /api
 func main() {
 	cfg := config.Load()
 
