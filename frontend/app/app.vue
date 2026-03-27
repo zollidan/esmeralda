@@ -13,9 +13,15 @@ const {
 } = useTasks()
 
 const visible = ref(false)
-const progressByTaskId = ref<Record<string, ProgressBar>>({})
+let es: EventSource | null = null
 
-onMounted(fetchTasks)
+onMounted(() => {
+  es = initStream()
+})
+
+onUnmounted(() => {
+  es?.close()
+})
 </script>
 
 <template>

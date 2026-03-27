@@ -7,7 +7,6 @@ export type Task = {
 
 export type ProgressBar = {
   task_id: string
-  status: string
-  total_matches: number
-  current_match: number
+  percent: number
+  message: string
 }

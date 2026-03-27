@@ -144,9 +144,7 @@ function statusClass(status: string): string {
                         task.status === 'processing' && getProgress(task.id)
                       "
                     >
-                      ({{ getProgress(task.id)?.current_match }}/{{
-                        getProgress(task.id)?.current_match
-                      }})
+                      ({{ getProgress(task.id)?.percent }}%)
                     </template>
                   </span>
                 </span>
@@ -204,6 +202,27 @@ function statusClass(status: string): string {
                       class="text-xs font-mono text-slate-600 bg-slate-200 inline-block px-2 py-1 rounded"
                     >
                       {{ task.id }}
+                    </p>
+                  </div>
+
+                  <!-- Прогресс бар -->
+                  <div v-if="progressByTaskId[task.id]">
+                    <p
+                      class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2"
+                    >
+                      Прогресс
+                    </p>
+                    <div
+                      class="h-2 w-56 bg-slate-200 rounded-full overflow-hidden"
+                    >
+                      <div
+                        class="h-full bg-blue-500 transition-all duration-500 rounded-full"
+                        :style="{ width: `${progressByTaskId[task.id]?.percent}%` }"
+                      />
+                    </div>
+                    <p class="mt-1 text-xs text-slate-500">
+                      {{ progressByTaskId[task.id]?.message }}
+                      ({{ progressByTaskId[task.id]?.percent }}%)
                     </p>
                   </div>
 
