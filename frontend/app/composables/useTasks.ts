@@ -66,7 +66,6 @@ export function useTasks() {
       })
       if (!res.ok) throw new Error(`create failed: ${res.status}`)
       date.value = ''
-      await fetchTasks()
     }
     catch (err: unknown) {
       error.value = errorMessage(err)

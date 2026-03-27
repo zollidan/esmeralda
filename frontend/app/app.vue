@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import type { ProgressBar } from '~/types/task'
-
 const {
   date,
   tasks,
   loading,
   error,
-  fetchTasks,
+  initStream,
+  progressByTaskId,
   createTask,
   deleteTask,
   exportToExcel,

@@ -55,7 +55,8 @@ func (h *Handler) CreateTask(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, task)
+	h.hub.Broadcast(record)
+	c.JSON(http.StatusCreated, record)
 }
 
 func (h *Handler) GetTasks(c *gin.Context) {
