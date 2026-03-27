@@ -1,5 +1,16 @@
 <script setup lang="ts">
-const { date, tasks, loading, error, createTask, deleteTask, exportToExcel, progressByTaskId, initStream } = useTasks()
+import type { ProgressBar } from '~/types/task'
+
+const {
+  date,
+  tasks,
+  loading,
+  error,
+  fetchTasks,
+  createTask,
+  deleteTask,
+  exportToExcel,
+} = useTasks()
 
 const visible = ref(false)
 let es: EventSource | null = null

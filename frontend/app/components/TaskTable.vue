@@ -44,7 +44,7 @@ function statusClass(status: string): string {
 <template>
   <section class="bg-white rounded-lg shadow-md p-6">
     <h2 class="text-2xl font-semibold text-slate-800 mb-4">
-      All Tasks
+      Все задачи
     </h2>
 
     <div
@@ -107,7 +107,7 @@ function statusClass(status: string): string {
             <!-- Основная строка -->
             <tr class="hover:bg-slate-50 transition border-b border-slate-100">
               <td class="px-4 py-3 text-sm font-medium text-slate-900">
-                {{ new Date(task.date).toLocaleDateString() }}
+                {{ new Date(task.date).toLocaleDateString("ru-RU") }}
               </td>
               <td class="px-4 py-3 text-sm">
                 <span
@@ -150,7 +150,7 @@ function statusClass(status: string): string {
                 </span>
               </td>
               <td class="px-4 py-3 text-sm text-slate-600">
-                {{ new Date(task.created_at).toLocaleString() }}
+                {{ new Date(task.created_at).toLocaleString("ru-RU") }}
               </td>
               <td class="px-4 py-3">
                 <button
@@ -196,10 +196,10 @@ function statusClass(status: string): string {
                     <p
                       class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1"
                     >
-                      Task ID
+                      ID задачи
                     </p>
                     <p
-                      class="text-xs font-mono text-slate-600 bg-slate-100 inline-block px-2 py-1 rounded"
+                      class="text-xs font-mono text-slate-600 bg-slate-200 inline-block px-2 py-1 rounded"
                     >
                       {{ task.id }}
                     </p>
@@ -247,11 +247,11 @@ function statusClass(status: string): string {
                           d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                         />
                       </svg>
-                      Export
+                      Скачать Excel
                     </button>
                     <button
                       :disabled="task.status !== 'done'"
-                      class="px-4 py-2 bg-red-800 text-white text-sm font-medium rounded-lg cursor-pointer hover:bg-red-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition inline-flex items-center gap-2"
+                      class="px-4 py-2 bg-red-700 text-white text-sm font-medium rounded-lg cursor-pointer hover:bg-red-800 disabled:bg-slate-300 disabled:cursor-not-allowed transition inline-flex items-center gap-2"
                       @click="emit('delete', task.id)"
                     >
                       <svg
@@ -268,7 +268,7 @@ function statusClass(status: string): string {
                           d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                         />
                       </svg>
-                      Delete
+                      Удалить задачу
                     </button>
                   </div>
                 </div>
