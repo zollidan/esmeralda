@@ -31,7 +31,6 @@ func setGamesLimit(matches, gamesLimit int) int {
 }
 
 func (p *Processor) ProcessMatches(ctx context.Context, client api.MatchFetcher, games *repository.GameRepository, matches []api.Match, taskID string) error {
-
 	limit := setGamesLimit(len(matches), p.gamesLimit)
 
 	results := make(chan result, limit)
@@ -78,7 +77,10 @@ func (p *Processor) ProcessMatches(ctx context.Context, client api.MatchFetcher,
 		}
 		gameSlice[r.index] = r.game
 		processed++
-		p.publishProgress(ctx, taskID, queue.StatusProcessing, limit, processed)
+		err := p.publishProgress(ctx, taskID, queue.StatusProcessing, limit, processed)
+		if err != nil {
+			return fmt.Errorf("publish progress: %w", err)
+		}
 	}
 
 	if err := games.CreateInBatches(ctx, gameSlice, 100); err != nil {

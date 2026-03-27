@@ -16,7 +16,7 @@ type Processor struct {
 	resultsProducer  *queue.Producer
 	progressProducer *queue.Producer
 	workers          int
-	gamesLimit		int 
+	gamesLimit       int
 }
 
 func Init(apiClient api.MatchFetcher, games *repository.GameRepository, resultsProducer *queue.Producer, progressProducer *queue.Producer, workers, gamesLimit int) *Processor {

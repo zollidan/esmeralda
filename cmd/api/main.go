@@ -13,6 +13,7 @@ import (
 	"github.com/zollidan/esmeralda/internal/queue"
 	"github.com/zollidan/esmeralda/internal/repository"
 	"github.com/zollidan/esmeralda/internal/server"
+	"github.com/zollidan/esmeralda/internal/sse"
 
 	"context"
 	"os"
@@ -20,6 +21,11 @@ import (
 	"syscall"
 )
 
+// @title           Esmeralda API
+// @version         1.0
+// @description     API для управления задачами парсинга
+// @host            localhost:8080
+// @BasePath        /api
 func main() {
 	cfg := config.Load()
 
@@ -39,7 +45,9 @@ func main() {
 	taskRepo := repository.NewTaskRepository(database)
 	gameRepo := repository.NewGameRepository(database)
 
-	handler := server.NewHandler(parseProducer, rdb, taskRepo, gameRepo)
+	hub := sse.NewHub()
+
+	handler := server.NewHandler(parseProducer, rdb, taskRepo, gameRepo, hub)
 	handler.StartConsumers(ctx)
 
 	r := gin.Default()

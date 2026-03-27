@@ -11,6 +11,7 @@ services:
       REDIS_ADDR: esmeralda-redis:6379
       DATABASE_URL: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@esmeralda-postgres:5432/${POSTGRES_USER}?sslmode=disable"
       GIN_MODE: "release"
+      GAMES_LIMIT: "0"
     healthcheck:
       test:
         ["CMD-SHELL", "wget -q --spider http://localhost:8080/health || exit 1"]
@@ -27,7 +28,7 @@ services:
       SPORT_API_TOKEN: ${SPORT_API_TOKEN}
       REDIS_ADDR: esmeralda-redis:6379
       DATABASE_URL: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@esmeralda-postgres:5432/${POSTGRES_USER}?sslmode=disable"
-      # healthcheck:
+    healthcheck:
       test:
         ["CMD-SHELL", "wget -q --spider http://localhost:8081/health || exit 1"]
       interval: 30s
@@ -40,6 +41,7 @@ services:
     container_name: esmeralda-bot
     restart: unless-stopped
     environment:
+      SPORT_API_TOKEN: ${SPORT_API_TOKEN}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       TELEGRAM_BOT_DEBUG: false
       API_BASE_URL: "http://esmeralda-api:8080"
@@ -50,6 +52,8 @@ services:
     restart: unless-stopped
     ports:
       - "${FRONTEND_PORT:-3030}:3000"
+    environment:
+      NUXT_API_BASE: "http://esmeralda-api:8080"
 
 networks:
   default:

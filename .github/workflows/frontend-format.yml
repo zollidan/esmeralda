@@ -5,7 +5,7 @@ on:
     branches:
       - dev
     paths:
-      - "front/**/*"
+      - "frontend/**/*"
   workflow_dispatch:
 
 jobs:
@@ -14,7 +14,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: front
+        working-directory: frontend
 
     steps:
       - name: Checkout
@@ -31,7 +31,7 @@ jobs:
           path: |
             ~/.bun/install/cache
             node_modules
-          key: ${{ runner.os }}-bun-${{ hashFiles('front/bun.lockb') }}
+          key: ${{ runner.os }}-bun-${{ hashFiles('frontend/bun.lock') }}
           restore-keys: |
             ${{ runner.os }}-bun-
 

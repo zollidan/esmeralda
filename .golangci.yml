@@ -5,6 +5,10 @@ run:
   tests: true
 
 linters:
+  exclusions:
+    paths:
+      - "frontend/node_modules/.*"
+      - "node_modules/.*"
   enable:
     # базовые проверки
     - govet
