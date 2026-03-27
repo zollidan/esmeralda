@@ -95,6 +95,4 @@ type Game struct {
 	AwayAwayGoals3  int `gorm:"not null;default:0" json:"away_away_goals_3"`
 
 	CreatedAt time.Time `json:"created_at"`
-
-	Task Task `gorm:"foreignKey:TaskID;references:ID" json:"-"`
 }

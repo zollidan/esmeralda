@@ -1,20 +1,27 @@
 <script setup lang="ts">
-import type { ProgressBar } from '~/types/task'
+import type { ProgressBar } from "~/types/task";
 
-const { date, tasks, loading, error, fetchTasks, createTask, deleteTask, exportToExcel } = useTasks()
+const {
+  date,
+  tasks,
+  loading,
+  error,
+  fetchTasks,
+  createTask,
+  deleteTask,
+  exportToExcel,
+} = useTasks();
 
-const visible = ref(false)
-const progressByTaskId = ref<Record<string, ProgressBar>>({})
+const visible = ref(false);
+const progressByTaskId = ref<Record<string, ProgressBar>>({});
 
-onMounted(fetchTasks)
+onMounted(fetchTasks);
 </script>
 
 <template>
   <main class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
     <div class="max-w-6xl mx-auto px-4 py-8">
-      <h1 class="text-4xl font-bold text-slate-800 mb-8">
-        aaf-bet.ru
-      </h1>
+      <h1 class="text-4xl font-bold text-slate-800 mb-8">aaf-bet.ru</h1>
 
       <button
         class="px-6 py-2 my-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition"

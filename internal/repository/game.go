@@ -41,3 +41,10 @@ func (r *GameRepository) FindByTaskID(ctx context.Context, taskID string) ([]mod
 	}
 	return games, nil
 }
+
+func (r *GameRepository) DeleteByTaskID(ctx context.Context, taskID string) error {
+	if err := r.DB().WithContext(ctx).Where("task_id = ?", taskID).Delete(&models.Game{}).Error; err != nil {
+		return fmt.Errorf("delete games by task id: %w", err)
+	}
+	return nil
+}
