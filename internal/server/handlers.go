@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
@@ -21,7 +20,6 @@ type Handler struct {
 	tasks    *repository.TaskRepository
 	games    *repository.GameRepository
 	pending  map[string]chan *queue.MatchDataResult
-	mu       sync.Mutex
 	hub      *sse.Hub
 }
 

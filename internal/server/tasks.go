@@ -125,7 +125,7 @@ func (h *Handler) StreamTasks(c *gin.Context) {
 	tasks, err := h.tasks.GetAllOrdered(c.Request.Context())
 	if err == nil {
 		data, _ := json.Marshal(tasks)
-		fmt.Fprintf(c.Writer, "data: %s\n\n", data)
+		_, _ = fmt.Fprintf(c.Writer, "data: %s\n\n", data) //nolint:gosec // data is json.Marshal output
 		c.Writer.Flush()
 	}
 
@@ -135,7 +135,7 @@ func (h *Handler) StreamTasks(c *gin.Context) {
 			if !ok {
 				return
 			}
-			fmt.Fprintf(c.Writer, "data: %s\n\n", msg)
+			_, _ = fmt.Fprintf(c.Writer, "data: %s\n\n", msg) //nolint:gosec // data is json.Marshal output
 			c.Writer.Flush()
 		case <-c.Request.Context().Done():
 			return
