@@ -46,17 +46,17 @@ func (h *Handler) PostLoginUser(c *gin.Context) {
 	}
 
 	access_token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": user.ID,
-		"exp":     time.Now().Add(time.Duration(h.cfg.Auth.AccessTokenTTL) * time.Second).Unix(),
+		"user_id":    user.ID,
+		"exp":        time.Now().Add(time.Duration(h.cfg.Auth.AccessTokenTTL) * time.Second).Unix(),
 		"token_type": "access",
 	})
 
 	refresh_token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": user.ID,
-		"exp":     time.Now().Add(time.Duration(h.cfg.Auth.RefreshTokenTTL) * time.Second).Unix(),
+		"user_id":    user.ID,
+		"exp":        time.Now().Add(time.Duration(h.cfg.Auth.RefreshTokenTTL) * time.Second).Unix(),
 		"token_type": "refresh",
 	})
-	
+
 	access_token_str, err := access_token.SignedString([]byte(h.cfg.Auth.JWTSecret))
 	if err != nil {
 		c.JSON(500, gin.H{"error": "failed to generate token"})

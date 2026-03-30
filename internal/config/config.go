@@ -22,8 +22,8 @@ type Config struct {
 }
 
 type Auth struct {
-	Username  string
-	JWTSecret string
+	Username        string
+	JWTSecret       string
 	AccessTokenTTL  int
 	RefreshTokenTTL int
 }
@@ -69,10 +69,10 @@ func Load() *Config {
 
 	return &Config{
 		Auth: Auth{
-			Username:  getEnv("", "admin"),
+			Username:        getEnv("", "admin"),
 			AccessTokenTTL:  getEnvInt("ACCESS_TOKEN_TTL", 86400),
 			RefreshTokenTTL: getEnvInt("REFRESH_TOKEN_TTL", 604800),
-			JWTSecret: getEnv("JWT_SECRET", "secret"),
+			JWTSecret:       getEnv("JWT_SECRET", "secret"),
 		},
 		SportAPIRU: SportAPIRU{
 			BaseURL:         "https://api.api-sport.ru/v2",
