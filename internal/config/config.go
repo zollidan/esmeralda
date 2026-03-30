@@ -10,7 +10,7 @@ import (
 
 // Config is the main configuration struct for the application. It contains all necessary configuration fields, grouped by their respective domains (e.g., SportAPIRU, Excel, Tech, TelegramBot).
 type Config struct {
-	Auth 	  Auth
+	Auth        Auth
 	SportAPIRU  SportAPIRU
 	Excel       Excel
 	Tech        Tech
@@ -22,8 +22,8 @@ type Config struct {
 }
 
 type Auth struct {
-	Username string
-	Password string
+	Username  string
+	Password  string
 	JWTSecret string
 }
 
@@ -68,9 +68,9 @@ func Load() *Config {
 
 	return &Config{
 		Auth: Auth{
-			Username: getEnv("", "admin"),
-			Password: getEnv("", "admin"),
-			JWTSecret:  getEnv("JWT_SECRET", "secret"),
+			Username:  getEnv("", "admin"),
+			Password:  getEnv("", "admin"),
+			JWTSecret: getEnv("JWT_SECRET", "secret"),
 		},
 		SportAPIRU: SportAPIRU{
 			BaseURL:         "https://api.api-sport.ru/v2",

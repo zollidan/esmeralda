@@ -21,4 +21,3 @@ func New(cfg *config.Config) (*gorm.DB, error) {
 
 	return database, nil
 }
-

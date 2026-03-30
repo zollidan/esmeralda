@@ -17,7 +17,7 @@ import (
 
 type Handler struct {
 	producer *queue.Producer
-	cfg 	*config.Config
+	cfg      *config.Config
 	rdb      *redis.Client
 	tasks    *repository.TaskRepository
 	games    *repository.GameRepository
