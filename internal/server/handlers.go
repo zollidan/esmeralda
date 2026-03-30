@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
+	"github.com/zollidan/esmeralda/internal/config"
 	"github.com/zollidan/esmeralda/internal/queue"
 	"github.com/zollidan/esmeralda/internal/repository"
 	"github.com/zollidan/esmeralda/internal/sse"
@@ -16,19 +17,23 @@ import (
 
 type Handler struct {
 	producer *queue.Producer
+	cfg 	*config.Config
 	rdb      *redis.Client
 	tasks    *repository.TaskRepository
 	games    *repository.GameRepository
+	users    *repository.UserRepository
 	pending  map[string]chan *queue.MatchDataResult
 	hub      *sse.Hub
 }
 
-func NewHandler(producer *queue.Producer, rdb *redis.Client, tasks *repository.TaskRepository, games *repository.GameRepository, hub *sse.Hub) *Handler {
+func NewHandler(producer *queue.Producer, cfg *config.Config, rdb *redis.Client, tasks *repository.TaskRepository, games *repository.GameRepository, users *repository.UserRepository, hub *sse.Hub) *Handler {
 	return &Handler{
 		producer: producer,
+		cfg:      cfg,
 		rdb:      rdb,
 		tasks:    tasks,
 		games:    games,
+		users:    users,
 		hub:      hub,
 		pending:  make(map[string]chan *queue.MatchDataResult),
 	}

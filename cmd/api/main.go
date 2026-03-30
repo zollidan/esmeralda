@@ -13,6 +13,7 @@ import (
 	"github.com/zollidan/esmeralda/internal/queue"
 	"github.com/zollidan/esmeralda/internal/repository"
 	"github.com/zollidan/esmeralda/internal/server"
+	"github.com/zollidan/esmeralda/internal/service/auth"
 	"github.com/zollidan/esmeralda/internal/sse"
 
 	"context"
@@ -44,10 +45,13 @@ func main() {
 	parseProducer := queue.NewProducer(rdb, queue.StreamParse)
 	taskRepo := repository.NewTaskRepository(database)
 	gameRepo := repository.NewGameRepository(database)
+	userRepo := repository.NewUserRepository(database)
+
+	auth.CreateAdmin(cfg.Auth.Username, cfg.Auth.Password, userRepo)
 
 	hub := sse.NewHub()
 
-	handler := server.NewHandler(parseProducer, rdb, taskRepo, gameRepo, hub)
+	handler := server.NewHandler(parseProducer, cfg, rdb, taskRepo, gameRepo, userRepo, hub)
 	handler.StartConsumers(ctx)
 
 	r := gin.Default()

@@ -14,6 +14,11 @@ func SetupRoutes(r *gin.Engine, h *Handler) {
 
 	api := r.Group("/api")
 	{
+		auth := api.Group("/auth")
+		{
+			auth.POST("/login", h.PostLoginUser)
+		}
+
 		tasks := api.Group("/tasks")
 		{
 			tasks.GET("/", h.GetTasks)

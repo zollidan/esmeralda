@@ -10,6 +10,7 @@ import (
 
 // Config is the main configuration struct for the application. It contains all necessary configuration fields, grouped by their respective domains (e.g., SportAPIRU, Excel, Tech, TelegramBot).
 type Config struct {
+	Auth 	  Auth
 	SportAPIRU  SportAPIRU
 	Excel       Excel
 	Tech        Tech
@@ -18,6 +19,12 @@ type Config struct {
 	RedisAddr   string
 	ServerPort  string
 	Env         string
+}
+
+type Auth struct {
+	Username string
+	Password string
+	JWTSecret string
 }
 
 // SportAPIRU contains configuration related to the Sport API.
@@ -60,14 +67,15 @@ func Load() *Config {
 	}
 
 	return &Config{
+		Auth: Auth{
+			Username: getEnv("", "admin"),
+			Password: getEnv("", "admin"),
+			JWTSecret:  getEnv("JWT_SECRET", "secret"),
+		},
 		SportAPIRU: SportAPIRU{
 			BaseURL:         "https://api.api-sport.ru/v2",
 			BaseFootballURL: "https://api.api-sport.ru/v2/football",
 			Token:           token,
-		},
-		Excel: Excel{
-			FilePath: getEnv("EXCEL_FILE_PATH", "./output/"),
-			FileName: getEnv("EXCEL_FILE_NAME", "esmeralda-ru.xlsx"),
 		},
 		Tech: Tech{
 			ParserPort: getEnv("PARSER_PORT", ":8081"),
