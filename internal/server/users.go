@@ -20,37 +20,44 @@ type LoginUserResponse struct {
 func (h *Handler) PostLoginUser(c *gin.Context) {
 	var req LoginUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"error": "invalid request"})
 		return
 	}
 
 	user, err := h.users.FindByUsername(c.Request.Context(), req.Username)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{"error": "internal error"})
 		return
 	}
+
 	if user == nil {
-		c.JSON(404, gin.H{"error": "user not found"})
+		c.JSON(401, gin.H{"error": "invalid credentials"})
 		return
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
-	if err != nil {
-		c.JSON(400, gin.H{"error": "invalid username or password"})
+	// проверка пароля
+	if err := bcrypt.CompareHashAndPassword(
+		[]byte(user.PasswordHash),
+		[]byte(req.Password),
+	); err != nil {
+		c.JSON(401, gin.H{"error": "invalid credentials"})
 		return
 	}
 
-	claims := &jwt.RegisteredClaims{
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+	claims := jwt.MapClaims{
+		"user_id": user.ID,
+		"exp":     time.Now().Add(24 * time.Hour).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	ss, err := token.SignedString(h.cfg.Auth.JWTSecret)
+
+	ss, err := token.SignedString([]byte(h.cfg.Auth.JWTSecret))
 	if err != nil {
 		c.JSON(500, gin.H{"error": "failed to generate token"})
 		return
 	}
 
-	c.JSON(200, LoginUserResponse{Token: ss})
-
+	c.JSON(200, LoginUserResponse{
+		Token: ss,
+	})
 }

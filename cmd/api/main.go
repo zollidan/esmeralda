@@ -47,7 +47,11 @@ func main() {
 	gameRepo := repository.NewGameRepository(database)
 	userRepo := repository.NewUserRepository(database)
 
-	auth.CreateAdmin(cfg.Auth.Username, cfg.Auth.Password, userRepo)
+	msg, err := auth.CreateAdmin(cfg.Auth.Username, cfg.Auth.Password, userRepo)
+	if err != nil {
+		log.Fatalf("create admin: %v", err)
+	}
+	log.Println(msg)
 
 	hub := sse.NewHub()
 

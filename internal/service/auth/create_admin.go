@@ -35,7 +35,7 @@ func CreateAdmin(username, password string, repo *repository.UserRepository) (st
 
 	user := &models.User{
 		Username:        username,
-		Password: string(hash),
+		PasswordHash: string(hash),
 
 	}
 

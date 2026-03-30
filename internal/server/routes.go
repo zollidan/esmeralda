@@ -5,6 +5,7 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	_ "github.com/zollidan/esmeralda/docs"
+	"github.com/zollidan/esmeralda/internal/middleware"
 )
 
 func SetupRoutes(r *gin.Engine, h *Handler) {
@@ -12,13 +13,14 @@ func SetupRoutes(r *gin.Engine, h *Handler) {
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	api := r.Group("/api")
+	auth := r.Group("/api/auth")
 	{
-		auth := api.Group("/auth")
-		{
-			auth.POST("/login", h.PostLoginUser)
-		}
+		auth.POST("/login", h.PostLoginUser)
+	}
 
+	api := r.Group("/api")
+	api.Use(middleware.AuthMiddleware(h.cfg.Auth.JWTSecret))
+	{
 		tasks := api.Group("/tasks")
 		{
 			tasks.GET("/", h.GetTasks)
