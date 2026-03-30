@@ -16,6 +16,7 @@ func SetupRoutes(r *gin.Engine, h *Handler) {
 	auth := r.Group("/api/auth")
 	{
 		auth.POST("/login", h.PostLoginUser)
+		auth.POST("/refresh", h.PostRefreshToken)
 	}
 
 	api := r.Group("/api")

@@ -46,16 +46,21 @@ func main() {
 	taskRepo := repository.NewTaskRepository(database)
 	gameRepo := repository.NewGameRepository(database)
 	userRepo := repository.NewUserRepository(database)
+	refreshTokenRepo := repository.NewRefreshTokenRepository(database)
 
-	msg, err := auth.CreateAdmin(cfg.Auth.Username, cfg.Auth.Password, userRepo)
+	creds, msg, err := auth.CreateAdmin(cfg.Auth.Username, userRepo)
 	if err != nil {
 		log.Fatalf("create admin: %v", err)
 	}
 	log.Println(msg)
+	if creds != nil {
+		log.Printf("login: %s", creds.Username)
+		log.Printf("password: %s", creds.Password)
+	}
 
 	hub := sse.NewHub()
 
-	handler := server.NewHandler(parseProducer, cfg, rdb, taskRepo, gameRepo, userRepo, hub)
+	handler := server.NewHandler(parseProducer, cfg, rdb, taskRepo, gameRepo, userRepo, refreshTokenRepo, hub)
 	handler.StartConsumers(ctx)
 
 	r := gin.Default()

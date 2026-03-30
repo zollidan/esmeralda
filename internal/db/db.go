@@ -15,7 +15,7 @@ func New(cfg *config.Config) (*gorm.DB, error) {
 		return nil, fmt.Errorf("open db: %w", err)
 	}
 
-	if err := database.AutoMigrate(&models.Task{}, &models.Game{}, &models.User{}); err != nil {
+	if err := database.AutoMigrate(&models.Task{}, &models.Game{}, &models.User{}, &models.RefreshToken{}); err != nil {
 		return nil, fmt.Errorf("auto migrate: %w", err)
 	}
 

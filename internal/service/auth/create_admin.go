@@ -8,29 +8,40 @@ import (
 
 	"github.com/zollidan/esmeralda/internal/models"
 	"github.com/zollidan/esmeralda/internal/repository"
+	"github.com/zollidan/esmeralda/internal/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func CreateAdmin(username, password string, repo *repository.UserRepository) (string, error) {
+type AdminCredentials struct {
+	Username string
+	Password string
+}
+
+func CreateAdmin(username string, repo *repository.UserRepository) (*AdminCredentials, string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	exists, err := repo.AnyExists(ctx)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 
 	if exists {
-		return "admin already exists, skip", nil
+		return nil, "admin already exists, skip", nil
 	}
 
-	if username == "" || password == "" {
-		return "", errors.New("username and password required")
+	if username == "" {
+		return nil, "", errors.New("username required")
+	}
+
+	password, err := utils.GeneratePassword(10)
+	if err != nil {
+		return nil, "", fmt.Errorf("error generating password: %w", err)
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return "", fmt.Errorf("hash password: %w", err)
+		return nil, "", fmt.Errorf("error hashing password: %w", err)
 	}
 
 	user := &models.User{
@@ -39,8 +50,11 @@ func CreateAdmin(username, password string, repo *repository.UserRepository) (st
 	}
 
 	if err := repo.Create(ctx, user); err != nil {
-		return "", fmt.Errorf("create admin: %w", err)
+		return nil, "", fmt.Errorf("error creating admin: %w", err)
 	}
 
-	return "admin created", nil
+	return &AdminCredentials{
+		Username: username,
+		Password: password,
+	}, "admin created", nil
 }

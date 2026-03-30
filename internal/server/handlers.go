@@ -22,11 +22,12 @@ type Handler struct {
 	tasks    *repository.TaskRepository
 	games    *repository.GameRepository
 	users    *repository.UserRepository
+	refreshTokens *repository.RefreshTokenRepository
 	pending  map[string]chan *queue.MatchDataResult
 	hub      *sse.Hub
 }
 
-func NewHandler(producer *queue.Producer, cfg *config.Config, rdb *redis.Client, tasks *repository.TaskRepository, games *repository.GameRepository, users *repository.UserRepository, hub *sse.Hub) *Handler {
+func NewHandler(producer *queue.Producer, cfg *config.Config, rdb *redis.Client, tasks *repository.TaskRepository, games *repository.GameRepository, users *repository.UserRepository, refreshTokens *repository.RefreshTokenRepository, hub *sse.Hub) *Handler {
 	return &Handler{
 		producer: producer,
 		cfg:      cfg,
@@ -34,6 +35,7 @@ func NewHandler(producer *queue.Producer, cfg *config.Config, rdb *redis.Client,
 		tasks:    tasks,
 		games:    games,
 		users:    users,
+		refreshTokens: refreshTokens,
 		hub:      hub,
 		pending:  make(map[string]chan *queue.MatchDataResult),
 	}

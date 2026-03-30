@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/zollidan/esmeralda/internal/models"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -14,7 +15,8 @@ type LoginUserRequest struct {
 }
 
 type LoginUserResponse struct {
-	Token string `json:"token"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 func (h *Handler) PostLoginUser(c *gin.Context) {
@@ -35,7 +37,6 @@ func (h *Handler) PostLoginUser(c *gin.Context) {
 		return
 	}
 
-	// проверка пароля
 	if err := bcrypt.CompareHashAndPassword(
 		[]byte(user.PasswordHash),
 		[]byte(req.Password),
@@ -44,20 +45,41 @@ func (h *Handler) PostLoginUser(c *gin.Context) {
 		return
 	}
 
-	claims := jwt.MapClaims{
+	access_token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": user.ID,
-		"exp":     time.Now().Add(24 * time.Hour).Unix(),
-	}
+		"exp":     time.Now().Add(time.Duration(h.cfg.Auth.AccessTokenTTL) * time.Second).Unix(),
+		"token_type": "access",
+	})
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	ss, err := token.SignedString([]byte(h.cfg.Auth.JWTSecret))
+	refresh_token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": user.ID,
+		"exp":     time.Now().Add(time.Duration(h.cfg.Auth.RefreshTokenTTL) * time.Second).Unix(),
+		"token_type": "refresh",
+	})
+	
+	access_token_str, err := access_token.SignedString([]byte(h.cfg.Auth.JWTSecret))
 	if err != nil {
 		c.JSON(500, gin.H{"error": "failed to generate token"})
 		return
 	}
 
+	refresh_token_str, err := refresh_token.SignedString([]byte(h.cfg.Auth.JWTSecret))
+	if err != nil {
+		c.JSON(500, gin.H{"error": "failed to generate refresh token"})
+		return
+	}
+
+	if err := h.refreshTokens.Create(c.Request.Context(), &models.RefreshToken{
+		UserID:    user.ID,
+		Token:     refresh_token_str,
+		ExpiresAt: time.Now().Add(time.Duration(h.cfg.Auth.RefreshTokenTTL) * time.Second),
+	}); err != nil {
+		c.JSON(500, gin.H{"error": "failed to save refresh token"})
+		return
+	}
+
 	c.JSON(200, LoginUserResponse{
-		Token: ss,
+		AccessToken:  access_token_str,
+		RefreshToken: refresh_token_str,
 	})
 }
