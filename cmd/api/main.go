@@ -27,6 +27,10 @@ import (
 // @description     API для управления задачами парсинга
 // @host            localhost:8080
 // @BasePath        /api
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description JWT токен в формате: Bearer <token>
 func main() {
 	cfg := config.Load()
 

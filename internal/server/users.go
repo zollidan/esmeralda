@@ -17,6 +17,18 @@ type LoginUserResponse struct {
 	Token string `json:"token"`
 }
 
+// PostLoginUser godoc
+// @Summary      Авторизация пользователя
+// @Description  Проверяет учетные данные и возвращает JWT токен
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      LoginUserRequest   true  "Логин и пароль"
+// @Success      200      {object}  LoginUserResponse
+// @Failure      400      {object}  errorResponse
+// @Failure      401      {object}  errorResponse
+// @Failure      500      {object}  errorResponse
+// @Router       /auth/login [post]
 func (h *Handler) PostLoginUser(c *gin.Context) {
 	var req LoginUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
