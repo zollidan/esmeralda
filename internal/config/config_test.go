@@ -94,12 +94,6 @@ func TestLoad_DefaultValues(t *testing.T) {
 	if cfg.SportAPIRU.BaseFootballURL != "https://api.api-sport.ru/v2/football" {
 		t.Errorf("unexpected BaseFootballURL: %q", cfg.SportAPIRU.BaseFootballURL)
 	}
-	if cfg.Excel.FilePath != "./output/" {
-		t.Errorf("expected default FilePath './output/', got %q", cfg.Excel.FilePath)
-	}
-	if cfg.Excel.FileName != "esmeralda-ru.xlsx" {
-		t.Errorf("expected default FileName 'esmeralda-ru.xlsx', got %q", cfg.Excel.FileName)
-	}
 	if cfg.Tech.Workers != 20 {
 		t.Errorf("expected default Workers 20, got %d", cfg.Tech.Workers)
 	}
@@ -140,12 +134,6 @@ func TestLoad_CustomValues(t *testing.T) {
 
 	if cfg.SportAPIRU.Token != "my-token" {
 		t.Errorf("expected 'my-token', got %q", cfg.SportAPIRU.Token)
-	}
-	if cfg.Excel.FilePath != "/tmp/output/" {
-		t.Errorf("expected '/tmp/output/', got %q", cfg.Excel.FilePath)
-	}
-	if cfg.Excel.FileName != "custom.xlsx" {
-		t.Errorf("expected 'custom.xlsx', got %q", cfg.Excel.FileName)
 	}
 	if cfg.Tech.Workers != 5 {
 		t.Errorf("expected Workers 5, got %d", cfg.Tech.Workers)

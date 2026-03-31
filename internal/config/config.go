@@ -12,7 +12,6 @@ import (
 type Config struct {
 	Auth        Auth
 	SportAPIRU  SportAPIRU
-	Excel       Excel
 	Tech        Tech
 	TelegramBot TelegramBot
 	DatabaseURL string
@@ -33,12 +32,6 @@ type SportAPIRU struct {
 	BaseURL         string
 	BaseFootballURL string
 	Token           string
-}
-
-// Excel contains configuration related to Excel file handling.
-type Excel struct {
-	FilePath string
-	FileName string
 }
 
 // Tech contains configuration related to technical aspects of the application.
