@@ -18,6 +18,26 @@ type createTaskRequest struct {
 	Date string `json:"date" binding:"required"`
 }
 
+type messageResponse struct {
+	Message string `json:"message"`
+}
+
+type errorResponse struct {
+	Error string `json:"error"`
+}
+
+// CreateTask godoc
+// @Summary      Создать задачу парсинга
+// @Description  Создает новую задачу на парсинг матчей за указанную дату
+// @Tags         tasks
+// @Accept       json
+// @Produce      json
+// @Param        request body      createTaskRequest true "Дата задачи"
+// @Success      201     {object}  models.Task
+// @Failure      400     {object}  errorResponse
+// @Failure      500     {object}  errorResponse
+// @Security     BearerAuth
+// @Router       /tasks/ [post]
 func (h *Handler) CreateTask(c *gin.Context) {
 	var req createTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -59,6 +79,15 @@ func (h *Handler) CreateTask(c *gin.Context) {
 	c.JSON(http.StatusCreated, record)
 }
 
+// GetTasks godoc
+// @Summary      Получить список задач
+// @Description  Возвращает все задачи, отсортированные по времени создания
+// @Tags         tasks
+// @Produce      json
+// @Success      200  {array}   models.Task
+// @Failure      500  {object}  errorResponse
+// @Security     BearerAuth
+// @Router       /tasks/ [get]
 func (h *Handler) GetTasks(c *gin.Context) {
 	tasks, err := h.tasks.GetAllOrdered(c.Request.Context())
 	if err != nil {
@@ -68,6 +97,18 @@ func (h *Handler) GetTasks(c *gin.Context) {
 	c.JSON(http.StatusOK, tasks)
 }
 
+// GetTask godoc
+// @Summary      Получить задачу по ID
+// @Description  Возвращает одну задачу по идентификатору
+// @Tags         tasks
+// @Produce      json
+// @Param        id   path      string  true  "ID задачи"
+// @Success      200  {object}  models.Task
+// @Failure      400  {object}  errorResponse
+// @Failure      404  {object}  errorResponse
+// @Failure      500  {object}  errorResponse
+// @Security     BearerAuth
+// @Router       /tasks/{id} [get]
 func (h *Handler) GetTask(c *gin.Context) {
 	taskID := c.Param("id")
 	if taskID == "" {
@@ -88,6 +129,18 @@ func (h *Handler) GetTask(c *gin.Context) {
 	c.JSON(http.StatusOK, task)
 }
 
+// DeleteTask godoc
+// @Summary      Удалить задачу
+// @Description  Удаляет задачу по ID
+// @Tags         tasks
+// @Produce      json
+// @Param        id   path      string  true  "ID задачи"
+// @Success      200  {object}  messageResponse
+// @Failure      400  {object}  errorResponse
+// @Failure      404  {object}  errorResponse
+// @Failure      500  {object}  errorResponse
+// @Security     BearerAuth
+// @Router       /tasks/{id} [delete]
 func (h *Handler) DeleteTask(c *gin.Context) {
 	taskID := c.Param("id")
 	if taskID == "" {
@@ -113,6 +166,14 @@ func (h *Handler) DeleteTask(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "задача успешно удалена"})
 }
 
+// StreamTasks godoc
+// @Summary      Поток обновлений задач (SSE)
+// @Description  Открывает Server-Sent Events поток с актуальным списком и изменениями задач
+// @Tags         tasks
+// @Produce      text/event-stream
+// @Success      200  {string}  string  "SSE stream"
+// @Security     BearerAuth
+// @Router       /tasks/stream [get]
 func (h *Handler) StreamTasks(c *gin.Context) {
 	c.Header("Content-Type", "text/event-stream")
 	c.Header("Cache-Control", "no-cache")
