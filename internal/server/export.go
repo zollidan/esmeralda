@@ -10,6 +10,19 @@ import (
 	"github.com/zollidan/esmeralda/internal/stats"
 )
 
+// ExportGames godoc
+// @Summary      Экспортировать матчи в Excel
+// @Description  Формирует XLSX файл по матчам за период date_start - date_end
+// @Tags         export
+// @Produce      application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+// @Param        date_start  query     string  true  "Дата начала периода (YYYY-MM-DD)"
+// @Param        date_end    query     string  true  "Дата конца периода (YYYY-MM-DD)"
+// @Success      200         {file}    file
+// @Failure      400         {object}  errorResponse
+// @Failure      404         {object}  errorResponse
+// @Failure      500         {object}  errorResponse
+// @Security     BearerAuth
+// @Router       /export/ [get]
 func (h *Handler) ExportGames(c *gin.Context) {
 	dateStartStr := c.Query("date_start")
 	dateEndStr := c.Query("date_end")

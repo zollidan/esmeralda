@@ -5,7 +5,7 @@ import (
 )
 
 func TestNewHandler(t *testing.T) {
-	h := NewHandler(nil, nil, nil, nil, nil)
+	h := NewHandler(nil, nil, nil, nil, nil, nil, nil, nil)
 	if h == nil {
 		t.Fatal("NewHandler returned nil")
 	}

@@ -1,3 +1,4 @@
 export default defineEventHandler(async (event) => {
-  return backendFetch(event, '/api/tasks/')
+  await clearUserSession(event)
+  return { ok: true }
 })

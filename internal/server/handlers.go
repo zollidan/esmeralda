@@ -9,31 +9,45 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
+	"github.com/zollidan/esmeralda/internal/config"
 	"github.com/zollidan/esmeralda/internal/queue"
 	"github.com/zollidan/esmeralda/internal/repository"
 	"github.com/zollidan/esmeralda/internal/sse"
 )
 
 type Handler struct {
-	producer *queue.Producer
-	rdb      *redis.Client
-	tasks    *repository.TaskRepository
-	games    *repository.GameRepository
-	pending  map[string]chan *queue.MatchDataResult
-	hub      *sse.Hub
+	producer      *queue.Producer
+	cfg           *config.Config
+	rdb           *redis.Client
+	tasks         *repository.TaskRepository
+	games         *repository.GameRepository
+	users         *repository.UserRepository
+	refreshTokens *repository.RefreshTokenRepository
+	pending       map[string]chan *queue.MatchDataResult
+	hub           *sse.Hub
 }
 
-func NewHandler(producer *queue.Producer, rdb *redis.Client, tasks *repository.TaskRepository, games *repository.GameRepository, hub *sse.Hub) *Handler {
+func NewHandler(producer *queue.Producer, cfg *config.Config, rdb *redis.Client, tasks *repository.TaskRepository, games *repository.GameRepository, users *repository.UserRepository, refreshTokens *repository.RefreshTokenRepository, hub *sse.Hub) *Handler {
 	return &Handler{
-		producer: producer,
-		rdb:      rdb,
-		tasks:    tasks,
-		games:    games,
-		hub:      hub,
-		pending:  make(map[string]chan *queue.MatchDataResult),
+		producer:      producer,
+		cfg:           cfg,
+		rdb:           rdb,
+		tasks:         tasks,
+		games:         games,
+		users:         users,
+		refreshTokens: refreshTokens,
+		hub:           hub,
+		pending:       make(map[string]chan *queue.MatchDataResult),
 	}
 }
 
+// Health godoc
+// @Summary      Проверка доступности сервиса
+// @Description  Возвращает статус API
+// @Tags         health
+// @Produce      json
+// @Success      200  {object}  map[string]string
+// @Router       /health [get]
 func (h *Handler) Health(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }

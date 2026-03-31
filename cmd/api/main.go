@@ -13,6 +13,7 @@ import (
 	"github.com/zollidan/esmeralda/internal/queue"
 	"github.com/zollidan/esmeralda/internal/repository"
 	"github.com/zollidan/esmeralda/internal/server"
+	"github.com/zollidan/esmeralda/internal/service/auth"
 	"github.com/zollidan/esmeralda/internal/sse"
 
 	"context"
@@ -26,6 +27,10 @@ import (
 // @description     API для управления задачами парсинга
 // @host            localhost:8080
 // @BasePath        /api
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description JWT токен в формате: Bearer <token>
 func main() {
 	cfg := config.Load()
 
@@ -44,10 +49,25 @@ func main() {
 	parseProducer := queue.NewProducer(rdb, queue.StreamParse)
 	taskRepo := repository.NewTaskRepository(database)
 	gameRepo := repository.NewGameRepository(database)
+	userRepo := repository.NewUserRepository(database)
+	refreshTokenRepo := repository.NewRefreshTokenRepository(database)
+
+	creds, msg, err := auth.CreateAdmin(cfg.Auth.Username, userRepo)
+	if err != nil {
+		log.Printf("create admin: %v", err)
+		cancel()
+		//nolint:gocritic // expected on startup failure
+		os.Exit(1)
+	}
+	log.Println(msg)
+	if creds != nil {
+		log.Printf("login: %s", creds.Username)
+		log.Printf("password: %s", creds.Password)
+	}
 
 	hub := sse.NewHub()
 
-	handler := server.NewHandler(parseProducer, rdb, taskRepo, gameRepo, hub)
+	handler := server.NewHandler(parseProducer, cfg, rdb, taskRepo, gameRepo, userRepo, refreshTokenRepo, hub)
 	handler.StartConsumers(ctx)
 
 	r := gin.Default()
