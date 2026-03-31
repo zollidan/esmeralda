@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/zollidan/esmeralda/internal/models"
-	"github.com/zollidan/esmeralda/internal/repository"
 	"github.com/zollidan/esmeralda/internal/utils"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -17,7 +16,12 @@ type AdminCredentials struct {
 	Password string
 }
 
-func CreateAdmin(username string, repo *repository.UserRepository) (*AdminCredentials, string, error) {
+type UserRepository interface {
+    AnyExists(ctx context.Context) (bool, error)
+    Create(ctx context.Context, user *models.User) error
+}
+
+func CreateAdmin(username string, repo UserRepository) (*AdminCredentials, string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
