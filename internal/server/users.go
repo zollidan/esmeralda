@@ -11,12 +11,12 @@ import (
 
 type LoginUserRequest struct {
 	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Password string `json:"password" binding:"required"` //nolint:gosec // Payload field
 }
 
 type LoginUserResponse struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
+	AccessToken  string `json:"access_token"`  //nolint:gosec // Payload field
+	RefreshToken string `json:"refresh_token"` //nolint:gosec // Payload field
 }
 
 // PostLoginUser godoc

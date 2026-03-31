@@ -18,10 +18,12 @@ type createTaskRequest struct {
 	Date string `json:"date" binding:"required"`
 }
 
+//nolint:unused // used in swagger comments
 type messageResponse struct {
 	Message string `json:"message"`
 }
 
+//nolint:unused // used in swagger comments
 type errorResponse struct {
 	Error string `json:"error"`
 }

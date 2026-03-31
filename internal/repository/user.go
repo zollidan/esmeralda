@@ -27,7 +27,7 @@ func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+			return nil, nil //nolint:nilnil // returning nil for pointer when not found is standard
 		}
 		return nil, fmt.Errorf("find user by username: %w", err)
 	}

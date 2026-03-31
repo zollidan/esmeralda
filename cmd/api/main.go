@@ -54,7 +54,10 @@ func main() {
 
 	creds, msg, err := auth.CreateAdmin(cfg.Auth.Username, userRepo)
 	if err != nil {
-		log.Fatalf("create admin: %v", err)
+		log.Printf("create admin: %v", err)
+		cancel()
+		//nolint:gocritic // expected on startup failure
+		os.Exit(1)
 	}
 	log.Println(msg)
 	if creds != nil {

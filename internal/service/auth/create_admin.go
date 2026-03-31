@@ -13,7 +13,7 @@ import (
 
 type AdminCredentials struct {
 	Username string
-	Password string
+	Password string //nolint:gosec // Payload field
 }
 
 type UserRepository interface {

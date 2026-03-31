@@ -9,12 +9,12 @@ import (
 )
 
 type RefreshRequest struct {
-	RefreshToken string `json:"refresh_token" binding:"required"`
+	RefreshToken string `json:"refresh_token" binding:"required"` //nolint:gosec // Payload field
 }
 
 type RefreshResponse struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
+	AccessToken  string `json:"access_token"`  //nolint:gosec // Payload field
+	RefreshToken string `json:"refresh_token"` //nolint:gosec // Payload field
 }
 
 func (h *Handler) PostRefreshToken(c *gin.Context) {

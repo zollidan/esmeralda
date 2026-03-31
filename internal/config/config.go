@@ -23,7 +23,7 @@ type Config struct {
 
 type Auth struct {
 	Username        string
-	JWTSecret       string
+	JWTSecret       string `json:"-"` //nolint:gosec // Not a hardcoded secret
 	AccessTokenTTL  int
 	RefreshTokenTTL int
 }

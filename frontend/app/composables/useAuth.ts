@@ -12,7 +12,7 @@ export const useAuth = () => {
   const logout = async () => {
     await $fetch('/api/auth/logout', { method: 'POST' })
     await clear()
-    navigateTo('/login')
+    await navigateTo('/login')
   }
 
   return { loggedIn, user, login, logout }

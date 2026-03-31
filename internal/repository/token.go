@@ -26,7 +26,7 @@ func (r *RefreshTokenRepository) FindByToken(ctx context.Context, token string) 
 		First(&t).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+			return nil, nil //nolint:nilnil // returning nil for pointer when not found is standard
 		}
 		return nil, fmt.Errorf("find refresh token: %w", err)
 	}
