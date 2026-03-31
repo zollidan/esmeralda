@@ -70,7 +70,7 @@ func Load() *Config {
 	return &Config{
 		Auth: Auth{
 			Username:        getEnv("", "admin"),
-			AccessTokenTTL:  getEnvInt("ACCESS_TOKEN_TTL", 86400), // 86400 for 24 hours
+			AccessTokenTTL:  getEnvInt("ACCESS_TOKEN_TTL", 86400),   // 86400 for 24 hours
 			RefreshTokenTTL: getEnvInt("REFRESH_TOKEN_TTL", 604800), // 604800 for 7 days
 			JWTSecret:       getEnv("JWT_SECRET", "secret"),
 		},

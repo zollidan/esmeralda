@@ -17,8 +17,8 @@ type AdminCredentials struct {
 }
 
 type UserRepository interface {
-    AnyExists(ctx context.Context) (bool, error)
-    Create(ctx context.Context, user *models.User) error
+	AnyExists(ctx context.Context) (bool, error)
+	Create(ctx context.Context, user *models.User) error
 }
 
 func CreateAdmin(username string, repo UserRepository) (*AdminCredentials, string, error) {

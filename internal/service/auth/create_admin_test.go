@@ -9,17 +9,17 @@ import (
 )
 
 type mockUserRepo struct {
-    anyExists bool
-    anyExistsErr error
-    createErr    error
+	anyExists    bool
+	anyExistsErr error
+	createErr    error
 }
 
 func (m *mockUserRepo) AnyExists(_ context.Context) (bool, error) {
-    return m.anyExists, m.anyExistsErr
+	return m.anyExists, m.anyExistsErr
 }
 
 func (m *mockUserRepo) Create(_ context.Context, _ *models.User) error {
-    return m.createErr
+	return m.createErr
 }
 
 func TestCreateAdmin(t *testing.T) {
