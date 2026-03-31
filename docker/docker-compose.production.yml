@@ -54,6 +54,7 @@ services:
       - "${FRONTEND_PORT:-3030}:3000"
     environment:
       NUXT_API_BASE: "http://esmeralda-api:8080"
+      NUXT_SESSION_PASSWORD: ${NUXT_SESSION_PASSWORD}
     depends_on:
       - api
 
