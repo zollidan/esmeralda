@@ -21,20 +21,31 @@ import (
 
 func main() {
 	cfg := config.Load()
+	log.Printf("config loaded: redis=%s workers=%d games_limit=%d parser_port=%s",
+		cfg.RedisAddr, cfg.Tech.Workers, cfg.Tech.GamesLimit, cfg.Tech.ParserPort)
 
 	rdb := redis.NewClient(&redis.Options{Addr: cfg.RedisAddr})
+	if err := rdb.Ping(context.Background()).Err(); err != nil {
+		log.Fatalf("redis ping failed: %v", err)
+	}
+	log.Printf("redis connected: %s", cfg.RedisAddr)
 
 	client := api.NewClient(cfg.SportAPIRU.BaseURL, cfg.SportAPIRU.Token)
+	log.Printf("sport api client created: base_url=%s", cfg.SportAPIRU.BaseURL)
+
 	database, err := db.New(cfg)
 	if err != nil {
 		log.Fatalf("connect to database: %v", err)
 	}
+	log.Println("database connected")
 
 	gameRepo := repository.NewGameRepository(database)
 
 	parseConsumer := queue.NewConsumer(rdb, queue.StreamParse, "parse_group", "parse_consumer")
 	resultsProducer := queue.NewProducer(rdb, queue.StreamResults)
 	progressProducer := queue.NewProducer(rdb, queue.StreamProgress)
+	log.Printf("queues initialized: parse=%s results=%s progress=%s",
+		queue.StreamParse, queue.StreamResults, queue.StreamProgress)
 
 	consumeProcess := processor.Init(client, gameRepo, resultsProducer, progressProducer, cfg.Tech.Workers, cfg.Tech.GamesLimit)
 
@@ -57,15 +68,18 @@ func main() {
 			ReadHeaderTimeout: 5 * time.Second,
 		}
 
-		if err := srv.ListenAndServe(); err != nil {
-			log.Printf("health server: %v", err)
+		log.Printf("health server listening on %s", cfg.Tech.ParserPort)
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Printf("health server error: %v", err)
 		}
 	}()
 
-	log.Println("Processor started")
+	log.Println("processor started, waiting for tasks...")
 	err = parseConsumer.Consume(ctx, consumeProcess.ProcessParseTask)
 
 	if err != nil && !errors.Is(err, context.Canceled) {
-		log.Print(err)
+		log.Printf("consumer stopped with error: %v", err)
+	} else {
+		log.Println("processor stopped gracefully")
 	}
 }
