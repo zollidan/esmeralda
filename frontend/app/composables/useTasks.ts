@@ -41,17 +41,17 @@ export function useTasks() {
     }
   }
 
-  const exportToExcel = async (taskDate: string) => {
+  const exportToExcel = async (taskDate: string, format: 'xlsx' | 'csv' = 'xlsx') => {
     try {
       const res = await fetch(
-        `/api/export?date_start=${taskDate}&date_end=${taskDate}`,
+        `/api/export?date_start=${taskDate}&date_end=${taskDate}&format=${format}`,
       )
       if (!res.ok) throw new Error(`export failed: ${res.status}`)
       const blob = await res.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `matches-${taskDate}.xlsx`
+      a.download = `matches-${taskDate}.${format}`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
