@@ -12,18 +12,6 @@ env:
   IMAGE_PREFIX: ghcr.io/zollidan
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-
-      - name: Run tests
-        run: go test ./...
-
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -39,8 +27,21 @@ jobs:
           version: v2.10.1
           args: --fix --timeout=5m
 
+  test:
+    needs: [lint]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Run tests
+        run: go test ./...
+
   build-and-push:
-    needs: [test, lint]
+    needs: [test]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:

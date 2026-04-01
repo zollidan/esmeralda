@@ -41,5 +41,9 @@ func SetupRoutes(r *gin.Engine, h *Handler) {
 			archive.GET("/", h.GetArchiveGames)
 			archive.POST("/upload", h.UploadArchiveGames)
 		}
+		sportRUAPIHealth := api.Group("/sportru")
+		{
+			sportRUAPIHealth.GET("/health", h.SportRUAPIHealth)
+		}
 	}
 }

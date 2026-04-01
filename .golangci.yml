@@ -9,6 +9,13 @@ linters:
     paths:
       - "frontend/node_modules/.*"
       - "node_modules/.*"
+      - vendor
+      - tmp
+    rules:
+      - path: _test\.go
+        linters:
+          - errcheck
+          - gosec
   enable:
     # базовые проверки
     - govet
@@ -48,37 +55,25 @@ linters:
     # структурные проблемы
     - wastedassign
 
-linters-settings:
-  revive:
-    severity: warning
-    rules:
-      - name: indent-error-flow
-      - name: error-return
-      - name: error-naming
-      - name: var-naming
-      - name: receiver-naming
+  settings:
+    revive:
+      severity: warning
+      rules:
+        - name: indent-error-flow
+        - name: error-return
+        - name: error-naming
+        - name: var-naming
+        - name: receiver-naming
 
-  gocritic:
-    enabled-tags:
-      - performance
-      - style
-      - diagnostic
+    gocritic:
+      enabled-tags:
+        - performance
+        - style
+        - diagnostic
 
-  gosec:
-    excludes:
-      - G404
-
-issues:
-  exclude-dirs:
-    - vendor
-    - node_modules
-    - tmp
-
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - errcheck
-        - gosec
+    gosec:
+      excludes:
+        - G404
 
 formatters:
   enable:
@@ -87,7 +82,7 @@ formatters:
 
 output:
   formats:
-    colored-line-number:
+    - format: text
       path: stdout
 
   sort-order:
@@ -95,5 +90,3 @@ output:
     - linter
 
   show-stats: true
-  print-issued-lines: true
-  print-linter-name: true

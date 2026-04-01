@@ -28,6 +28,15 @@ definitions:
       refresh_token:
         type: string
     type: object
+  server.SportRUHealthResponse:
+    properties:
+      error:
+        type: string
+      latency_ms:
+        type: integer
+      status:
+        type: string
+    type: object
   server.createTaskRequest:
     properties:
       date:
@@ -52,6 +61,18 @@ info:
   title: Esmeralda API
   version: "1.0"
 paths:
+  /api/sportru/health:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.SportRUHealthResponse'
+      summary: Health check внешнего SportRU API
+      tags:
+      - sportru
   /archive/:
     get:
       description: Возвращает архивные матчи (эндпоинт в разработке)

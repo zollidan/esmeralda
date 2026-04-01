@@ -46,7 +46,6 @@ onUnmounted(() => {
           Выйти
         </button>
       </div>
-
       <button
         class="px-6 py-2 my-4 rounded-lg font-medium text-white transition bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-600 disabled:cursor-not-allowed"
         @click="visible = !visible"
