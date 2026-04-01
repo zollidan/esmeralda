@@ -50,13 +50,17 @@ func (p *Processor) ProcessParseTask(ctx context.Context, payload []byte) error 
 
 	matches, _, err := p.apiClient.GetMatches(api.MatchesFilter{Date: date})
 	if err != nil {
+		log.Printf("task %s: failed to fetch matches for %s: %v", task.ID, task.Date, err)
 		return p.publishResult(ctx, task.ID, queue.StatusError, err.Error())
 	}
+	log.Printf("task %s: fetched %d matches for %s", task.ID, len(matches), task.Date)
 
 	if err := p.ProcessMatches(ctx, p.apiClient, p.games, matches, task.ID); err != nil {
+		log.Printf("task %s: ProcessMatches failed: %v", task.ID, err)
 		return p.publishResult(ctx, task.ID, queue.StatusError, err.Error())
 	}
 
+	log.Printf("task %s: done", task.ID)
 	return p.publishResult(ctx, task.ID, queue.StatusDone, "")
 }
 

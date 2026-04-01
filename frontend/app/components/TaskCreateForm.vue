@@ -13,9 +13,9 @@ const emit = defineEmits<{
 <template>
   <section
     v-if="visible"
-    class="bg-white rounded-lg shadow-md p-6 mb-8"
+    class="mb-8 p-6 rounded-lg shadow-md transition-colors bg-white dark:bg-slate-800"
   >
-    <h2 class="text-xl font-semibold text-slate-700 mb-4">
+    <h2 class="text-xl font-semibold mb-4 text-slate-700 dark:text-white">
       Создать новую задачу
     </h2>
 
@@ -23,21 +23,22 @@ const emit = defineEmits<{
       <div class="flex-1">
         <label
           for="date"
-          class="block text-sm font-medium text-slate-700 mb-2"
+          class="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-300"
         >
           выбор даты
         </label>
+
         <input
           id="date"
           v-model="date"
           type="date"
-          class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+          class="w-full px-4 py-2 rounded-lg border transition border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
         >
       </div>
 
       <button
         :disabled="!date"
-        class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition"
+        class="px-6 py-2 rounded-lg font-medium text-white transition bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-600 disabled:cursor-not-allowed"
         @click="emit('submit')"
       >
         Создать

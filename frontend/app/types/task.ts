@@ -10,3 +10,8 @@ export type ProgressBar = {
   percent: number
   message: string
 }
+
+export type SportRuAPIStatus = {
+  status: string
+  latency_ms: number
+}

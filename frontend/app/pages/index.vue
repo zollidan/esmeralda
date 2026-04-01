@@ -30,22 +30,24 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <main class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+  <main
+    class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 transition-colors duration-300"
+  >
     <div class="max-w-6xl mx-auto px-4 py-8">
       <div class="flex items-center justify-between mb-8">
-        <h1 class="text-4xl font-bold text-slate-800">
+        <h1 class="text-4xl font-bold text-slate-800 dark:text-white">
           aaf-bet.ru
         </h1>
+
         <button
-          class="px-4 py-2 bg-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-300 transition"
+          class="px-4 py-2 rounded-lg font-medium transition bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
           @click="logout"
         >
           Выйти
         </button>
       </div>
-
       <button
-        class="px-6 py-2 my-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition"
+        class="px-6 py-2 my-4 rounded-lg font-medium text-white transition bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-600 disabled:cursor-not-allowed"
         @click="visible = !visible"
       >
         {{ visible ? "Скрыть" : "Создать новую задачу" }}
