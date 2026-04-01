@@ -82,7 +82,7 @@ formatters:
 
 output:
   formats:
-    - format: text
+    text:
       path: stdout
 
   sort-order:
