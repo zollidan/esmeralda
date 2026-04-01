@@ -1,22 +1,26 @@
 package server
 
 import (
+	"encoding/csv"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/xuri/excelize/v2"
+	"github.com/zollidan/esmeralda/internal/models"
 	"github.com/zollidan/esmeralda/internal/stats"
 )
 
 // ExportGames godoc
-// @Summary      Экспортировать матчи в Excel
-// @Description  Формирует XLSX файл по матчам за период date_start - date_end
+// @Summary      Экспортировать матчи
+// @Description  Формирует файл по матчам за период date_start - date_end. Формат: xlsx (по умолчанию) или csv.
 // @Tags         export
 // @Produce      application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-// @Param        date_start  query     string  true  "Дата начала периода (YYYY-MM-DD)"
-// @Param        date_end    query     string  true  "Дата конца периода (YYYY-MM-DD)"
+// @Produce      text/csv
+// @Param        date_start  query     string  true   "Дата начала периода (YYYY-MM-DD)"
+// @Param        date_end    query     string  true   "Дата конца периода (YYYY-MM-DD)"
+// @Param        format      query     string  false  "Формат файла: xlsx или csv (по умолчанию xlsx)"
 // @Success      200         {file}    file
 // @Failure      400         {object}  errorResponse
 // @Failure      404         {object}  errorResponse
@@ -26,9 +30,15 @@ import (
 func (h *Handler) ExportGames(c *gin.Context) {
 	dateStartStr := c.Query("date_start")
 	dateEndStr := c.Query("date_end")
+	format := c.DefaultQuery("format", "xlsx")
 
 	if dateStartStr == "" || dateEndStr == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "параметры date_start и date_end обязательны (формат: YYYY-MM-DD)"})
+		return
+	}
+
+	if format != "xlsx" && format != "csv" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "параметр format должен быть xlsx или csv"})
 		return
 	}
 
@@ -64,6 +74,25 @@ func (h *Handler) ExportGames(c *gin.Context) {
 		return
 	}
 
+	switch format {
+	case "csv":
+		filename := fmt.Sprintf("esmeralda_%s_%s.csv", dateStartStr, dateEndStr)
+		c.Header("Content-Type", "text/csv; charset=utf-8")
+		c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
+		if err := writeCSV(c.Writer, games); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось сформировать CSV файл"})
+		}
+	default:
+		filename := fmt.Sprintf("esmeralda_%s_%s.xlsx", dateStartStr, dateEndStr)
+		c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+		c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
+		if err := writeXLSX(c.Writer, games); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось сформировать Excel файл"})
+		}
+	}
+}
+
+func writeXLSX(w http.ResponseWriter, games []models.Game) error {
 	f := excelize.NewFile()
 	defer func() {
 		_ = f.Close()
@@ -71,16 +100,14 @@ func (h *Handler) ExportGames(c *gin.Context) {
 
 	sheet := "Games"
 	if err := f.SetSheetName("Sheet1", sheet); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось подготовить лист Excel"})
-		return
+		return err
 	}
 
 	headers := stats.Headers()
 	for col, header := range headers {
 		cell, _ := excelize.CoordinatesToCellName(col+1, 1)
 		if err := f.SetCellValue(sheet, cell, header); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось записать заголовки Excel"})
-			return
+			return err
 		}
 	}
 
@@ -89,18 +116,32 @@ func (h *Handler) ExportGames(c *gin.Context) {
 		for col, val := range values {
 			cell, _ := excelize.CoordinatesToCellName(col+1, rowIdx+2)
 			if err := f.SetCellValue(sheet, cell, val); err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось записать данные Excel"})
-				return
+				return err
 			}
 		}
 	}
 
-	filename := fmt.Sprintf("esmeralda_%s_%s.xlsx", dateStartStr, dateEndStr)
-	c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-	c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
+	return f.Write(w)
+}
 
-	if err := f.Write(c.Writer); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "не удалось сформировать Excel файл"})
-		return
+func writeCSV(w http.ResponseWriter, games []models.Game) error {
+	cw := csv.NewWriter(w)
+
+	if err := cw.Write(stats.Headers()); err != nil {
+		return err
 	}
+
+	for _, game := range games {
+		values := stats.GameToSlice(&game)
+		row := make([]string, len(values))
+		for i, v := range values {
+			row[i] = fmt.Sprintf("%v", v)
+		}
+		if err := cw.Write(row); err != nil {
+			return err
+		}
+	}
+
+	cw.Flush()
+	return cw.Error()
 }
