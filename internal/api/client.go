@@ -39,7 +39,7 @@ func (c *Client) get(path string, params url.Values, out interface{}) error {
 		fullURL += "?" + params.Encode()
 	}
 
-	req, err := http.NewRequestWithContext(context.Background(), "GET", fullURL, nil)
+	req, err := http.NewRequestWithContext(context.Background(), "GET", fullURL, http.NoBody)
 	if err != nil {
 		return fmt.Errorf("create request: %w", err)
 	}

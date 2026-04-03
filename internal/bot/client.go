@@ -17,7 +17,7 @@ import (
 func (b *Bot) ListTasks() ([]models.Task, error) {
 	var taskList []models.Task
 
-	req, err := http.NewRequestWithContext(context.Background(), "GET", b.cfg.TelegramBot.APIBaseURL+"/api/tasks", nil)
+	req, err := http.NewRequestWithContext(context.Background(), "GET", b.cfg.TelegramBot.APIBaseURL+"/api/tasks", http.NoBody)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (b *Bot) CreateTask(taskDate string) (*queue.ParseTask, error) {
 }
 
 func (b *Bot) GetTask(taskID string) (*models.Task, error) {
-	req, err := http.NewRequestWithContext(context.Background(), "GET", b.cfg.TelegramBot.APIBaseURL+"/api/tasks/"+taskID, nil)
+	req, err := http.NewRequestWithContext(context.Background(), "GET", b.cfg.TelegramBot.APIBaseURL+"/api/tasks/"+taskID, http.NoBody)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +146,7 @@ func (b *Bot) WaitForTask(taskID string, pollInterval, timeout time.Duration) (*
 
 func (b *Bot) DownloadExport(date string) ([]byte, string, error) {
 	url := fmt.Sprintf("%s/api/export?date_start=%s&date_end=%s", b.cfg.TelegramBot.APIBaseURL, date, date)
-	req, err := http.NewRequestWithContext(context.Background(), "GET", url, nil)
+	req, err := http.NewRequestWithContext(context.Background(), "GET", url, http.NoBody)
 	if err != nil {
 		return nil, "", err
 	}
