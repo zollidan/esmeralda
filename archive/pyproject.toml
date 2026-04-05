@@ -1,0 +1,19 @@
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+
+[project]
+name = "archive"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi[standard,standart]>=0.135.3",
+    "pydantic>=2.12.5",
+    "sqlalchemy>=2.0.48",
+]
